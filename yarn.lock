@@ -1673,9 +1673,9 @@ ecc-jsbn@~0.1.1:
   version "0.0.0"
   resolved "git://github.com/minishift/minishift#0efa5d527d77a7651eac75a4861097ab4a203f43"
 
-"eclipse-che-operator@git://github.com/eclipse/che-operator#7.3.1":
+"eclipse-che-operator@git://github.com/redhat-developer/codeready-workspaces-operator#master":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che-operator#d4d7df7df4a4627aa212158be18ff94f867e8dc7"
+  resolved "git://github.com/redhat-developer/codeready-workspaces-operator#f765f8a17c2cdca9539534d4fdaa2e59c063d72e"
 
 "eclipse-che@git://github.com/eclipse/che#7.3.1":
   version "0.0.0"
