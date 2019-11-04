@@ -8,7 +8,7 @@
 def installNPM(){
 	def nodeHome = tool 'nodejs-10.15.3'
 	env.PATH="${env.PATH}:${nodeHome}/bin"
-	sh "sudo npm install -g yarn && sudo yarn global add cpx rimraf oclif && yarn install -f oclif-dev"
+	sh "sudo npm install -g yarn"
 	sh "npm version && npm -v && yarn -v"
 }
 
