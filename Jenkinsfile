@@ -14,7 +14,7 @@ def installNPM(){
 
 // TODO: re-add win-x64; fails due to missing 7zip: "Error: install 7-zip to package windows tarball"
 def platforms = "linux-x64,darwin-x64,linux-arm"
-def CTL_path = "chectl"
+def CTL_path = "codeready-workspaces-chectl"
 def SHA_CTL = "SHA_CTL"
 timeout(180) {
 	node("rhel7-releng"){ stage "Build ${CTL_path}"
