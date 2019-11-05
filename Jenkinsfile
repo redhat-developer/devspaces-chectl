@@ -7,9 +7,8 @@
 
 def installNPM(){
 	def nodeHome = tool 'nodejs-10.15.3'
-	env.PATH="${env.PATH}:${nodeHome}/bin"
-	sh "sudo -E npm install -g yarn"
-	sh "sudo -E npm version && sudo -E npm -v && sudo -E yarn -v"
+	env.PATH="${nodeHome}/bin:${env.PATH}"
+	sh "node --version && npm version && yarn -v"
 }
 
 // TODO: re-add win-x64; fails due to missing 7zip: "Error: install 7-zip to package windows tarball"
