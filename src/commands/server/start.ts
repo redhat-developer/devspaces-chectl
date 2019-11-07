@@ -19,7 +19,7 @@ import { cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
 import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { InstallerTasks } from '../../tasks/installers/installer'
-import { K8sTasks } from '../../tasks/platforms/k8s'
+import { OpenshiftTasks } from '../../tasks/platforms/openshift'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 
 export default class Start extends Command {
@@ -83,14 +83,14 @@ export default class Start extends Command {
     }),
     platform: string({
       char: 'p',
-      description: 'Type of Kubernetes platform. Valid values are \"minikube\", \"minishift\", \"k8s (for kubernetes)\", \"openshift\", \"crc (for CodeReady Containers)\", \"microk8s\".',
-      options: ['minikube', 'minishift', 'k8s', 'openshift', 'microk8s', 'docker-desktop', 'crc'],
+      description: 'Type of OpenShift platform. Valid values are \"openshift\", \"crc (for CodeReady Containers)\".',
+      options: ['openshift', 'crc'],
     }),
     installer: string({
       char: 'a',
       description: 'Installer type',
-      options: ['helm', 'operator', 'minishift-addon'],
-      default: ''
+      options: ['operator'],
+      default: 'operator'
     }),
     domain: string({
       char: 'b',
@@ -124,37 +124,7 @@ export default class Start extends Command {
   }
 
   static setPlaformDefaults(flags: any) {
-    if (flags.platform === 'minishift') {
-      if (!flags.multiuser && flags.installer === '') {
-        flags.installer = 'minishift-addon'
-      }
-      if (flags.multiuser && flags.installer === '') {
-        flags.installer = 'operator'
-      }
-    } else if (flags.platform === 'minikube') {
-      if (!flags.multiuser && flags.installer === '') {
-        flags.installer = 'helm'
-      }
-      if (flags.multiuser && flags.installer === '') {
-        flags.installer = 'operator'
-      }
-    } else if (flags.platform === 'openshift') {
-      if (flags.installer === '') {
-        flags.installer = 'operator'
-      }
-    } else if (flags.platform === 'k8s') {
-      if (flags.installer === '') {
-        flags.installer = 'helm'
-      }
-    } else if (flags.platform === 'docker-desktop') {
-      if (flags.installer === '') {
-        flags.installer = 'helm'
-      }
-    } else if (flags.platform === 'crc') {
-      if (flags.installer === '') {
-        flags.installer = 'operator'
-      }
-    }
+    flags.installer = 'operator'
   }
 
   checkPlatformCompatibility(flags: any) {
@@ -187,14 +157,14 @@ export default class Start extends Command {
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()
     const installerTasks = new InstallerTasks()
-    const k8sTasks = new K8sTasks()
+    const openShiftTasks = new OpenshiftTasks()
 
     // Platform Checks
     let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), listrOptions)
 
     // Checks if Che is already deployed
     let preInstallTasks = new Listr(undefined, listrOptions)
-    preInstallTasks.add(k8sTasks.testApiTasks(flags, this))
+    preInstallTasks.add(openShiftTasks.testApiTasks(flags, this))
     preInstallTasks.add({
       title: '👀  Looking for an already existing Che instance',
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
@@ -227,7 +197,7 @@ export default class Start extends Command {
         || (ctx.isKeycloakDeployed && !ctx.isKeycloakReady)
         || (ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryReady)
         || (ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryReady)) {
-        if (flags.platform || flags.installer) {
+        if (flags.platform) {
           this.warn('Deployed Che is found and the specified installation parameters will be ignored')
         }
         // perform Che start task if there is any component that is not ready

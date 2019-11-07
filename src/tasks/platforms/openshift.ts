@@ -13,7 +13,32 @@ import * as commandExists from 'command-exists'
 import * as execa from 'execa'
 import * as Listr from 'listr'
 
+import { KubeHelper } from '../../api/kube'
+
 export class OpenshiftTasks {
+  /**
+   * Returns tasks which tests if K8s or OpenShift API is configured in the current context.
+   *
+   * `isOpenShift` property is provisioned into context.
+   */
+  testApiTasks(flags: any, command: Command): Listr.ListrTask {
+    let kube = new KubeHelper(flags)
+    return {
+      title: 'Verify OpenShift API',
+      task: async (ctx: any, task: any) => {
+        try {
+          await kube.checkKubeApi()
+          ctx.isOpenShift = await kube.isOpenShift()
+          task.title = await `${task.title}...OK`
+          if (ctx.isOpenShift) {
+            task.title = await `${task.title} (it's OpenShift)`
+          }
+        } catch (error) {
+          command.error(`Failed to connect to Kubernetes API. ${error.message}`)
+        }
+      }
+    }
+  }
   /**
    * Returns tasks list which perform preflight platform checks.
    */
