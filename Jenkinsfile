@@ -31,10 +31,11 @@ timeout(180) {
         def SHORT_SHA1=sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short HEAD").trim()
         def CHECTL_VERSION="0.0.$CURRENT_DAY-next"
         def GITHUB_RELEASE_NAME="0.0.$CURRENT_DAY-next.${SHORT_SHA1}"
+		def CUSTOM_TAG=sh(returnStdout:true,script:"date +'%Y%m%d%H%M%S'").trim()
 		SHA_CTL = sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short=4 HEAD").trim()
 		sh "cd ${CTL_path}/ && sed -i -e 's#version\": \"\\(.*\\)\",#version\": \"'${CHECTL_VERSION}'\",#' package.json"
 		sh "cd ${CTL_path}/ && egrep -v 'versioned|oclif' package.json | grep -e version"
-        sh "cd ${CTL_path}/ && git tag ${TRAVIS_TAG}"
+        sh "cd ${CTL_path}/ && git tag '${CUSTOM_TAG}'"
 		sh "cd ${CTL_path}/ && yarn && npx oclif-dev pack -t ${platforms} && find ./dist/ -name \"*.tar*\""
 		sh "cd ${CTL_path}/ && git clone https://github.com/che-incubator/chectl -b gh-pages --single-branch gh-pages"
 		sh "cd ${CTL_path}/ && rm -rf gh-pages/.git"
