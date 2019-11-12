@@ -23,7 +23,7 @@ import { OpenshiftTasks } from '../../tasks/platforms/openshift'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 
 export default class Start extends Command {
-  static description = 'start Eclipse Che Server'
+  static description = 'start CodeReady Workspaces Server'
 
   static flags = {
     help: flags.help({ char: 'h' }),
@@ -32,7 +32,7 @@ export default class Start extends Command {
     'deployment-name': cheDeployment,
     cheimage: string({
       char: 'i',
-      description: 'Che server container image',
+      description: 'CodeReady Workspaces server container image',
       default: DEFAULT_CHE_IMAGE,
       env: 'CHE_CONTAINER_IMAGE'
     }),
@@ -52,7 +52,7 @@ export default class Start extends Command {
     }),
     cheboottimeout: string({
       char: 'o',
-      description: 'Che server bootstrap timeout (in milliseconds)',
+      description: 'CodeReady Workspaces server bootstrap timeout (in milliseconds)',
       default: '40000',
       required: true,
       env: 'CHE_SERVER_BOOT_TIMEOUT'
@@ -67,7 +67,7 @@ export default class Start extends Command {
     }),
     multiuser: flags.boolean({
       char: 'm',
-      description: 'Starts che in multi-user mode',
+      description: 'Starts CodeReady Workspaces in multi-user mode',
       default: false
     }),
     tls: flags.boolean({
@@ -85,6 +85,7 @@ export default class Start extends Command {
       char: 'p',
       description: 'Type of OpenShift platform. Valid values are \"openshift\", \"crc (for CodeReady Containers)\".',
       options: ['openshift', 'crc'],
+      default: 'openshift'
     }),
     installer: string({
       char: 'a',
@@ -98,7 +99,7 @@ export default class Start extends Command {
       default: ''
     }),
     'os-oauth': flags.boolean({
-      description: 'Enable use of OpenShift credentials to log into Che',
+      description: 'Enable use of OpenShift credentials to log into CodeReady Workspaces',
       default: false
     }),
     'che-operator-image': string({
@@ -162,11 +163,11 @@ export default class Start extends Command {
     // Platform Checks
     let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), listrOptions)
 
-    // Checks if Che is already deployed
+    // Checks if CodeReady Workspaces is already deployed
     let preInstallTasks = new Listr(undefined, listrOptions)
     preInstallTasks.add(openShiftTasks.testApiTasks(flags, this))
     preInstallTasks.add({
-      title: '👀  Looking for an already existing Che instance',
+      title: '👀  Looking for an already existing CodeReady Workspaces instance',
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     })
 
@@ -174,7 +175,7 @@ export default class Start extends Command {
     let installTasks = new Listr(installerTasks.installTasks(flags, this), listrOptions)
 
     const startDeployedCheTasks = new Listr([{
-      title: '👀  Starting already deployed Che',
+      title: '👀  Starting already deployed CodeReady Workspaces',
       task: () => new Listr(cheTasks.scaleCheUpTasks(this))
     }], listrOptions)
 
@@ -198,9 +199,9 @@ export default class Start extends Command {
         || (ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryReady)
         || (ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryReady)) {
         if (flags.platform) {
-          this.warn('Deployed Che is found and the specified installation parameters will be ignored')
+          this.warn('Deployed CodeReady Workspaces is found and the specified installation parameters will be ignored')
         }
-        // perform Che start task if there is any component that is not ready
+        // perform CodeReady Workspaces start task if there is any component that is not ready
         await startDeployedCheTasks.run(ctx)
       }
 
@@ -211,7 +212,7 @@ export default class Start extends Command {
     }
 
     notifier.notify({
-      title: 'chectl',
+      title: 'crwctl',
       message: 'Command server:start has completed successfully.'
     })
 

@@ -20,7 +20,7 @@ import { CheHelper } from '../../api/che'
 import { cheNamespace, listrRenderer } from '../../common-flags'
 
 export default class Inject extends Command {
-  static description = 'inject configurations and tokens in a Che Workspace'
+  static description = 'inject configurations and tokens in a workspace'
 
   static flags = {
     help: flags.help({ char: 'h' }),
@@ -30,11 +30,11 @@ export default class Inject extends Command {
     }),
     workspace: string({
       char: 'w',
-      description: 'Target workspace. Can be omitted if only one Workspace is running'
+      description: 'Target workspace. Can be omitted if only one workspace is running'
     }),
     container: string({
       char: 'c',
-      description: 'Target container. If not specified, configuration files will be injected in all containers of a Che Workspace pod',
+      description: 'Target container. If not specified, configuration files will be injected in all containers of a workspace pod',
       required: false
     }),
     chenamespace: cheNamespace,
@@ -50,7 +50,7 @@ export default class Inject extends Command {
         title: `Verify if namespace ${flags.chenamespace} exists`,
         task: async () => {
           if (!await che.cheNamespaceExist(flags.chenamespace)) {
-            this.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist. The configuration cannot be injected.\nFix with: verify the namespace where Che workspace is running (kubectl get --all-namespaces deployment | grep workspace)`, { code: 'EBADNS' })
+            this.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist. The configuration cannot be injected.\nFix with: verify the namespace where workspace is running (kubectl get --all-namespaces deployment | grep workspace)`, { code: 'EBADNS' })
           }
         }
       },
@@ -87,7 +87,7 @@ export default class Inject extends Command {
     }
 
     notifier.notify({
-      title: 'chectl',
+      title: 'crwctl',
       message: `Command ${this.id} has completed.`
     })
   }
