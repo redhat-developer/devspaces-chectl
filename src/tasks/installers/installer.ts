@@ -22,7 +22,7 @@ export class InstallerTasks {
 
     // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
-      title = '🏃‍  Running the Che Operator Update'
+      title = '🏃‍  Running the CodeReady Workspaces Operator Update'
       task = () => {
         return operatorTasks.updateTasks(flags, command)
       }
@@ -45,7 +45,7 @@ export class InstallerTasks {
 
     // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
-      title = '🏃‍  Running the Che Operator Update'
+      title = '🏃‍  Running the CodeReady Workspaces Operator Update'
       task = () => {
         return operatorTasks.preUpdateTasks(flags, command)
       }
@@ -68,11 +68,11 @@ export class InstallerTasks {
 
     // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
-      title = '🏃‍  Running the Che Operator'
+      title = '🏃‍  Running the CodeReady Workspaces Operator'
       task = () => {
-        // The operator installs Che multiuser only
+        // The operator installs CodeReady Workspaces multiuser only
         if (!flags.multiuser) {
-          command.warn("Che will be deployed in Multi-User mode since Configured 'operator' installer which support only such.")
+          command.warn("CodeReady Workspaces will be deployed in Multi-User mode since Configured 'operator' installer which support only such.")
           flags.multiuser = true
         }
 

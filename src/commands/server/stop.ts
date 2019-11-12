@@ -16,14 +16,14 @@ import { CheTasks } from '../../tasks/che'
 import { OpenshiftTasks } from '../../tasks/platforms/openshift'
 
 export default class Stop extends Command {
-  static description = 'stop Eclipse Che Server'
+  static description = 'stop CodeReady Workspaces Server'
 
   static flags = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'deployment-name': cheDeployment,
     'che-selector': string({
-      description: 'Selector for Che Server resources',
+      description: 'Selector for CodeReady Workspaces Server resources',
       default: 'app=che,component=che',
       env: 'CHE_SELECTOR'
     }),
@@ -52,16 +52,16 @@ export default class Stop extends Command {
         title: 'Deployment doesn\'t exist',
         enabled: (ctx: any) => !ctx.isCheDeployed,
         task: async () => {
-          await this.error(`E_BAD_DEPLOY - Deployment do not exist.\nA Deployment named "${flags['deployment-name']}" exist in namespace \"${flags.chenamespace}\", Che Server cannot be stopped.\nFix with: verify the namespace where Che is running (oc get projects)\nhttps://github.com/eclipse/che`, { code: 'E_BAD_DEPLOY' })
+          await this.error(`E_BAD_DEPLOY - Deployment do not exist.\nA Deployment named "${flags['deployment-name']}" exist in namespace \"${flags.chenamespace}\", CodeReady Workspaces Server cannot be stopped.\nFix with: verify the namespace where CodeReady Workspaces is running (oc get projects)\nhttps://github.com/eclipse/che`, { code: 'E_BAD_DEPLOY' })
         }
       },
       {
-        title: 'Che server was already stopped',
+        title: 'CodeReady Workspaces server was already stopped',
         enabled: (ctx: any) => (ctx.isStopped),
         task: async () => { }
       },
       {
-        title: 'Che server Pod is not ready. It may be failing to start. Skipping shutdown request',
+        title: 'CodeReady Workspaces server Pod is not ready. It may be failing to start. Skipping shutdown request',
         enabled: (ctx: any) => (ctx.isNotReadyYet),
         task: async () => { }
       }
@@ -77,7 +77,7 @@ export default class Stop extends Command {
     }
 
     notifier.notify({
-      title: 'chectl',
+      title: 'crwctl',
       message: 'Command server:stop has completed.'
     })
 

@@ -17,7 +17,7 @@ export const cheNamespace = string({
 })
 
 export const cheDeployment = string({
-  description: 'Che deployment name',
+  description: 'CodeReady Workspaces deployment name',
   default: 'codeready',
   env: 'CHE_DEPLOYMENT'
 })
@@ -29,6 +29,6 @@ export const listrRenderer = string({
 })
 
 export const accessToken = string({
-  description: 'Che OIDC Access Token',
+  description: 'CodeReady Workspaces OIDC Access Token',
   env: 'CHE_ACCESS_TOKEN'
 })
