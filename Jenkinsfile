@@ -38,7 +38,7 @@ timeout(180) {
 		sh "cd ${CTL_path}/ && yarn && npx oclif-dev pack -t ${platforms} && find ./dist/ -name \"*.tar*\""
 		sh "cd ${CTL_path}/ && git clone https://github.com/che-incubator/chectl -b gh-pages --single-branch gh-pages"
 		sh "cd ${CTL_path}/ && rm -rf gh-pages/.git"
-		sh "cd ${CTL_path}/ && echo $(date +%s) > gh-pages/update"
+		sh "cd ${CTL_path}/ && echo \$(date +%s) > gh-pages/update"
 		stash name: 'stashDist', includes: findFiles(glob: "${CTL_path}/dist/").join(", ")
 	}
 }
