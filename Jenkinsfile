@@ -15,6 +15,7 @@ def installNPM(){
 def platforms = "linux-x64,darwin-x64,linux-arm"
 def CTL_path = "codeready-workspaces-chectl"
 def SHA_CTL = "SHA_CTL"
+
 timeout(180) {
 	node("rhel7-releng"){ stage "Build ${CTL_path}"
 		cleanWs()
@@ -26,10 +27,18 @@ timeout(180) {
 			submoduleCfg: [], 
 			userRemoteConfigs: [[url: "https://github.com/redhat-developer/${CTL_path}.git"]]])
 		installNPM()
+		CURRENT_DAY=sh(returnStdout:true,script:"date +'%Y%m%d'")
+        SHORT_SHA1=sh(returnStdout:true,script:"cd ${CTL_path}/git rev-parse --short HEAD").trim()
+        def CHECTL_VERSION="0.0.$CURRENT_DAY-next"
+        def GITHUB_RELEASE_NAME="0.0.$CURRENT_DAY-next.${SHORT_SHA1}"
 		SHA_CTL = sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short=4 HEAD").trim()
-		sh "cd ${CTL_path}/ && sed -i -e 's#version\": \"\\(.*\\)\",#version\": \"\\1-'${SHA_CTL}'\",#' package.json"
+		sh "cd ${CTL_path}/ && sed -i -e 's#version\":\ \"\(.*\)\",#version\":\ \"${CHECTL_VERSION}\",#g' package.json"
 		sh "cd ${CTL_path}/ && egrep -v 'versioned|oclif' package.json | grep -e version"
+        sh "cd ${CTL_path}/ && git tag ${TRAVIS_TAG}"
 		sh "cd ${CTL_path}/ && yarn && npx oclif-dev pack -t ${platforms} && find ./dist/ -name \"*.tar*\""
+		sh "cd ${CTL_path}/ && git clone https://github.com/che-incubator/chectl -b gh-pages --single-branch gh-pages"
+		sh "cd ${CTL_path}/ && rm -rf gh-pages/.git"
+		sh "cd ${CTL_path}/ && echo $(date +%s) > gh-pages/update"
 		stash name: 'stashDist', includes: findFiles(glob: "${CTL_path}/dist/").join(", ")
 	}
 }
