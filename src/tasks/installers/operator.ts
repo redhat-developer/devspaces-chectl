@@ -21,14 +21,14 @@ import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 
 export class OperatorTasks {
-  operatorServiceAccount = 'che-operator'
-  operatorRole = 'che-operator'
-  operatorClusterRole = 'che-operator'
-  operatorRoleBinding = 'che-operator'
-  operatorClusterRoleBinding = 'che-operator'
+  operatorServiceAccount = 'codeready-operator'
+  operatorRole = 'codeready-operator'
+  operatorClusterRole = 'codeready-operator'
+  operatorRoleBinding = 'codeready-operator'
+  operatorClusterRoleBinding = 'codeready-operator'
   cheClusterCrd = 'checlusters.org.eclipse.che'
-  operatorName = 'che-operator'
-  operatorCheCluster = 'eclipse-che'
+  operatorName = 'codeready-operator'
+  operatorCheCluster = 'codeready-workspaces'
   resourcesPath = ''
 
   /**
