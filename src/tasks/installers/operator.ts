@@ -163,13 +163,13 @@ export class OperatorTasks {
         }
       },
       {
-        title: `Create Che Cluster ${this.operatorCheCluster} in namespace ${flags.chenamespace}`,
+        title: `Create CodeReady Workspaces Cluster ${this.operatorCheCluster} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
           const exist = await kube.cheClusterExist(this.operatorCheCluster, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            // Che Operator supports only Multi-User Che
+            // CodeReady Workspaces Operator supports only Multi-User Che
             ctx.isCheDeployed = true
             ctx.isPostgresDeployed = true
             ctx.isKeycloakDeployed = true
@@ -195,7 +195,7 @@ export class OperatorTasks {
         task: async (ctx: any, _task: any) => {
           const operatorDeployment = await kube.getDeployment(this.operatorName, flags.chenamespace)
           if (!operatorDeployment) {
-            command.error(`${this.operatorName} deployment is not found in namespace ${flags.chenamespace}.\nProbably Che was initially deployed with another installer`)
+            command.error(`${this.operatorName} deployment is not found in namespace ${flags.chenamespace}.\nProbably CodeReady Workspaces was initially deployed with another installer`)
             return
           }
           const deployedCheOperator = this.retrieveContainerImage(operatorDeployment)
@@ -302,7 +302,7 @@ export class OperatorTasks {
         }
       },
       {
-        title: `Updating Che Cluster CRD ${this.cheClusterCrd}`,
+        title: `Updating CodeReady Workspaces Cluster CRD ${this.cheClusterCrd}`,
         task: async (_ctx: any, task: any) => {
           const crd = await kube.getCrd(this.cheClusterCrd)
           const yamlFilePath = this.resourcesPath + 'crds/org_v1_che_crd.yaml'
@@ -350,7 +350,7 @@ export class OperatorTasks {
   }
 
   /**
-   * Returns list of tasks which remove che operator related resources
+   * Returns list of tasks which remove CodeReady Workspaces operator related resources
    */
   deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     let kh = new KubeHelper(flags)
@@ -449,8 +449,8 @@ export class OperatorTasks {
   }
 
   async copyCheOperatorResources(templatesDir: string, cacheDir: string): Promise<string> {
-    const srcDir = path.join(templatesDir, '/che-operator/')
-    const destDir = path.join(cacheDir, '/templates/che-operator/')
+    const srcDir = path.join(templatesDir, '/codeready-workspaces-operator/')
+    const destDir = path.join(cacheDir, '/templates/codeready-workspaces-operator/')
     await remove(destDir)
     await mkdirp(destDir)
     await copy(srcDir, destDir)
@@ -461,7 +461,7 @@ export class OperatorTasks {
     if (flags['che-operator-image']) {
       return flags['che-operator-image']
     } else {
-      const filePath = flags.templates + '/che-operator/operator.yaml'
+      const filePath = flags.templates + '/codeready-workspaces-operator/operator.yaml'
       const yamlFile = readFileSync(filePath)
       const yamlDeployment = yaml.safeLoad(yamlFile.toString()) as V1Deployment
       return yamlDeployment.spec!.template.spec!.containers[0].image!

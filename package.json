@@ -1,12 +1,12 @@
 {
-  "name": "chectl",
-  "description": "Eclipse Che CLI",
-  "version": "0.0.2",
+  "name": "crwctl",
+  "description": "CodeReady Workspaces CLI",
+  "version": "2.0.0",
   "author": "Mario Loriedo @l0rd",
   "bin": {
-    "chectl": "./bin/run"
+    "crwctl": "./bin/run"
   },
-  "bugs": "https://github.com/che-incubator/chectl/issues",
+  "bugs": "https://issues.jboss.org/projects/CRW/issues",
   "dependencies": {
     "@kubernetes/client-node": "0.10.2",
     "@oclif/command": "^1",
@@ -23,9 +23,9 @@
     "@types/ws": "^6.0.3",
     "axios": "^0.19.0",
     "cli-ux": "^5.3.3",
+    "codeready-workspaces-operator": "git://github.com/redhat-developer/codeready-workspaces-operator#master",
     "command-exists": "^1.2.8",
     "debug": "^4.1.1",
-    "eclipse-che-operator": "git://github.com/redhat-developer/codeready-workspaces-operator#master",
     "esprima": "^4.0.1",
     "execa": "^2.0.0",
     "fancy-test": "^1.4.4",
@@ -65,7 +65,7 @@
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json"
   ],
-  "homepage": "https://github.com/che-incubator/chectl",
+  "homepage": "https://developers.redhat.com/products/codeready-workspaces",
   "keywords": [
     "oclif"
   ],
@@ -73,9 +73,9 @@
   "main": "lib/index.js",
   "oclif": {
     "commands": "./lib/commands",
-    "bin": "chectl",
+    "bin": "crwctl",
     "macos": {
-      "identifier": "che-incubator.chectl"
+      "identifier": "redhat-developer.crwctl"
     },
     "plugins": [
       "@oclif/plugin-autocomplete",
@@ -84,10 +84,10 @@
     ],
     "topics": {
       "server": {
-        "description": "control Che server"
+        "description": "control 'CodeReady Workspaces' server"
       },
       "workspace": {
-        "description": "control Che workspaces"
+        "description": "control 'CodeReady Workspaces' workspaces"
       }
     },
     "update": {
@@ -116,12 +116,12 @@
       "templates/**/*"
     ]
   },
-  "repository": "che-incubator/chectl",
+  "repository": "redhat-developer/codeready-workspaces-chectl",
   "scripts": {
     "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-operator && npm run -s postinstall-cleanup",
-    "postinstall-operator": "rimraf templates/che-operator && cpx 'node_modules/eclipse-che-operator/deploy/**' 'templates/che-operator'",
-    "postinstall-repositories": "yarn upgrade eclipse-che-operator",
-    "postinstall-cleanup": "rimraf node_modules/eclipse-che-operator",
+    "postinstall-operator": "rimraf templates/codeready-workspaces-operator && cpx 'node_modules/codeready-workspaces-operator/deploy/**' 'templates/codeready-workspaces-operator'",
+    "postinstall-repositories": "yarn upgrade codeready-workspaces-operator",
+    "postinstall-cleanup": "rimraf node_modules/codeready-workspaces-operator",
     "test": "jest",
     "posttest": "tslint -p test -t stylish",
     "test-watch": "jest --watchAll",

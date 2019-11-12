@@ -24,19 +24,20 @@ import { OpenshiftTasks } from '../../tasks/platforms/openshift'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 
 export default class Update extends Command {
-  static description = 'update Eclipse Che Server'
+  static description = 'update CodeReady Workspaces Server'
 
   static flags = {
     installer: string({
       char: 'a',
       description: 'Installer type',
-      options: ['helm', 'operator', 'minishift-addon'],
-      default: ''
+      options: ['operator'],
+      default: 'operator'
     }),
     platform: string({
       char: 'p',
-      description: 'Type of Kubernetes platform. Valid values are \"minikube\", \"minishift\", \"k8s (for kubernetes)\", \"openshift\", \"crc (for CodeReady Containers)\", \"microk8s\".',
-      options: ['minikube', 'minishift', 'k8s', 'openshift', 'microk8s', 'docker-desktop', 'crc'],
+      description: 'Type of Kubernetes platform. Valid values are \"openshift\", \"crc (for CodeReady Containers)\".',
+      options: ['openshift', 'crc'],
+      default: 'openshift'
     }),
     chenamespace: cheNamespace,
     templates: string({
@@ -81,10 +82,6 @@ export default class Update extends Command {
       return
     }
 
-    if (flags.installer === 'minishift-addon' || flags.installer === 'helm') {
-      this.error(`🛑 The specified installer ${flags.installer} does not support updating yet.`)
-    }
-
     this.error(`🛑 Unknown installer ${flags.installer} is specified.`)
   }
 
@@ -102,11 +99,11 @@ export default class Update extends Command {
 
     this.checkIfInstallerSupportUpdating(flags)
 
-    // Checks if Che is already deployed
+    // Checks if CodeReady Workspaces is already deployed
     let preInstallTasks = new Listr(undefined, listrOptions)
     preInstallTasks.add(openshiftTasks.testApiTasks(flags, this))
     preInstallTasks.add({
-      title: '👀  Looking for an already existing Che instance',
+      title: '👀  Looking for an already existing CodeReady Workspaces instance',
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     })
 
@@ -123,16 +120,16 @@ export default class Update extends Command {
       await preInstallTasks.run(ctx)
 
       if (!ctx.isCheDeployed) {
-        this.error('Eclipse Che deployment is not found. Use `chectl server:start` to initiate new deployment.')
+        this.error('CodeReady Workspaces deployment is not found. Use `crwctl server:start` to initiate new deployment.')
       } else {
         await platformCheckTasks.run(ctx)
 
         await preUpdateTasks.run(ctx)
 
         if (!flags['skip-version-check']) {
-          await cli.anykey(`      Found deployed Che with operator [${ctx.deployedCheOperatorImage}]:${ctx.deployedCheOperatorTag}.
+          await cli.anykey(`      Found deployed CodeReady Workspaces with operator [${ctx.deployedCheOperatorImage}]:${ctx.deployedCheOperatorTag}.
       You are going to update it to [${ctx.newCheOperatorImage}]:${ctx.newCheOperatorTag}.
-      Note that che operator will update components images (che server, plugin registry) only if their values
+      Note that CodeReady Workspaces operator will update components images (server, plugin registry) only if their values
       are not overridden in eclipse-che Customer Resource. So, you may need to remove them manually.
       Press q to quit or any key to continue`)
         }
@@ -145,7 +142,7 @@ export default class Update extends Command {
     }
 
     notifier.notify({
-      title: 'chectl',
+      title: 'crwctl',
       message: 'Command server:start has completed successfully.'
     })
 
