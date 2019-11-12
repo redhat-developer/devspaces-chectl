@@ -6,12 +6,10 @@
 /package-lock.json
 /tmp
 node_modules
-chectl-v*.tgz
+crwctl-v*.tgz
 coverage
 .vscode
-bin/chectl-*
+bin/crwctl-*
 tsconfig.tsbuildinfo
 # k8s templates are added at post-install step
-templates/kubernetes
-templates/che-operator
-templates/minishift-addon
+templates/codeready-workspaces-operator

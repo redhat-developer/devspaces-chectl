@@ -17,7 +17,7 @@ import { OperatorTasks } from '../../tasks/installers/operator'
 import { OpenshiftTasks } from '../../tasks/platforms/openshift'
 
 export default class Delete extends Command {
-  static description = 'delete any Che related resource: Kubernetes/OpenShift/Helm'
+  static description = 'delete any CodeReady Workspaces related resource'
 
   static flags = {
     help: flags.help({ char: 'h' }),
@@ -45,7 +45,7 @@ export default class Delete extends Command {
     await tasks.run()
 
     notifier.notify({
-      title: 'chectl',
+      title: 'crwctl',
       message: 'Command server:update has completed.'
     })
 
