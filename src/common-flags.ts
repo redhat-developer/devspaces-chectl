@@ -12,7 +12,7 @@ import { string } from '@oclif/parser/lib/flags'
 export const cheNamespace = string({
   char: 'n',
   description: 'Kubernetes namespace where CodeReady Workspaces server is supposed to be deployed',
-  default: 'che',
+  default: 'workspaces',
   env: 'CHE_NAMESPACE'
 })
 
