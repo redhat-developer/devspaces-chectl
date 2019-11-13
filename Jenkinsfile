@@ -47,7 +47,7 @@ timeout(180) {
         sh "cd ${CTL_path}/dist/channels/next/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @chectl-linux-arm.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=chectl-linux-arm.tar.gz"
         sh "cd ${CTL_path}/dist/channels/next/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @chectl-darwin-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=chectl-darwin-x64.tar.gz"
         // refresh github pages
-		sh "cd ${CTL_path}/ && git clone https://devstudio-release:${GITHUB_TOKEN}@github.com/che-incubator/chectl -b gh-pages --single-branch gh-pages"
+		sh "cd ${CTL_path}/ && git clone https://devstudio-release:${GITHUB_TOKEN}@github.com/redhat-developer/codeready-workspaces-chectl -b gh-pages --single-branch gh-pages"
 		sh "cd ${CTL_path}/ && echo \$(date +%s) > gh-pages/update"
 		sh "cd ${CTL_path}/gh-pages && git add update && git commit -m \"Update github pages\" && git push origin gh-pages"
 		stash name: 'stashDist', includes: findFiles(glob: "${CTL_path}/dist/").join(", ")
