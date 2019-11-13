@@ -45,7 +45,7 @@ timeout(180) {
 		sh "curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' --data '{\"tag_name\": \"${CUSTOM_TAG}\", \"target_commitish\": \"master\", \"name\": \"${RELEASE_NAME}\", \"body\": \"${RELEASE_DESCRIPTION}\", \"draft\": false, \"prerelease\": true}' https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}"
 		sh "cat /tmp/${CUSTOM_TAG}"
 		// Extract the id of the release from the creation response
-        def RELEASE_ID=sh(returnStdout:true,script:"jq .id /tmp/${CUSTOM_TAG}").trim()
+        def RELEASE_ID=sh(returnStdout:true,script:"jq -r .id /tmp/${CUSTOM_TAG}").trim()
 		sh "echo release ID is ${RELEASE_ID}"
 		// Upload the artifact
         sh "cd ${CTL_path}/dist/channels/next/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @chectl-linux-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=chectl-linux-x64.tar.gz"
