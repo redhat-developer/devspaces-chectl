@@ -40,15 +40,7 @@ timeout(180) {
 		sh "cd ${CTL_path}/ && git clone https://github.com/che-incubator/chectl -b gh-pages --single-branch gh-pages"
 		sh "cd ${CTL_path}/ && rm -rf gh-pages/.git"
 		sh "cd ${CTL_path}/ && echo \$(date +%s) > gh-pages/update"
-		def RELEASE=sh(returnStdout:true,script:"curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' --data '{\"tag_name\": \"${CUSTOM_TAG}\", \"target_commitish\": \"master\", \"name\": \"${RELEASE_NAME}\", \"body\": \"${RELEASE_DESCRIPTION}\", \"draft\": false, \"prerelease\": true}' https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases").trim()
-		// Extract the id of the release from the creation response
-        def RELEASE_NAME="${CHECTL_VERSION}"
-        def RELEASE_DESCRIPTION="CI release ${RELEASE_NAME}"
-        def RELEASE_ID=sh(returnStdout:true,script:"echo ${RELEASE} | sed -n -e 's/\"id\":\ \([0-9]\+\),/\\1/p' | head -n 1 | sed 's/[[:blank:]]//g'").trim()
-		sh "release ID is ${RELEASE_ID}"
-		// Upload the artifact
-        sh "cd ${CTL_path}/dist/channels/next/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @chectl-linux-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=chectl-linux-x64.tar.gz"
-        stash name: 'stashDist', includes: findFiles(glob: "${CTL_path}/dist/").join(", ")
+		stash name: 'stashDist', includes: findFiles(glob: "${CTL_path}/dist/").join(", ")
 	}}
 }
 timeout(180) {
