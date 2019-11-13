@@ -37,7 +37,7 @@ timeout(180) {
 		sh "cd ${CTL_path}/ && egrep -v 'versioned|oclif' package.json | grep -e version"
         sh "cd ${CTL_path}/ && git tag '${CUSTOM_TAG}'"
 		sh "cd ${CTL_path}/ && yarn && npx oclif-dev pack -t ${platforms} && find ./dist/ -name \"*.tar*\""
-        def RELEASE_NAME="${CUSTOM_TAG}"
+        def RELEASE_NAME="${CUSTOM_TAG}-next.${SHA_CTL}"
         def RELEASE_DESCRIPTION="CI release ${RELEASE_NAME} ${SHA_CTL}"
 		sh "curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' --data '{\"tag_name\": \"${CUSTOM_TAG}\", \"target_commitish\": \"master\", \"name\": \"${RELEASE_NAME}\", \"body\": \"${RELEASE_DESCRIPTION}\", \"draft\": false, \"prerelease\": true}' https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}"
 		// Extract the id of the release from the creation response
