@@ -37,18 +37,19 @@ timeout(180) {
 		sh "cd ${CTL_path}/ && egrep -v 'versioned|oclif' package.json | grep -e version"
         sh "cd ${CTL_path}/ && git tag '${CUSTOM_TAG}'"
 		sh "cd ${CTL_path}/ && yarn && npx oclif-dev pack -t ${platforms} && find ./dist/ -name \"*.tar*\""
-		sh "cd ${CTL_path}/ && git clone https://github.com/che-incubator/chectl -b gh-pages --single-branch gh-pages"
-		sh "cd ${CTL_path}/ && rm -rf gh-pages/.git"
-		sh "cd ${CTL_path}/ && echo \$(date +%s) > gh-pages/update"
         def RELEASE_NAME="${CUSTOM_TAG}"
         def RELEASE_DESCRIPTION="CI release ${RELEASE_NAME} ${SHA_CTL}"
 		sh "curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' --data '{\"tag_name\": \"${CUSTOM_TAG}\", \"target_commitish\": \"master\", \"name\": \"${RELEASE_NAME}\", \"body\": \"${RELEASE_DESCRIPTION}\", \"draft\": false, \"prerelease\": true}' https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}"
-		sh "cat /tmp/${CUSTOM_TAG}"
 		// Extract the id of the release from the creation response
         def RELEASE_ID=sh(returnStdout:true,script:"jq -r .id /tmp/${CUSTOM_TAG}").trim()
-		sh "echo release ID is ${RELEASE_ID}"
-		// Upload the artifact
+		// Upload the artifacts
         sh "cd ${CTL_path}/dist/channels/next/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @chectl-linux-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=chectl-linux-x64.tar.gz"
+        sh "cd ${CTL_path}/dist/channels/next/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @chectl-linux-arm.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=chectl-linux-arm.tar.gz"
+        sh "cd ${CTL_path}/dist/channels/next/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @chectl-darwin-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=chectl-darwin-x64.tar.gz"
+        // refresh github pages
+		sh "cd ${CTL_path}/ && git clone https://devstudio-release:${GITHUB_TOKEN}@github.com/che-incubator/chectl -b gh-pages --single-branch gh-pages"
+		sh "cd ${CTL_path}/ && echo \$(date +%s) > gh-pages/update"
+		sh "cd ${CTL_path}/gh-pages && git add update && git commit -m \"Update github pages\" && git push origin gh-pages"
 		stash name: 'stashDist', includes: findFiles(glob: "${CTL_path}/dist/").join(", ")
 	}}
 }
