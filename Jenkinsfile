@@ -36,7 +36,7 @@ timeout(180) {
 		sh "cd ${CTL_path}/ && sed -i -e 's#version\": \"\\(.*\\)\",#version\": \"'${CHECTL_VERSION}'\",#' package.json"
 		sh "cd ${CTL_path}/ && egrep -v 'versioned|oclif' package.json | grep -e version"
         sh "cd ${CTL_path}/ && git tag '${CUSTOM_TAG}'"
-		sh "yarn config set registry https://registry.npmjs.org && rm ${CTL_path}/yarn.lock"
+		sh "rm ${CTL_path}/yarn.lock"
 		sh "cd ${CTL_path}/ && yarn && npx oclif-dev pack -t ${platforms} && find ./dist/ -name \"*.tar*\""
         def RELEASE_DESCRIPTION="CI release ${GITHUB_RELEASE_NAME}"
 		sh "curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' --data '{\"tag_name\": \"${CUSTOM_TAG}\", \"target_commitish\": \"master\", \"name\": \"${GITHUB_RELEASE_NAME}\", \"body\": \"${RELEASE_DESCRIPTION}\", \"draft\": false, \"prerelease\": true}' https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}"
