@@ -92,7 +92,7 @@
     },
     "update": {
       "s3": {
-        "host": "https://che-incubator.github.io/chectl/",
+        "host": "https://redhat-developer.github.io/codeready-workspaces-chectl/",
         "templates": {
           "target": {
             "unversioned": "<%- 'channels/' + channel + '/' %><%- bin %>-<%- platform %>-<%- arch %><%- ext %>",
