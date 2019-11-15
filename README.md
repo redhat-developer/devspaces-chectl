@@ -81,26 +81,26 @@ USAGE
 ```
 # Commands
 <!-- commands -->
-* [`chectl autocomplete [SHELL]`](#chectl-autocomplete-shell)
-* [`chectl devfile:generate`](#chectl-devfilegenerate)
-* [`chectl help [COMMAND]`](#chectl-help-command)
-* [`chectl server:delete`](#chectl-serverdelete)
-* [`chectl server:start`](#chectl-serverstart)
-* [`chectl server:stop`](#chectl-serverstop)
-* [`chectl server:update`](#chectl-serverupdate)
-* [`chectl update [CHANNEL]`](#chectl-update-channel)
-* [`chectl workspace:inject`](#chectl-workspaceinject)
-* [`chectl workspace:list`](#chectl-workspacelist)
-* [`chectl workspace:start`](#chectl-workspacestart)
-* [`chectl workspace:stop`](#chectl-workspacestop)
+* [`crwctl autocomplete [SHELL]`](#crwctl-autocomplete-shell)
+* [`crwctl devfile:generate`](#crwctl-devfilegenerate)
+* [`crwctl help [COMMAND]`](#crwctl-help-command)
+* [`crwctl server:delete`](#crwctl-serverdelete)
+* [`crwctl server:start`](#crwctl-serverstart)
+* [`crwctl server:stop`](#crwctl-serverstop)
+* [`crwctl server:update`](#crwctl-serverupdate)
+* [`crwctl update [CHANNEL]`](#crwctl-update-channel)
+* [`crwctl workspace:inject`](#crwctl-workspaceinject)
+* [`crwctl workspace:list`](#crwctl-workspacelist)
+* [`crwctl workspace:start`](#crwctl-workspacestart)
+* [`crwctl workspace:stop`](#crwctl-workspacestop)
 
-## `chectl autocomplete [SHELL]`
+## `crwctl autocomplete [SHELL]`
 
 display autocomplete installation instructions
 
 ```
 USAGE
-  $ chectl autocomplete [SHELL]
+  $ crwctl autocomplete [SHELL]
 
 ARGUMENTS
   SHELL  shell type
@@ -109,27 +109,27 @@ OPTIONS
   -r, --refresh-cache  Refresh cache (ignores displaying instructions)
 
 EXAMPLES
-  $ chectl autocomplete
-  $ chectl autocomplete bash
-  $ chectl autocomplete zsh
-  $ chectl autocomplete --refresh-cache
+  $ crwctl autocomplete
+  $ crwctl autocomplete bash
+  $ crwctl autocomplete zsh
+  $ crwctl autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.3/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.4/src/commands/autocomplete/index.ts)_
 
-## `chectl devfile:generate`
+## `crwctl devfile:generate`
 
-generate and print a devfile to stdout given some Kubernetes resources and other Che workspaces features (project, language-support, commands etc...)
+generate and print a devfile to stdout given some Kubernetes resources and other workspaces features (project, language-support, commands etc...)
 
 ```
 USAGE
-  $ chectl devfile:generate
+  $ crwctl devfile:generate
 
 OPTIONS
   -h, --help                 show CLI help
   --command=command          Command to include in the workspace
   --dockerimage=dockerimage  dockerimage component to include in the Devfile
-  --editor=editor            Specify the Che editor component. Currently supported editors: theia-next,theia-1.0.0
+  --editor=editor            Specify the editor component. Currently supported editors: theia-next,theia-1.0.0
   --git-repo=git-repo        Source code git repository to include in the workspace
 
   --language=language        Add support for a particular language. Currently supported languages:
@@ -147,15 +147,15 @@ OPTIONS
                              --selector="app.kubernetes.io/name=employee-manager"
 ```
 
-_See code: [src/commands/devfile/generate.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/devfile/generate.ts)_
+_See code: [src/commands/devfile/generate.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/devfile/generate.ts)_
 
-## `chectl help [COMMAND]`
+## `crwctl help [COMMAND]`
 
-display help for chectl
+display help for crwctl
 
 ```
 USAGE
-  $ chectl help [COMMAND]
+  $ crwctl help [COMMAND]
 
 ARGUMENTS
   COMMAND  command to show help for
@@ -166,50 +166,54 @@ OPTIONS
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.1/src/commands/help.ts)_
 
-## `chectl server:delete`
+## `crwctl server:delete`
 
-delete any Che related resource: Kubernetes/OpenShift/Helm
-
-```
-USAGE
-  $ chectl server:delete
-
-OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che was deployed
-  --listr-renderer=listr-renderer  [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
-```
-
-_See code: [src/commands/server/delete.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/delete.ts)_
-
-## `chectl server:start`
-
-start Eclipse Che Server
+delete any CodeReady Workspaces related resource
 
 ```
 USAGE
-  $ chectl server:start
+  $ crwctl server:delete
 
 OPTIONS
-  -a, --installer=installer                    Installer type. Valid values are "helm", "operator" and "minishift-addon"
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
+                                           is supposed to be deployed
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+```
+
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/server/delete.ts)_
+
+## `crwctl server:start`
+
+start CodeReady Workspaces Server
+
+```
+USAGE
+  $ crwctl server:start
+
+OPTIONS
+  -a, --installer=operator                     [default: operator] Installer type
 
   -b, --domain=domain                          Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or
                                                <local-ip>.nip.io)
 
   -h, --help                                   show CLI help
 
-  -i, --cheimage=cheimage                      [default: eclipse/che-server:nightly] Che server container image
+  -i, --cheimage=cheimage                      [default: quay.io/crw/server-rhel8:2.0] CodeReady Workspaces server
+                                               container image
 
-  -m, --multiuser                              Starts che in multi-user mode
+  -m, --multiuser                              Starts CodeReady Workspaces in multi-user mode
 
-  -n, --chenamespace=chenamespace              [default: che] Kubernetes namespace where Che resources will be deployed
+  -n, --chenamespace=chenamespace              [default: workspaces] Kubernetes namespace where CodeReady Workspaces
+                                               server is supposed to be deployed
 
-  -o, --cheboottimeout=cheboottimeout          (required) [default: 40000] Che server bootstrap timeout (in
-                                               milliseconds)
+  -o, --cheboottimeout=cheboottimeout          (required) [default: 40000] CodeReady Workspaces server bootstrap timeout
+                                               (in milliseconds)
 
-  -p, --platform=platform                      Type of Kubernetes platform. Valid values are "minikube", "minishift",
-                                               "k8s (for kubernetes)", "openshift", "crc (for CodeReady Containers)",
-                                               "microk8s".
+  -p, --platform=openshift|crc                 [default: openshift] Type of OpenShift platform. Valid values are
+                                               "openshift", "crc (for CodeReady Containers)".
 
   -s, --tls                                    Enable TLS encryption.
                                                Note that for kubernetes 'che-tls' with TLS
@@ -222,8 +226,10 @@ OPTIONS
   --che-operator-cr-yaml=che-operator-cr-yaml  Path to a yaml file that defines a CheCluster used by the operator. This
                                                parameter is used only when the installer is the operator.
 
-  --che-operator-image=che-operator-image      [default: quay.io/eclipse/che-operator:nightly] Container image of the
+  --che-operator-image=che-operator-image      [default: quay.io/crw/operator-rhel8:2.0] Container image of the
                                                operator. This parameter is used only when the installer is the operator
+
+  --deployment-name=deployment-name            [default: codeready] CodeReady Workspaces deployment name
 
   --devfile-registry-url=devfile-registry-url  The URL of the external Devfile registry.
 
@@ -232,10 +238,9 @@ OPTIONS
   --k8spodwaittimeout=k8spodwaittimeout        [default: 300000] Waiting time for Pod Wait Timeout Kubernetes (in
                                                milliseconds)
 
-  --listr-renderer=listr-renderer              [default: default] Listr renderer. Can be 'default', 'silent' or
-                                               'verbose'
+  --listr-renderer=default|silent|verbose      [default: default] Listr renderer
 
-  --os-oauth                                   Enable use of OpenShift credentials to log into Che
+  --os-oauth                                   Enable use of OpenShift credentials to log into CodeReady Workspaces
 
   --plugin-registry-url=plugin-registry-url    The URL of the external plugin registry.
 
@@ -244,149 +249,171 @@ OPTIONS
                                                configured namespace.
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/server/start.ts)_
 
-## `chectl server:stop`
+## `crwctl server:stop`
 
-stop Eclipse Che Server
+stop CodeReady Workspaces Server
 
 ```
 USAGE
-  $ chectl server:stop
+  $ crwctl server:stop
 
 OPTIONS
-  -h, --help                         show CLI help
-  -n, --chenamespace=chenamespace    [default: che] Kubernetes namespace where Che resources will be deployed
-  --access-token=access-token        Che OIDC Access Token
-  --che-selector=che-selector        [default: app=che,component=che] Selector for Che Server resources
-  --deployment-name=deployment-name  [default: che] Che deployment name
-  --listr-renderer=listr-renderer    [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
+                                           is supposed to be deployed
+
+  --access-token=access-token              CodeReady Workspaces OIDC Access Token
+
+  --che-selector=che-selector              [default: app=che,component=che] Selector for CodeReady Workspaces Server
+                                           resources
+
+  --deployment-name=deployment-name        [default: codeready] CodeReady Workspaces deployment name
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/server/stop.ts)_
 
-## `chectl server:update`
+## `crwctl server:update`
 
-update Eclipse Che Server
+update CodeReady Workspaces Server
 
 ```
 USAGE
-  $ chectl server:update
+  $ crwctl server:update
 
 OPTIONS
-  -a, --installer=helm|operator|minishift-addon        Installer type
+  -a, --installer=operator                 [default: operator] Installer type
+  -h, --help                               show CLI help
 
-  -h, --help                                           show CLI help
+  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
+                                           is supposed to be deployed
 
-  -n, --chenamespace=chenamespace                      [default: che] Kubernetes namespace where Che server is supposed by be deployed
+  -p, --platform=openshift|crc             [default: openshift] Type of Kubernetes platform. Valid values are
+                                           "openshift", "crc (for CodeReady Containers)".
 
-  -p, --platform=minikube|minishift|
-                 k8s|openshift|
-                 microk8s|docker-desktop|  
-                 crc                                    Type of Kubernetes platform. 
-                                                        Valid values are "minikube", "minishift", "k8s (for kubernetes)", 
-                                                        "openshift", "crc (for CodeReady Containers)", "microk8s".
+  -t, --templates=templates                [default: templates] Path to the templates folder
 
-  -t, --templates=templates                             [default: templates] Path to the templates folder
+  --che-operator-image=che-operator-image  [default: quay.io/crw/operator-rhel8:2.0] Container image of the operator.
+                                           This parameter is used only when the installer is the operator
 
-  --deployment-name=deployment-name                     [default: che] Che deployment name
+  --deployment-name=deployment-name        [default: codeready] CodeReady Workspaces deployment name
 
-  --listr-renderer=default|silent|verbose               [default: default] Listr renderer
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 
-  --skip-version-check                                  Should be specified if user confirmation after version check should be skipped
+  --skip-version-check                     Skip user confirmation on version check
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/che-incubator/chectl/blob/master/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/server/update.ts)_
 
-## `chectl update [CHANNEL]`
+## `crwctl update [CHANNEL]`
 
-update the chectl CLI
+update the crwctl CLI
 
 ```
 USAGE
-  $ chectl update [CHANNEL]
+  $ crwctl update [CHANNEL]
 ```
 
 _See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.3.9/src/commands/update.ts)_
 
-## `chectl workspace:inject`
+## `crwctl workspace:inject`
 
-inject configurations and tokens in a Che Workspace
-
-```
-USAGE
-  $ chectl workspace:inject
-
-OPTIONS
-  -c, --container=container        Target container. If not specified, configuration files will be injected in all
-                                   containers of a Che Workspace pod
-
-  -h, --help                       show CLI help
-
-  -k, --kubeconfig                 Inject the local Kubernetes configuration
-
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che workspace is running
-
-  -w, --workspace=workspace        Target workspace. Can be omitted if only one Workspace is running
-
-  --listr-renderer=listr-renderer  [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
-```
-
-_See code: [src/commands/workspace/inject.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/inject.ts)_
-
-## `chectl workspace:list`
-
-list Che workspaces
+inject configurations and tokens in a workspace
 
 ```
 USAGE
-  $ chectl workspace:list
+  $ crwctl workspace:inject
 
 OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che server is deployed
-  --listr-renderer=listr-renderer  [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
+  -c, --container=container                Target container. If not specified, configuration files will be injected in
+                                           all containers of a workspace pod
+
+  -h, --help                               show CLI help
+
+  -k, --kubeconfig                         Inject the local Kubernetes configuration
+
+  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
+                                           is supposed to be deployed
+
+  -w, --workspace=workspace                Target workspace. Can be omitted if only one workspace is running
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
-_See code: [src/commands/workspace/list.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/list.ts)_
+_See code: [src/commands/workspace/inject.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/workspace/inject.ts)_
 
-## `chectl workspace:start`
+## `crwctl workspace:list`
 
-create and start a Che workspace
+list workspaces
 
 ```
 USAGE
-  $ chectl workspace:start
+  $ crwctl workspace:list
 
 OPTIONS
-  -f, --devfile=devfile                  path or URL to a valid devfile
-  -h, --help                             show CLI help
-  -n, --chenamespace=chenamespace        [default: che] kubernetes namespace where Che server is deployed
-  -w, --workspaceconfig=workspaceconfig  path to a valid workspace configuration json file
-  --access-token=access-token            Che OIDC Access Token
-  --listr-renderer=listr-renderer        [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
+  -h, --help                               show CLI help
 
-  --name=name                            workspace name: overrides the workspace name to use instead of the one defined
-                                         in the devfile. Works only for devfile
+  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
+                                           is supposed to be deployed
+
+  --access-token=access-token              CodeReady Workspaces OIDC Access Token
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
-_See code: [src/commands/workspace/start.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/start.ts)_
+_See code: [src/commands/workspace/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/workspace/list.ts)_
 
-## `chectl workspace:stop`
+## `crwctl workspace:start`
 
-stop a running Che workspace
+create and start a workspace
 
 ```
 USAGE
-  $ chectl workspace:stop
+  $ crwctl workspace:start
 
 OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  [default: che] Kubernetes namespace where Che server is deployed
-  --listr-renderer=listr-renderer  [default: default] Listr renderer. Can be 'default', 'silent' or 'verbose'
+  -f, --devfile=devfile                    path or URL to a valid devfile
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
+                                           is supposed to be deployed
+
+  -w, --workspaceconfig=workspaceconfig    path to a valid workspace configuration json file
+
+  --access-token=access-token              CodeReady Workspaces OIDC Access Token
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+
+  --name=name                              workspace name: overrides the workspace name to use instead of the one
+                                           defined in the devfile. Works only for devfile
 ```
 
-_See code: [src/commands/workspace/stop.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/stop.ts)_
+_See code: [src/commands/workspace/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/workspace/start.ts)_
+
+## `crwctl workspace:stop`
+
+stop a running workspace
+
+```
+USAGE
+  $ crwctl workspace:stop
+
+OPTIONS
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
+                                           is supposed to be deployed
+
+  --access-token=access-token              CodeReady Workspaces OIDC Access Token
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+```
+
+_See code: [src/commands/workspace/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/workspace/stop.ts)_
 <!-- commandsstop -->
 
 # Contributing
