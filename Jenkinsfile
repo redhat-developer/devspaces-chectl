@@ -2,8 +2,6 @@
 
 // PARAMETERS for this pipeline:
 // branchToBuildCTL = refs/tags/20190401211444 or master
-// DESTINATION = user@host_or_ip:/path/to/che-incubator/chectl
-// BASE_URL = https://host_or_ip/path/to/che-incubator/chectl
 
 def installNPM(){
 	def nodeHome = tool 'nodejs-10.15.3'
