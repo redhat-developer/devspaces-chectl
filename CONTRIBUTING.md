@@ -16,14 +16,14 @@ The development flow includes:
 To create a workpace you can use [devfile](devfile.yaml):
 
 ```
-$ chectl workspace:start -f https://raw.githubusercontent.com/che-incubator/chectl/master/devfile.yaml
+$ crwctl workspace:start -f https://raw.githubusercontent.com/redhat-developer/codeready-workspaces-chectl/master/devfile.yaml
 ```
 
 > See more about [devfile](https://redhat-developer.github.io/devfile)
 
-After starting the workspace Theia will clone sources of `chectl` to `/projects/chectl` directory.
+After starting the workspace Theia will clone sources of `crwctl` to `/projects/crwctl` directory.
 
-`chectl` is written in TypeScript. For its development there is a dedicated `dev` container which has preinstalled software for comfortable development. That allows the developer to build, test and launch `chectl` inside the container.
+`crwctl` is written in TypeScript. For its development there is a dedicated `dev` container which has preinstalled software for comfortable development. That allows the developer to build, test and launch `crwctl` inside the container.
 
 You workspace is initialized with a list of commands described in the [devfile](devfile.yaml) in `commands` section. Those command allow you to:
 - build
@@ -39,7 +39,7 @@ You can run commands in one of three ways.
 
 2. `Terminal => Run Task...` menu. You can fin and pick a command in the appeared command palette.
 
-3. Manually by opening a terminal in the `dev` container and running commands in `/projects/chectl` directory.
+3. Manually by opening a terminal in the `dev` container and running commands in `/projects/crwctl` directory.
 
 ## Build
 
@@ -47,7 +47,7 @@ You can run commands in one of three ways.
 yarn
 ```
 
-Open `My Workspace` panel at the left and launch `Build` command. It will run `yarn` command in `/projects/chectl` directory inside `dev` container. The command will install all necessary dependencies and compile the project. Upon successfull assembly, a new `bin` directory will appear in project directory and will have two files: `run` and `run.cmd`.
+Open `My Workspace` panel at the left and launch `Build` command. It will run `yarn` command in `/projects/crwctl` directory inside `dev` container. The command will install all necessary dependencies and compile the project. Upon successfull assembly, a new `bin` directory will appear in project directory and will have two files: `run` and `run.cmd`.
 
 
 ## Run tests
@@ -56,7 +56,7 @@ Open `My Workspace` panel at the left and launch `Build` command. It will run `y
 yarn test
 ```
 
-Tests for `chectl` are written using `jest` framework.
+Tests for `crwctl` are written using `jest` framework.
 To run tests, go to `My Workspace` panel, find and launch `Test` command. The command will run `yarn test` inside `dev` container.
 Testing summary will be printed to the output.
 
@@ -67,21 +67,21 @@ Testing summary will be printed to the output.
 ./bin/run --help
 ```
 
-To test ensure `chectl` is built successfully, launch `Run` command. It wil run `chectl` with `--help` directive.
+To test ensure `crwctl` is built successfully, launch `Run` command. It wil run `crwctl` with `--help` directive.
 
 
 ## Generate Devfile
 
 ```bash
 ./bin/run devfile:generate \
-    --name="chectl-test" \
+    --name="crwctl-test" \
     --language="typescript" \
-    --dockerimage="eclipse/che-theia-dev:next" \
-    --git-repo="https://github.com/che-incubator/chectl.git" \
+    --dockerimage="quay.io/crw/theia-dev-rhel8:latest" \
+    --git-repo="https://github.com/redhat-developer/codeready-workspaces-chectl.git" \
     --command="yarn" > /projects/sample.devfile
 ```
 
-We added a command which generates a simple devfile `/projects/sample.devfile`. Workspace created from this devfile will have `chectl` project with running TypeScript language server. There will be a dev container for building, running and debugging `chectl`. It will be possible to easily build `chectl` by running `yarn` command from `My Workspace`.
+We added a command which generates a simple devfile `/projects/sample.devfile`. Workspace created from this devfile will have `crwctl` project with running TypeScript language server. There will be a dev container for building, running and debugging `crwctl`. It will be possible to easily build `crwctl` by running `yarn` command from `My Workspace`.
 
 ## Create Workspace
 
@@ -91,27 +91,27 @@ We added a command which generates a simple devfile `/projects/sample.devfile`. 
 # upload devfile content to clbin, save link into a file
 cat /projects/sample.devfile | curl -F 'clbin=<-' https://clbin.com > /projects/clbin
 
-# run chectl, pass the given URI
+# run crwctl, pass the given URI
 uri=$(cat /projects/clbin); ./run workspace:start -f=$uri
 ```
 
-To create a workspsace run `Create Workspace` command from `My Workspace`. The command will upload content of the generated `/projects/sample.devfile` devfile to https://clbin.com. And then will use given public URI to the devfile when running `chectl`.
+To create a workspsace run `Create Workspace` command from `My Workspace`. The command will upload content of the generated `/projects/sample.devfile` devfile to https://clbin.com. And then will use given public URI to the devfile when running `crwctl`.
 
 > See more about [clbin](https://clbin.com/)
 
 ## Package binaries
 For packaging binaries, [oclif](https://github.com/oclif/dev-cli) is used. It generates packages for Linux, Windows and MacOS operation systems and puts the result in `dist/channels/stable` directory.
-To start packaging just run `Package Binaries` commands from `My Workspace`. It will run the following in `/projects/chectl` directory.
+To start packaging just run `Package Binaries` commands from `My Workspace`. It will run the following in `/projects/crwctl` directory.
 
 ```bash
 yarn oclif-dev pack
 ```
 
-> Note: you need to build your `chectl` before by `yarn` command, or install all node packages by running `npm install` in `/projects/chectl` directory.
+> Note: you need to build your `crwctl` before by `yarn` command, or install all node packages by running `npm install` in `/projects/crwctl` directory.
 
 ## Push changes, provide Pull Request
 
-`chectl` is using several Pull Request checks
+`crwctl` is using several Pull Request checks
  - [Conventional Commits](https://conventionalcommits.org) convention for the commit messages.
 There is a required Pull Request check named `Semantic Pull Request` that is ensuring that all commits messages are correctly setup. In order to merge a Pull Request, it has to be green.
 
@@ -120,7 +120,7 @@ It needs to be added on the commit message:
 ```
 feat(hello): This is my first commit message
 
-Signed-off-by: John Doe <chectl@eclipse.org>
+Signed-off-by: John Doe <crwctl@redhat.com>
 ```
 
 Git even has a -s command line option to append this automatically to your commit message:
