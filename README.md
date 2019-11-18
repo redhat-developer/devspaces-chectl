@@ -1,20 +1,13 @@
-chectl
+crwctl
 ======
 
-[Eclipse Che](https://github.com/eclipse/che/) CLI
+[Red Hat CodeReady Workspaces](https://developers.redhat.com/products/codeready-workspaces/overview) CLI
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
-[![Build Status](https://travis-ci.org/che-incubator/chectl.svg?branch=master)](https://travis-ci.org/che-incubator/chectl)
-![](https://img.shields.io/david/che-incubator/chectl.svg)
-
-[![asciicast](https://asciinema.org/a/216201.svg)](https://asciinema.org/a/216201)
 
 ## Report issues
 
-Issues are tracked on the main Eclipse Che Repository: https://github.com/eclipse/che/issues
-
-[![New questions](https://img.shields.io/badge/New-question-blue.svg?style=flat-curved)](https://github.com/eclipse/che/issues/new?labels=area/chectl,kind/question)
-[![New bug](https://img.shields.io/badge/New-bug-red.svg?style=flat-curved)](https://github.com/eclipse/che/issues/new?labels=area/chectl,kind/bug)
+[Issues are tracked in JIRA](https://issues.jboss.org/browse/CRW-463?jql=project%20%3D%20CRW%20AND%20(component%20%3D%20crwctl%20OR%20labels%20%3D%20crwctl)).
 
 ## Table Of Contents
 
@@ -26,57 +19,33 @@ Issues are tracked on the main Eclipse Che Repository: https://github.com/eclips
 <!-- tocstop -->
 # Installation
 
-There are two channels of `chectl`: `stable` and `next`
+There are two channels of `crwctl`: `stable` and `next`
 
-Stable is for all tagged versions of Eclipse Che. Next is updated after each commit/Pull Request being merged in master branch of the [Chectl repository](https://github.com/che-incubator/chectl).
+Stable is for all tagged versions of CodeReady Workspaces. Next is updated after each commit to the master branch of the [crwctl repository](https://github.com/redhat-developer/codeready-workspaces-chectl).
 
-If you're using Windows x64, here is how to install chectl by using one single PowerShell command:
+Assemblies of crwctl are available at [https://github.com/redhat-developer/codeready-workspaces-chectl/releases](https://github.com/redhat-developer/codeready-workspaces-chectl/releases)
 
-- For `stable` channel:
-```
-C:\Users> Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://www.eclipse.org/che/chectl/win/'))
-```
+Installation:
 
-- For `next` channel:
-```
-C:\Users> $CHANNEL="next"; Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://www.eclipse.org/che/chectl/win/'))
-```
-
-If you're using linux or macOS, here is how to install chectl by using one single command:
-
-- For `stable` channel:
-```
-$ bash <(curl -sL  https://www.eclipse.org/che/chectl/)
-```
-
-- For `next` channel:
-```
-$ bash <(curl -sL  https://www.eclipse.org/che/chectl/) --channel=next
-```
-
-Assemblies of chectl are available at [https://github.com/che-incubator/chectl/releases](https://github.com/che-incubator/chectl/releases)
-
-Manual install:
-
-1) Download a .tgz file based on your Operating System / Arch 
+1) Download a .tar.gz file based on your Operating System / Arch 
 2) Unpack the assembly
-3) move `chectl` folder into a folder like `$HOME/chectl`
-4) add `$HOME/chectl/bin` to `$PATH``
+3) move `crwctl` folder into a folder like `$HOME/crwctl`
+4) add `$HOME/crwctl/bin` to `$PATH``
 
 # Usage
 ```sh-session
-$ chectl server:start
+$ crwctl server:start
 running command...
 
-$ chectl server:stop
+$ crwctl server:stop
 running command...
 
-$ chectl workspace:start --devfile
+$ crwctl workspace:start --devfile
 running command...
 
-$ chectl --help [COMMAND]
+$ crwctl --help [COMMAND]
 USAGE
-  $ chectl COMMAND
+  $ crwctl COMMAND
 ...
 ```
 # Commands
@@ -88,7 +57,6 @@ USAGE
 * [`crwctl server:start`](#crwctl-serverstart)
 * [`crwctl server:stop`](#crwctl-serverstop)
 * [`crwctl server:update`](#crwctl-serverupdate)
-* [`crwctl update [CHANNEL]`](#crwctl-update-channel)
 * [`crwctl workspace:inject`](#crwctl-workspaceinject)
 * [`crwctl workspace:list`](#crwctl-workspacelist)
 * [`crwctl workspace:start`](#crwctl-workspacestart)
@@ -309,17 +277,6 @@ OPTIONS
 
 _See code: [src/commands/server/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/server/update.ts)_
 
-## `crwctl update [CHANNEL]`
-
-update the crwctl CLI
-
-```
-USAGE
-  $ crwctl update [CHANNEL]
-```
-
-_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.3.9/src/commands/update.ts)_
-
 ## `crwctl workspace:inject`
 
 inject configurations and tokens in a workspace
@@ -418,4 +375,4 @@ _See code: [src/commands/workspace/stop.ts](https://github.com/redhat-developer/
 
 # Contributing
 
-Contributing to chectl is covered in [CONTRIBUTING.md](https://github.com/che-incubator/chectl/blob/master/CONTRIBUTING.md)
+Contributing to crwctl is covered in [CONTRIBUTING.md](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/master/CONTRIBUTING.md)
