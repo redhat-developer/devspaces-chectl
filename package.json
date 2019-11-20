@@ -79,8 +79,7 @@
     },
     "plugins": [
       "@oclif/plugin-autocomplete",
-      "@oclif/plugin-help",
-      "@oclif/plugin-update"
+      "@oclif/plugin-help"
     ],
     "topics": {
       "server": {
