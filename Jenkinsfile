@@ -9,8 +9,7 @@ def installNPM(){
 	sh "node --version && npm version && yarn -v"
 }
 
-// TODO: re-add win-x64; fails due to missing 7zip: "Error: install 7-zip to package windows tarball"
-def platforms = "linux-x64,darwin-x64,linux-arm"
+def platforms = "linux-x64,darwin-x64,win-x64"
 def CTL_path = "codeready-workspaces-chectl"
 def SHA_CTL = "SHA_CTL"
 
