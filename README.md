@@ -197,7 +197,7 @@ OPTIONS
   --che-operator-image=che-operator-image      [default: quay.io/crw/operator-rhel8:2.0] Container image of the
                                                operator. This parameter is used only when the installer is the operator
 
-  --deployment-name=deployment-name            [default: codeready] CodeReady Workspaces deployment name
+  --deployment-name=deployment-name            [default: workspaces] CodeReady Workspaces deployment name
 
   --devfile-registry-url=devfile-registry-url  The URL of the external Devfile registry.
 
@@ -238,7 +238,7 @@ OPTIONS
   --che-selector=che-selector              [default: app=che,component=che] Selector for CodeReady Workspaces Server
                                            resources
 
-  --deployment-name=deployment-name        [default: codeready] CodeReady Workspaces deployment name
+  --deployment-name=deployment-name        [default: workspaces] CodeReady Workspaces deployment name
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
@@ -268,7 +268,7 @@ OPTIONS
   --che-operator-image=che-operator-image  [default: quay.io/crw/operator-rhel8:2.0] Container image of the operator.
                                            This parameter is used only when the installer is the operator
 
-  --deployment-name=deployment-name        [default: codeready] CodeReady Workspaces deployment name
+  --deployment-name=deployment-name        [default: workspaces] CodeReady Workspaces deployment name
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 
