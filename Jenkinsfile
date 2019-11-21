@@ -3,10 +3,13 @@
 // PARAMETERS for this pipeline:
 // branchToBuildCTL = refs/tags/20190401211444 or master
 
-def nodePath = "/mnt/hudson_workspace/tools/jenkins.plugins.nodejs.tools.NodeJSInstallation/nodejs-10.15.3"
 def installNPM(){
 	def nodeHome = tool 'nodejs-10.15.3'
 	env.PATH="${nodeHome}/bin:${env.PATH}"
+	// remove windows 7z if installed
+	sh "rm -fr ${nodeHome}/lib/node_modules/7zip"
+	// link to rpm-installed p7zip
+	sh "if [[ -x /usr/bin/7za ]]; then pushd ${nodeHome}/bin >/dev/null; rm -f 7z*; ln -s /usr/bin/7za 7z; popd >/dev/null; fi"
 	sh "node --version && npm version && yarn -v"
 	// sh "whereis node" // /mnt/hudson_workspace/tools/jenkins.plugins.nodejs.tools.NodeJSInstallation/nodejs-10.15.3/
 }
@@ -34,14 +37,8 @@ timeout(180) {
 			def GITHUB_RELEASE_NAME="0.0.$CURRENT_DAY-next.${SHORT_SHA1}"
 			def CUSTOM_TAG=sh(returnStdout:true,script:"date +'%Y%m%d%H%M%S'").trim()
 			SHA_CTL = sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short=4 HEAD").trim()
-			sh "cd ${CTL_path}/ && sed -i -e 's#version\": \"\\(.*\\)\",#version\": \"'${CHECTL_VERSION}'\",#' package.json"
-			sh "cd ${CTL_path}/ && egrep -v 'versioned|oclif' package.json | grep -e version"
-			sh "cd ${CTL_path}/ && git tag '${CUSTOM_TAG}'"
-			sh "rm ${CTL_path}/yarn.lock"
-			// remove windows 7z if installed
-			sh "rm -fr ${nodePath}/lib/node_modules/7zip"
-			// link to rpm-installed p7zip
-			sh "if [[ -x /usr/bin/7za ]]; then pushd ${nodePath}/bin >/dev/null; rm -f 7z*; ln -s /usr/bin/7za 7z; popd >/dev/null; fi"
+			sh "cd ${CTL_path}/ && sed -i -e 's#version\": \"\\(.*\\)\",#version\": \"'${CHECTL_VERSION}'\",#' package.json; egrep -v 'versioned|oclif' package.json | grep -e version"
+			sh "cd ${CTL_path}/ && git tag '${CUSTOM_TAG}'; rm yarn.lock"
 			sh "cd ${CTL_path}/ && yarn && npx oclif-dev pack -t ${platforms} && find ./dist/ -name \"*.tar*\""
 			def RELEASE_DESCRIPTION="CI release ${GITHUB_RELEASE_NAME}"
 			sh "curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' --data '{\"tag_name\": \"${CUSTOM_TAG}\", \"target_commitish\": \"master\", \"name\": \"${GITHUB_RELEASE_NAME}\", \"body\": \"${RELEASE_DESCRIPTION}\", \"draft\": false, \"prerelease\": true}' https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}"
