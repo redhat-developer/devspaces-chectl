@@ -3,13 +3,15 @@
 // PARAMETERS for this pipeline:
 // branchToBuildCTL = refs/tags/20190401211444 or master
 
+def nodePath = "/mnt/hudson_workspace/tools/jenkins.plugins.nodejs.tools.NodeJSInstallation/nodejs-10.15.3"
 def installNPM(){
 	def nodeHome = tool 'nodejs-10.15.3'
 	env.PATH="${nodeHome}/bin:${env.PATH}"
 	sh "node --version && npm version && yarn -v"
+	// sh "whereis node" // /mnt/hudson_workspace/tools/jenkins.plugins.nodejs.tools.NodeJSInstallation/nodejs-10.15.3/
 }
 
-def platforms = "linux-x64,darwin-x64,win-x64"
+def platforms = "linux-x64,darwin-x64,win32-x64"
 def CTL_path = "codeready-workspaces-chectl"
 def SHA_CTL = "SHA_CTL"
 
@@ -34,6 +36,10 @@ timeout(180) {
 		sh "cd ${CTL_path}/ && egrep -v 'versioned|oclif' package.json | grep -e version"
         sh "cd ${CTL_path}/ && git tag '${CUSTOM_TAG}'"
 		sh "rm ${CTL_path}/yarn.lock"
+		// remove windows 7z if installed
+		sh "rm -fr ${nodePath}/lib/node_modules/7zip"
+		// link to rpm-installed p7zip
+		sh "if [[ -x /usr/bin/7za ]]; then pushd ${nodePath}/bin >/dev/null; rm -f 7z*; ln -s /usr/bin/7za 7z; popd >/dev/null; fi"
 		sh "cd ${CTL_path}/ && yarn && npx oclif-dev pack -t ${platforms} && find ./dist/ -name \"*.tar*\""
         def RELEASE_DESCRIPTION="CI release ${GITHUB_RELEASE_NAME}"
 		sh "curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' --data '{\"tag_name\": \"${CUSTOM_TAG}\", \"target_commitish\": \"master\", \"name\": \"${GITHUB_RELEASE_NAME}\", \"body\": \"${RELEASE_DESCRIPTION}\", \"draft\": false, \"prerelease\": true}' https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}"
@@ -41,7 +47,7 @@ timeout(180) {
         def RELEASE_ID=sh(returnStdout:true,script:"jq -r .id /tmp/${CUSTOM_TAG}").trim()
 		// Upload the artifacts
         sh "cd ${CTL_path}/dist/channels/next/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @crwctl-linux-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=crwctl-linux-x64.tar.gz"
-        sh "cd ${CTL_path}/dist/channels/next/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @crwctl-linux-arm.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=crwctl-linux-arm.tar.gz"
+        sh "cd ${CTL_path}/dist/channels/next/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @crwctl-win32-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=crwctl-win32-x64.tar.gz"
         sh "cd ${CTL_path}/dist/channels/next/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @crwctl-darwin-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=crwctl-darwin-x64.tar.gz"
         // refresh github pages
 		sh "cd ${CTL_path}/ && git clone https://devstudio-release:${GITHUB_TOKEN}@github.com/redhat-developer/codeready-workspaces-chectl -b gh-pages --single-branch gh-pages"
@@ -53,6 +59,6 @@ timeout(180) {
 timeout(180) {
 	node("rhel7-releng"){ stage "Publish ${CTL_path}"
 		unstash 'stashDist'
-		archiveArtifacts fingerprint: false, artifacts:"**/*.log, **/*logs/**, **/dist/**/*.tar.gz, **/dist/*.json, **/dist/linux-x64, **/dist/linux-arm, **/dist/darwin-x64"
+		archiveArtifacts fingerprint: false, artifacts:"**/*.log, **/*logs/**, **/dist/**/*.tar.gz, **/dist/*.json, **/dist/linux-x64, **/dist/win32-x64, **/dist/darwin-x64"
 	}
 }
