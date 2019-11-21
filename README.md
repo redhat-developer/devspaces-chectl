@@ -194,7 +194,7 @@ OPTIONS
   --che-operator-cr-yaml=che-operator-cr-yaml  Path to a yaml file that defines a CheCluster used by the operator. This
                                                parameter is used only when the installer is the operator.
 
-  --che-operator-image=che-operator-image      [default: registry.redhat.io/codeready-workspaces/operator-rhel8:2.0] Container image of the
+  --che-operator-image=che-operator-image      [default: registry.redhat.io/codeready-workspaces/server-operator-rhel8:2.0] Container image of the
                                                operator. This parameter is used only when the installer is the operator
 
   --deployment-name=deployment-name            [default: codeready] CodeReady Workspaces deployment name
@@ -265,7 +265,7 @@ OPTIONS
 
   -t, --templates=templates                [default: templates] Path to the templates folder
 
-  --che-operator-image=che-operator-image  [default: registry.redhat.io/codeready-workspaces/operator-rhel8:2.0] Container image of the operator.
+  --che-operator-image=che-operator-image  [default: registry.redhat.io/codeready-workspaces/server-operator-rhel8:2.0] Container image of the operator.
                                            This parameter is used only when the installer is the operator
 
   --deployment-name=deployment-name        [default: codeready] CodeReady Workspaces deployment name
