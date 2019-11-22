@@ -19,10 +19,6 @@ crwctl
 <!-- tocstop -->
 # Installation
 
-There are two channels of `crwctl`: `stable` and `next`
-
-Stable is for all tagged versions of CodeReady Workspaces. Next is updated after each commit to the master branch of the [crwctl repository](https://github.com/redhat-developer/codeready-workspaces-chectl).
-
 Assemblies of crwctl are available at [https://github.com/redhat-developer/codeready-workspaces-chectl/releases](https://github.com/redhat-developer/codeready-workspaces-chectl/releases)
 
 Installation:
@@ -57,6 +53,7 @@ USAGE
 * [`crwctl server:start`](#crwctl-serverstart)
 * [`crwctl server:stop`](#crwctl-serverstop)
 * [`crwctl server:update`](#crwctl-serverupdate)
+* [`crwctl update`](#crwctl-update)
 * [`crwctl workspace:inject`](#crwctl-workspaceinject)
 * [`crwctl workspace:list`](#crwctl-workspacelist)
 * [`crwctl workspace:start`](#crwctl-workspacestart)
@@ -279,6 +276,17 @@ OPTIONS
 ```
 
 _See code: [src/commands/server/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/server/update.ts)_
+
+## `crwctl update`
+
+instructions for updating crwctl
+
+```
+USAGE
+  $ crwctl update
+```
+
+_See code: [src/commands/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/update.ts)_
 
 ## `crwctl workspace:inject`
 
