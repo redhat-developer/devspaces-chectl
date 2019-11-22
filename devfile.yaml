@@ -14,7 +14,7 @@ components:
 
   - alias: dev
     type: dockerimage
-    image: quay.io/crw/theia-dev-rhel8:latest
+    image: registry.redhat.io/codeready-workspaces/theia-dev-rhel8:2.0
     mountSources: true
     memoryLimit: 3G
 
@@ -59,7 +59,7 @@ commands:
                  ./run devfile:generate \
                      --name=crwctl-test \
                      --language=typescript \
-                     --dockerimage=quay.io/crw/theia-dev-rhel8:latest \
+                     --dockerimage=registry.redhat.io/codeready-workspaces/theia-dev-rhel8:2.0 \
                      --git-repo=https://github.com/redhat-developer/codeready-workspaces-chectl.git \
                      --command="yarn" > /projects/sample.devfile;
                   cat /projects/sample.devfile
