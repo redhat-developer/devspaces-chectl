@@ -56,6 +56,7 @@ USAGE
 * [`crwctl update`](#crwctl-update)
 * [`crwctl workspace:inject`](#crwctl-workspaceinject)
 * [`crwctl workspace:list`](#crwctl-workspacelist)
+* [`crwctl workspace:logs`](#chectl-workspacelogs)
 * [`crwctl workspace:start`](#crwctl-workspacestart)
 * [`crwctl workspace:stop`](#crwctl-workspacestop)
 
@@ -150,6 +151,28 @@ OPTIONS
 
 _See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/server/delete.ts)_
 
+## `chectl server:logs`
+
+Collect CodeReady Workspaces logs
+
+```
+USAGE
+  $ crwl server:logs
+
+OPTIONS
+  -d, --directory=directory                Directory to store logs into
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: workspaces] Openshift namespace where CodeReady Workspaces is supposed to be
+                                           deployed
+
+  --deployment-name=deployment-name        [default: codeready] CodeReady Workspaces deployment name
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+```
+
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/server/logs.ts)_
+
 ## `crwctl server:start`
 
 start CodeReady Workspaces Server
@@ -164,7 +187,10 @@ OPTIONS
   -b, --domain=domain                          Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or
                                                <local-ip>.nip.io)
 
-  -h, --help                                   show CLI help
+  -d, --directory=directory
+      Directory to store logs into
+  -h, --help
+      show CLI help
 
   -i, --cheimage=cheimage                      [default: registry.redhat.io/codeready-workspaces/server-rhel8:2.0]
                                                CodeReady Workspaces server container image
@@ -180,16 +206,18 @@ OPTIONS
   -p, --platform=openshift|crc                 [default: openshift] Type of OpenShift platform. Valid values are
                                                "openshift", "crc (for CodeReady Containers)".
 
-  -s, --tls                                    Enable TLS encryption.
-                                               Note that for kubernetes 'che-tls' with TLS
-                                               certificate must be created in the configured namespace.
-                                               For OpenShift, router will use default cluster
-                                               certificates.
+  -s, --tls
+      Enable TLS encryption.
+                           Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured 
+      namespace.
+                           For OpenShift, router will use default cluster certificates.
 
-  -t, --templates=templates                    [default: templates] Path to the templates folder
+  -t, --templates=templates
+      [default: templates] Path to the templates folder
 
-  --che-operator-cr-yaml=che-operator-cr-yaml  Path to a yaml file that defines a CheCluster used by the operator. This
-                                               parameter is used only when the installer is the operator.
+  --che-operator-cr-yaml=che-operator-cr-yaml
+      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer 
+      is the operator.
 
   --che-operator-image=che-operator-image      [default:
                                                registry.redhat.io/codeready-workspaces/server-operator-rhel8:2.0]
@@ -200,20 +228,27 @@ OPTIONS
 
   --devfile-registry-url=devfile-registry-url  The URL of the external Devfile registry.
 
-  --k8spodreadytimeout=k8spodreadytimeout      [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
+  --devfile-registry-url=devfile-registry-url
+      The URL of the external Devfile registry.
 
-  --k8spodwaittimeout=k8spodwaittimeout        [default: 300000] Waiting time for Pod Wait Timeout Kubernetes (in
-                                               milliseconds)
+  --k8spodreadytimeout=k8spodreadytimeout
+      [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
 
-  --listr-renderer=default|silent|verbose      [default: default] Listr renderer
+  --k8spodwaittimeout=k8spodwaittimeout
+      [default: 300000] Waiting time for Pod Wait Timeout Kubernetes (in milliseconds)
 
-  --os-oauth                                   Enable use of OpenShift credentials to log into CodeReady Workspaces
+  --listr-renderer=default|silent|verbose
+      [default: default] Listr renderer
 
-  --plugin-registry-url=plugin-registry-url    The URL of the external plugin registry.
+  --os-oauth
+      Enable use of OpenShift credentials to log into CodeReady Workspaces
 
-  --self-signed-cert                           Authorize usage of self signed certificates for encryption. Note that
-                                               `self-signed-cert` secret with CA certificate must be created in the
-                                               configured namespace.
+  --plugin-registry-url=plugin-registry-url
+      The URL of the external plugin registry.
+
+  --self-signed-cert
+      Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate 
+      must be created in the configured namespace.
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/server/start.ts)_
@@ -335,7 +370,31 @@ OPTIONS
 
 _See code: [src/commands/workspace/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/workspace/list.ts)_
 
-## `crwctl workspace:start`
+## `crwctl workspace:logs`
+
+Collect workspace logs
+
+```
+USAGE
+  $ crwctl workspace:logs
+
+OPTIONS
+  -d, --directory=directory                Directory to store logs into
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where CodeReady Workspaces server is supposed to be
+                                           deployed
+
+  -w, --workspace=workspace                Target workspace. Can be omitted if only one Workspace is running
+
+  --follow                                 Follow workspace creation logs
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+```
+
+_See code: [src/commands/workspace/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/logs.ts)_
+
+## `chectl workspace:start`
 
 create and start a workspace
 
@@ -383,6 +442,7 @@ OPTIONS
 
 _See code: [src/commands/workspace/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/workspace/stop.ts)_
 <!-- commandsstop -->
+
 
 # Contributing
 

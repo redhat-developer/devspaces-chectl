@@ -13,6 +13,7 @@ import { string } from '@oclif/parser/lib/flags'
 import * as fs from 'fs-extra'
 import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
+import * as os from 'os'
 import * as path from 'path'
 
 import { cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
@@ -110,6 +111,10 @@ export default class Start extends Command {
       description: 'Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer is the operator.',
       default: ''
     }),
+    directory: string({
+      char: 'd',
+      description: 'Directory to store logs into'
+    })
   }
 
   static getTemplatesDir(): string {
@@ -153,6 +158,8 @@ export default class Start extends Command {
 
   async run() {
     const { flags } = this.parse(Start)
+    const ctx: any = {}
+    ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
 
     const cheTasks = new CheTasks(flags)
@@ -185,13 +192,18 @@ export default class Start extends Command {
       task: () => new Listr(cheTasks.waitDeployedChe(flags, this))
     }], listrOptions)
 
+    const logsTasks = new Listr([{
+      title: 'Start following logs',
+      task: () => new Listr(cheTasks.serverLogsTasks(flags, true))
+    }], listrOptions)
+
     try {
-      const ctx: any = {}
       await preInstallTasks.run(ctx)
 
       if (!ctx.isCheDeployed) {
         this.checkPlatformCompatibility(flags)
         await platformCheckTasks.run(ctx)
+        await logsTasks.run(ctx)
         await installTasks.run(ctx)
       } else if (!ctx.isCheReady
         || (ctx.isPostgresDeployed && !ctx.isPostgresReady)
@@ -209,6 +221,8 @@ export default class Start extends Command {
       this.log('Command server:start has completed successfully.')
     } catch (err) {
       this.error(err)
+    } finally {
+      this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
     }
 
     notifier.notify({

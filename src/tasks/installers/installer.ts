@@ -13,6 +13,9 @@ import * as Listr from 'listr'
 
 import { OperatorTasks } from './operator'
 
+/**
+ * Tasks related to installation way.
+ */
 export class InstallerTasks {
   updateTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     const operatorTasks = new OperatorTasks()
@@ -22,7 +25,7 @@ export class InstallerTasks {
 
     // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
-      title = '🏃‍  Running the CodeReady Workspaces Operator Update'
+      title = '🏃‍  Running the CodeReady Workspaces Update'
       task = () => {
         return operatorTasks.updateTasks(flags, command)
       }

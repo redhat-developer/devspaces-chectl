@@ -14,7 +14,6 @@ import { cli } from 'cli-ux'
 
 import { CheHelper } from '../../api/che'
 import { accessToken, cheNamespace, listrRenderer } from '../../common-flags'
-
 export default class Start extends Command {
   static description = 'create and start a workspace'
 
@@ -49,6 +48,7 @@ export default class Start extends Command {
 
   async run() {
     const { flags } = this.parse(Start)
+
     const Listr = require('listr')
     const notifier = require('node-notifier')
     const che = new CheHelper(flags)
@@ -97,7 +97,7 @@ export default class Start extends Command {
       let ctx = await tasks.run()
       this.log('\nWorkspace IDE URL:')
       cli.url(ctx.workspaceIdeURL, ctx.workspaceIdeURL)
-      this.log('\n')
+      cli.info("To start collecting logs run 'chectl workspace:logs --follow'")
     } catch (err) {
       this.error(err)
     }
@@ -106,5 +106,7 @@ export default class Start extends Command {
       title: 'crwctl',
       message: 'Command workspace:start has completed successfully.'
     })
+
+    this.exit(0)
   }
 }

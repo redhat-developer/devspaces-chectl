@@ -13,6 +13,10 @@ import * as Listr from 'listr'
 import { CRCHelper } from './crc'
 import { OpenshiftTasks } from './openshift'
 
+/**
+ * Platform specific tasks.
+ *  - preflightCheck
+ */
 export class PlatformTasks {
   preflightCheckTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     const openshiftTasks = new OpenshiftTasks()
@@ -27,12 +31,12 @@ export class PlatformTasks {
     } else if (flags.platform === 'openshift') {
       task = {
         title: '✈️  Openshift preflight checklist',
-        task: () => openshiftTasks.startTasks(flags, command)
+        task: () => openshiftTasks.preflightCheckTasks(flags, command)
       }
     } else if (flags.platform === 'crc') {
       task = {
         title: '✈️  CodeReady Containers preflight checklist',
-        task: () => crc.startTasks(flags, command)
+        task: () => crc.preflightCheckTasks(flags, command)
       }
     } else {
       task = {
