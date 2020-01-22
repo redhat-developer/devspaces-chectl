@@ -21,7 +21,7 @@ crwctl
 
 Assemblies of crwctl are available at [https://github.com/redhat-developer/codeready-workspaces-chectl/releases](https://github.com/redhat-developer/codeready-workspaces-chectl/releases)
 
-Installation:
+Manual install:
 
 1) Download a .tar.gz file based on your Operating System / Arch 
 2) Unpack the assembly
@@ -151,13 +151,13 @@ OPTIONS
 
 _See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/server/delete.ts)_
 
-## `chectl server:logs`
+## `crwctl server:logs`
 
 Collect CodeReady Workspaces logs
 
 ```
 USAGE
-  $ crwl server:logs
+  $ crwctl server:logs
 
 OPTIONS
   -d, --directory=directory                Directory to store logs into
@@ -187,10 +187,9 @@ OPTIONS
   -b, --domain=domain                          Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or
                                                <local-ip>.nip.io)
 
-  -d, --directory=directory
-      Directory to store logs into
-  -h, --help
-      show CLI help
+  -d, --directory=directory                    Directory to store logs into
+  
+  -h, --help                                   Show CLI help
 
   -i, --cheimage=cheimage                      [default: registry.redhat.io/codeready-workspaces/server-rhel8:2.0]
                                                CodeReady Workspaces server container image
@@ -206,18 +205,17 @@ OPTIONS
   -p, --platform=openshift|crc                 [default: openshift] Type of OpenShift platform. Valid values are
                                                "openshift", "crc (for CodeReady Containers)".
 
-  -s, --tls
-      Enable TLS encryption.
-                           Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured 
-      namespace.
-                           For OpenShift, router will use default cluster certificates.
+  -s, --tls                                    Enable TLS encryption.
+                                               Note that for kubernetes 'che-tls' with TLS
+                                               certificate must be created in the configured namespace.
+                                               For OpenShift, router will use default cluster
+                                               certificates.
+                                               
+  -t, --templates=templates                    [default: templates] Path to the templates folder
 
-  -t, --templates=templates
-      [default: templates] Path to the templates folder
 
-  --che-operator-cr-yaml=che-operator-cr-yaml
-      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer 
-      is the operator.
+  --che-operator-cr-yaml=che-operator-cr-yaml  Path to a yaml file that defines a CheCluster used by the operator. This
+                                               parameter is used only when the installer is the operator.
 
   --che-operator-image=che-operator-image      [default:
                                                registry.redhat.io/codeready-workspaces/server-operator-rhel8:2.0]
@@ -228,27 +226,20 @@ OPTIONS
 
   --devfile-registry-url=devfile-registry-url  The URL of the external Devfile registry.
 
-  --devfile-registry-url=devfile-registry-url
-      The URL of the external Devfile registry.
+  --k8spodreadytimeout=k8spodreadytimeout      [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
 
-  --k8spodreadytimeout=k8spodreadytimeout
-      [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
+  --k8spodwaittimeout=k8spodwaittimeout        [default: 300000] Waiting time for Pod Wait Timeout Kubernetes (in
+                                               milliseconds)
 
-  --k8spodwaittimeout=k8spodwaittimeout
-      [default: 300000] Waiting time for Pod Wait Timeout Kubernetes (in milliseconds)
+  --listr-renderer=default|silent|verbose      [default: default] Listr renderer
 
-  --listr-renderer=default|silent|verbose
-      [default: default] Listr renderer
+  --os-oauth                                   Enable use of OpenShift credentials to log into CodeReady Workspaces
 
-  --os-oauth
-      Enable use of OpenShift credentials to log into CodeReady Workspaces
+  --plugin-registry-url=plugin-registry-url    The URL of the external plugin registry.
 
-  --plugin-registry-url=plugin-registry-url
-      The URL of the external plugin registry.
-
-  --self-signed-cert
-      Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate 
-      must be created in the configured namespace.
+  --self-signed-cert                           Authorize usage of self signed certificates for encryption. Note that
+                                               `self-signed-cert` secret with CA certificate must be created in the
+                                               configured namespace.
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/server/start.ts)_
@@ -392,9 +383,9 @@ OPTIONS
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
-_See code: [src/commands/workspace/logs.ts](https://github.com/che-incubator/chectl/blob/v0.0.2/src/commands/workspace/logs.ts)_
+_See code: [src/commands/workspace/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/workspace/logs.ts)_
 
-## `chectl workspace:start`
+## `crwctl workspace:start`
 
 create and start a workspace
 
@@ -442,7 +433,6 @@ OPTIONS
 
 _See code: [src/commands/workspace/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/workspace/stop.ts)_
 <!-- commandsstop -->
-
 
 # Contributing
 

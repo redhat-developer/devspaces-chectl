@@ -35,7 +35,7 @@ export class CheHelper {
   }
 
   /**
-   * Finds a pod where CodeReady workspace is running.
+   * Finds a pod where workspace is running.
    * Rejects if no workspace is found for the given workspace ID
    * or if workspace ID wasn't specified but more than one workspace is found.
    */

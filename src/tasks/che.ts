@@ -470,7 +470,7 @@ export class CheTasks {
       title: `Verify if namespace ${flags.chenamespace} exists`,
       task: async () => {
         if (!await this.che.cheNamespaceExist(flags.chenamespace)) {
-          command.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist. The configuration cannot be injected.\nFix with: verify the namespace where Che workspace is running (kubectl get --all-namespaces deployment | grep workspace)`, { code: 'EBADNS' })
+          command.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist. The configuration cannot be injected.\nFix with: verify the namespace where workspace is running (kubectl get --all-namespaces deployment | grep workspace)`, { code: 'EBADNS' })
         }
       }
     }]
@@ -489,12 +489,12 @@ export class CheTasks {
   }
 
   /**
-   * Return tasks to collect Eclipse Che logs.
+   * Return tasks to collect CodeReady Workspaces logs.
    */
   serverLogsTasks(flags: any, follow: boolean): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: `${follow ? 'Start following' : 'Read'} Che logs`,
+        title: `${follow ? 'Start following' : 'Read'} CodeReady Workspaces logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLogBySelector(flags.chenamespace, this.cheSelector, ctx.directory, follow)
           task.title = await `${task.title}...done`

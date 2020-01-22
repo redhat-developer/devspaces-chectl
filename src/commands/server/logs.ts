@@ -17,10 +17,10 @@ import * as path from 'path'
 
 import { cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
-import { K8sTasks } from '../../tasks/platforms/k8s'
+import { OpenshiftTasks } from '../../tasks/platforms/openshift'
 
 export default class Logs extends Command {
-  static description = 'Collect Eclipse Che logs'
+  static description = 'Collect CodeReady Workspaces logs'
 
   static flags = {
     help: flags.help({ char: 'h' }),
@@ -36,12 +36,12 @@ export default class Logs extends Command {
   async run() {
     const { flags } = this.parse(Logs)
     const ctx: any = {}
-    ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
+    ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'crwctl-logs', Date.now().toString()))
     const cheTasks = new CheTasks(flags)
-    const k8sTasks = new K8sTasks()
+    const openshiftTasks = new OpenshiftTasks()
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
 
-    tasks.add(k8sTasks.testApiTasks(flags, this))
+    tasks.add(openshiftTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.serverLogsTasks(flags, false))
 
@@ -51,11 +51,11 @@ export default class Logs extends Command {
     } catch (error) {
       this.error(error)
     } finally {
-      this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
+      this.log(`CodeReady Workspaces logs will be available in '${ctx.directory}'`)
     }
 
     notifier.notify({
-      title: 'chectl',
+      title: 'crwctl',
       message: 'Command server:logs has completed successfully.'
     })
 

@@ -17,7 +17,7 @@ import * as path from 'path'
 
 import { cheNamespace, listrRenderer } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
-import { K8sTasks } from '../../tasks/platforms/k8s'
+import { OpenshiftTasks } from '../../tasks/platforms/openshift'
 
 export default class Logs extends Command {
   static description = 'Collect workspace logs'
@@ -43,12 +43,12 @@ export default class Logs extends Command {
   async run() {
     const ctx: any = {}
     const { flags } = this.parse(Logs)
-    ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'chectl-logs', Date.now().toString()))
+    ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'crwctl-logs', Date.now().toString()))
     const cheTasks = new CheTasks(flags)
-    const k8sTasks = new K8sTasks()
+    const openshiftTasks = new OpenshiftTasks()
 
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
-    tasks.add(k8sTasks.testApiTasks(flags, this))
+    tasks.add(openshiftTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     if (!flags.follow) {
       tasks.add(cheTasks.verifyWorkspaceRunTask(flags, this))
@@ -59,7 +59,7 @@ export default class Logs extends Command {
       await tasks.run(ctx)
 
       if (flags.follow) {
-        this.log(`chectl is still running and keeps collecting logs in '${ctx.directory}'`)
+        this.log(`crwctl is still running and keeps collecting logs in '${ctx.directory}'`)
       } else {
         this.log(`Workspace logs is available in '${ctx.directory}'`)
         this.log('Command workspace:logs has completed successfully.')
@@ -69,7 +69,7 @@ export default class Logs extends Command {
     }
 
     notifier.notify({
-      title: 'chectl',
+      title: 'crwctl',
       message: 'Command workspace:logs has completed successfully.'
     })
   }
