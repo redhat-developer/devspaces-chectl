@@ -50,13 +50,14 @@ USAGE
 * [`crwctl devfile:generate`](#crwctl-devfilegenerate)
 * [`crwctl help [COMMAND]`](#crwctl-help-command)
 * [`crwctl server:delete`](#crwctl-serverdelete)
+* [`crwctl server:logs`](#crwctl-serverlogs)
 * [`crwctl server:start`](#crwctl-serverstart)
 * [`crwctl server:stop`](#crwctl-serverstop)
 * [`crwctl server:update`](#crwctl-serverupdate)
 * [`crwctl update`](#crwctl-update)
 * [`crwctl workspace:inject`](#crwctl-workspaceinject)
 * [`crwctl workspace:list`](#crwctl-workspacelist)
-* [`crwctl workspace:logs`](#chectl-workspacelogs)
+* [`crwctl workspace:logs`](#crwctl-workspacelogs)
 * [`crwctl workspace:start`](#crwctl-workspacestart)
 * [`crwctl workspace:stop`](#crwctl-workspacestop)
 
@@ -163,8 +164,8 @@ OPTIONS
   -d, --directory=directory                Directory to store logs into
   -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: workspaces] Openshift namespace where CodeReady Workspaces is supposed to be
-                                           deployed
+  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
+                                           is supposed to be deployed
 
   --deployment-name=deployment-name        [default: codeready] CodeReady Workspaces deployment name
 
@@ -188,8 +189,8 @@ OPTIONS
                                                <local-ip>.nip.io)
 
   -d, --directory=directory                    Directory to store logs into
-  
-  -h, --help                                   Show CLI help
+
+  -h, --help                                   show CLI help
 
   -i, --cheimage=cheimage                      [default: registry.redhat.io/codeready-workspaces/server-rhel8:2.0]
                                                CodeReady Workspaces server container image
@@ -210,9 +211,8 @@ OPTIONS
                                                certificate must be created in the configured namespace.
                                                For OpenShift, router will use default cluster
                                                certificates.
-                                               
-  -t, --templates=templates                    [default: templates] Path to the templates folder
 
+  -t, --templates=templates                    [default: templates] Path to the templates folder
 
   --che-operator-cr-yaml=che-operator-cr-yaml  Path to a yaml file that defines a CheCluster used by the operator. This
                                                parameter is used only when the installer is the operator.
@@ -335,6 +335,8 @@ OPTIONS
 
   -w, --workspace=workspace                Target workspace. Can be omitted if only one workspace is running
 
+  --kube-context=kube-context              Kubeconfig context to inject
+
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
@@ -373,8 +375,8 @@ OPTIONS
   -d, --directory=directory                Directory to store logs into
   -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: che] Kubernetes namespace where CodeReady Workspaces server is supposed to be
-                                           deployed
+  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
+                                           is supposed to be deployed
 
   -w, --workspace=workspace                Target workspace. Can be omitted if only one Workspace is running
 
@@ -383,7 +385,7 @@ OPTIONS
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
-_See code: [src/commands/workspace/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/workspace/logs.ts)_
+_See code: [src/commands/workspace/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/workspace/logs.ts)_
 
 ## `crwctl workspace:start`
 
