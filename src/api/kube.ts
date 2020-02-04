@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
 import { Context } from '@kubernetes/client-node/dist/config_types'
 import axios from 'axios'
 import { cli } from 'cli-ux'
@@ -967,11 +967,14 @@ export class KubeHelper {
         yamlCr.spec.server.pluginRegistryUrl = pluginRegistryUrl
         yamlCr.spec.server.externalPluginRegistry = true
       }
-      let devfileRegistryUrl = flags['devfile-registry-url']
+      const devfileRegistryUrl = flags['devfile-registry-url']
       if (devfileRegistryUrl) {
         yamlCr.spec.server.devfileRegistryUrl = devfileRegistryUrl
         yamlCr.spec.server.externalDevfileRegistry = true
       }
+
+      yamlCr.spec.storage.postgresPVCStorageClassName = flags['postgres-pvc-storage-class-name']
+      yamlCr.spec.storage.workspacePVCStorageClassName = flags['workspace-pvc-storage-class-name']
 
       if (flags.cheimage === DEFAULT_CHE_IMAGE &&
         yamlCr.spec.server.cheImageTag !== 'nightly' &&
@@ -1253,10 +1256,26 @@ export class KubeHelper {
     throw new Error('ERR_LIST_PVCS')
   }
 
-  async listNamespacedPod(namespace: string, selector?: string): Promise<V1PodList> {
+  async listNamespace(): Promise<V1NamespaceList> {
     const k8sApi = this.kc.makeApiClient(CoreV1Api)
     try {
-      const res = await k8sApi.listNamespacedPod(namespace, true, undefined, undefined, undefined, selector)
+      const res = await k8sApi.listNamespace()
+      if (res && res.body) {
+        return res.body
+      } else {
+        return {
+          items: []
+        }
+      }
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async listNamespacedPod(namespace: string, fieldSelector?: string, labelSelector?: string): Promise<V1PodList> {
+    const k8sApi = this.kc.makeApiClient(CoreV1Api)
+    try {
+      const res = await k8sApi.listNamespacedPod(namespace, true, undefined, undefined, fieldSelector, labelSelector)
       if (res && res.body) {
         return res.body
       } else {

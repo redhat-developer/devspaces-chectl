@@ -113,7 +113,17 @@ export default class Start extends Command {
     }),
     directory: string({
       char: 'd',
-      description: 'Directory to store logs into'
+      description: 'Directory to store logs into',
+      env: 'CHE_LOGS'
+    }),
+    'workspace-pvc-storage-class-name': string({
+      description: 'persistent volume(s) storage class name to use to store Eclipse Che workspaces data',
+      env: 'CHE_INFRA_KUBERNETES_PVC_STORAGE__CLASS__NAME',
+      default: ''
+    }),
+    'postgres-pvc-storage-class-name': string({
+      description: 'persistent volume storage class name to use to store Eclipse Che Postgres database',
+      default: ''
     })
   }
 
@@ -197,20 +207,27 @@ export default class Start extends Command {
       task: () => new Listr(cheTasks.serverLogsTasks(flags, true))
     }], listrOptions)
 
+    const eventTasks = new Listr([{
+      title: 'Start following events',
+      task: () => new Listr(cheTasks.namespaceEventsTask(flags.chenamespace, this, true))
+    }], listrOptions)
+
     try {
       await preInstallTasks.run(ctx)
 
       if (!ctx.isCheDeployed) {
         this.checkPlatformCompatibility(flags)
         await platformCheckTasks.run(ctx)
+        this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
         await logsTasks.run(ctx)
+        await eventTasks.run(ctx)
         await installTasks.run(ctx)
       } else if (!ctx.isCheReady
         || (ctx.isPostgresDeployed && !ctx.isPostgresReady)
         || (ctx.isKeycloakDeployed && !ctx.isKeycloakReady)
         || (ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryReady)
         || (ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryReady)) {
-        if (flags.platform) {
+        if (flags.platform || flags.installer) {
           this.warn('Deployed CodeReady Workspaces is found and the specified installation parameters will be ignored')
         }
         // perform CodeReady Workspaces start task if there is any component that is not ready
@@ -221,8 +238,6 @@ export default class Start extends Command {
       this.log('Command server:start has completed successfully.')
     } catch (err) {
       this.error(err)
-    } finally {
-      this.log(`CodeReady Workspaces logs will be available in '${ctx.directory}'`)
     }
 
     notifier.notify({

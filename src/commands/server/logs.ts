@@ -29,7 +29,8 @@ export default class Logs extends Command {
     'deployment-name': cheDeployment,
     directory: string({
       char: 'd',
-      description: 'Directory to store logs into'
+      description: 'Directory to store logs into',
+      env: 'CHE_LOGS'
     })
   }
 
@@ -44,8 +45,10 @@ export default class Logs extends Command {
     tasks.add(openshiftTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.serverLogsTasks(flags, false))
+    tasks.add(cheTasks.namespaceEventsTask(flags.chenamespace, this, false))
 
     try {
+      this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
       await tasks.run(ctx)
       this.log('Command server:logs has completed successfully.')
     } catch (error) {
