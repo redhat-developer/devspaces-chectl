@@ -183,63 +183,80 @@ USAGE
   $ crwctl server:start
 
 OPTIONS
-  -a, --installer=operator                     [default: operator] Installer type
+  -a, --installer=operator
+      [default: operator] Installer type
 
-  -b, --domain=domain                          Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or
-                                               <local-ip>.nip.io)
+  -b, --domain=domain
+      Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
 
-  -d, --directory=directory                    Directory to store logs into
+  -d, --directory=directory
+      Directory to store logs into
 
-  -h, --help                                   show CLI help
+  -h, --help
+      show CLI help
 
-  -i, --cheimage=cheimage                      [default: registry.redhat.io/codeready-workspaces/server-rhel8:2.0]
-                                               CodeReady Workspaces server container image
+  -i, --cheimage=cheimage
+      [default: registry.redhat.io/codeready-workspaces/server-rhel8:2.0] CodeReady Workspaces server container image
 
-  -m, --multiuser                              Starts CodeReady Workspaces in multi-user mode
+  -m, --multiuser
+      Starts CodeReady Workspaces in multi-user mode
 
-  -n, --chenamespace=chenamespace              [default: workspaces] Kubernetes namespace where CodeReady Workspaces
-                                               server is supposed to be deployed
+  -n, --chenamespace=chenamespace
+      [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is supposed to be deployed
 
-  -o, --cheboottimeout=cheboottimeout          (required) [default: 40000] CodeReady Workspaces server bootstrap timeout
-                                               (in milliseconds)
+  -o, --cheboottimeout=cheboottimeout
+      (required) [default: 40000] CodeReady Workspaces server bootstrap timeout (in milliseconds)
 
-  -p, --platform=openshift|crc                 [default: openshift] Type of OpenShift platform. Valid values are
-                                               "openshift", "crc (for CodeReady Containers)".
+  -p, --platform=openshift|crc
+      [default: openshift] Type of OpenShift platform. Valid values are "openshift", "crc (for CodeReady Containers)".
 
-  -s, --tls                                    Enable TLS encryption.
-                                               Note that for kubernetes 'che-tls' with TLS
-                                               certificate must be created in the configured namespace.
-                                               For OpenShift, router will use default cluster
-                                               certificates.
+  -s, --tls
+      Enable TLS encryption.
+                           Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured 
+      namespace.
+                           For OpenShift, router will use default cluster certificates.
 
-  -t, --templates=templates                    [default: templates] Path to the templates folder
+  -t, --templates=templates
+      [default: templates] Path to the templates folder
 
-  --che-operator-cr-yaml=che-operator-cr-yaml  Path to a yaml file that defines a CheCluster used by the operator. This
-                                               parameter is used only when the installer is the operator.
+  --che-operator-cr-yaml=che-operator-cr-yaml
+      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer 
+      is the operator.
 
-  --che-operator-image=che-operator-image      [default:
-                                               registry.redhat.io/codeready-workspaces/server-operator-rhel8:2.0]
-                                               Container image of the operator. This parameter is used only when the
-                                               installer is the operator
+  --che-operator-image=che-operator-image
+      [default: registry.redhat.io/codeready-workspaces/server-operator-rhel8:2.0] Container image of the operator. This 
+      parameter is used only when the installer is the operator
 
-  --deployment-name=deployment-name            [default: codeready] CodeReady Workspaces deployment name
+  --deployment-name=deployment-name
+      [default: codeready] CodeReady Workspaces deployment name
 
-  --devfile-registry-url=devfile-registry-url  The URL of the external Devfile registry.
+  --devfile-registry-url=devfile-registry-url
+      The URL of the external Devfile registry.
 
-  --k8spodreadytimeout=k8spodreadytimeout      [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
+  --k8spodreadytimeout=k8spodreadytimeout
+      [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
 
-  --k8spodwaittimeout=k8spodwaittimeout        [default: 300000] Waiting time for Pod Wait Timeout Kubernetes (in
-                                               milliseconds)
+  --k8spodwaittimeout=k8spodwaittimeout
+      [default: 300000] Waiting time for Pod Wait Timeout Kubernetes (in milliseconds)
 
-  --listr-renderer=default|silent|verbose      [default: default] Listr renderer
+  --listr-renderer=default|silent|verbose
+      [default: default] Listr renderer
 
-  --os-oauth                                   Enable use of OpenShift credentials to log into CodeReady Workspaces
+  --os-oauth
+      Enable use of OpenShift credentials to log into CodeReady Workspaces
 
-  --plugin-registry-url=plugin-registry-url    The URL of the external plugin registry.
+  --plugin-registry-url=plugin-registry-url
+      The URL of the external plugin registry.
 
-  --self-signed-cert                           Authorize usage of self signed certificates for encryption. Note that
-                                               `self-signed-cert` secret with CA certificate must be created in the
-                                               configured namespace.
+  --postgres-pvc-storage-class-name=postgres-pvc-storage-class-name
+      persistent volume storage class name to use to store Eclipse Che Postgres database
+
+  --self-signed-cert
+      Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate 
+      must be created in the configured namespace.
+
+  --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
+      persistent volume(s) storage class name to use to store Eclipse Che workspaces data
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/server/start.ts)_
@@ -365,7 +382,7 @@ _See code: [src/commands/workspace/list.ts](https://github.com/redhat-developer/
 
 ## `crwctl workspace:logs`
 
-Collect workspace logs
+Collect workspace(s) logs
 
 ```
 USAGE
@@ -375,12 +392,11 @@ OPTIONS
   -d, --directory=directory                Directory to store logs into
   -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
-                                           is supposed to be deployed
+  -n, --namespace=namespace                (required) The namespace where workspace is located. Can be found in
+                                           workspace configuration 'attributes.infrastructureNamespace' field.
 
-  -w, --workspace=workspace                Target workspace. Can be omitted if only one Workspace is running
-
-  --follow                                 Follow workspace creation logs
+  -w, --workspace=workspace                (required) Target workspace id. Can be found in workspace configuration 'id'
+                                           field.
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
