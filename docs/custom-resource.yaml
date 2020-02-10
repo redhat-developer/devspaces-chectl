@@ -4,7 +4,7 @@ metadata:
   name: codeready-workspaces
 spec:
   server:
-    # operator is quay.io/crw/operator-rhel8:2.1-9
+    # operator is quay.io/crw/operator-rhel8:2.1-5
     # server image used in Che deployment
     cheImage: 'quay.io/crw/server-rhel8'
     # tag of an image used in Che deployment
@@ -42,9 +42,9 @@ spec:
     # overrides for https://github.com/eclipse/che/blob/master/assembly/assembly-wsmaster-war/src/main/webapp/WEB-INF/classes/che/che.properties and
     # overrides for https://github.com/eclipse/che/blob/master/assembly/assembly-wsmaster-war/src/main/webapp/WEB-INF/classes/che/multiuser.properties
     customCheProperties:	
-      CHE_WORKSPACE_SIDECAR_IMAGE__PULL__POLICY: 'Always'
-      CHE_LIMITS_USER_WORKSPACES_RUN_COUNT: '-1'
-      CHE_DOCKER_ALWAYS__PULL__IMAGE: 'true'
+      # CHE_WORKSPACE_SIDECAR_IMAGE__PULL__POLICY: 'Always'
+      # CHE_LIMITS_USER_WORKSPACES_RUN_COUNT: '-1'
+      # CHE_DOCKER_ALWAYS__PULL__IMAGE: 'true'
       # set by operator, probably don't need to override. Latest in https://github.com/eclipse/che-operator/blob/master/pkg/deploy/defaults.go#L47-L51
       # CHE_INFRA_KUBERNETES_PVC_JOBS_IMAGE: 'registry.access.redhat.com/ubi8-minimal:8.0'
       CHE_WORKSPACE_PLUGIN__BROKER_METADATA_IMAGE: 'quay.io/crw/pluginbroker-metadata-rhel8:2.1-3'
@@ -73,9 +73,8 @@ spec:
     # set by operator, probably don't need to override. Latest in https://github.com/eclipse/che-operator/blob/master/pkg/deploy/defaults.go#L47-L51
     postgresImage: ''
   storage:
-    # persistent volume claim strategy for Che server. Can be common (all workspaces PVCs in one volume),
-    # per-workspace (one PVC per workspace for all declared volumes) and unique (one PVC per declared volume). Defaults to common
-    pvcStrategy: 'per-workspace'
+    # see https://github.com/eclipse/che/blob/master/assembly/assembly-wsmaster-war/src/main/webapp/WEB-INF/classes/che/che.properties#L266
+    pvcStrategy: 'common'
     # size of a persistent volume claim for workspaces. Defaults to 1Gi
     pvcClaimSize: '1Gi'
     # instruct Che server to launch a special pod to precreate a subpath in a PV

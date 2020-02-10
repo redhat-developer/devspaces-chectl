@@ -1,0 +1,35 @@
+apiVersion: org.eclipse.che/v1
+kind: CheCluster
+metadata:
+  name: codeready-workspaces
+spec:
+  server:
+    # operator is quay.io/crw/operator-rhel8:2.1-5
+    cheImage: 'quay.io/crw/server-rhel8'
+    cheImageTag: '2.1-5'
+    devfileRegistryImage: 'quay.io/crw/devfileregistry-rhel8:2.1-10'
+    pluginRegistryImage: 'quay.io/crw/pluginregistry-rhel8:2.1-40'
+    cheFlavor: 'codeready'
+    selfSignedCert: true
+    tlsSupport: true
+    # overrides for https://github.com/eclipse/che/blob/master/assembly/assembly-wsmaster-war/src/main/webapp/WEB-INF/classes/che/che.properties and
+    # overrides for https://github.com/eclipse/che/blob/master/assembly/assembly-wsmaster-war/src/main/webapp/WEB-INF/classes/che/multiuser.properties
+    customCheProperties:	
+      # CHE_LIMITS_USER_WORKSPACES_RUN_COUNT: '-1'
+      # CHE_INFRA_KUBERNETES_PVC_JOBS_IMAGE: 'registry.access.redhat.com/ubi8-minimal:8.0'
+      CHE_WORKSPACE_PLUGIN__BROKER_METADATA_IMAGE: 'quay.io/crw/pluginbroker-metadata-rhel8:2.1-3'
+      CHE_WORKSPACE_PLUGIN__BROKER_ARTIFACTS_IMAGE: 'quay.io/crw/pluginbroker-artifacts-rhel8:2.1-3'
+      CHE_SERVER_SECURE__EXPOSER_JWTPROXY_IMAGE: 'quay.io/crw/jwtproxy-rhel8:2.1-7'
+      CHE_FACTORY_DEFAULT__EDITOR: 'eclipse/che-theia/latest'
+      CHE_FACTORY_DEFAULT__PLUGINS: 'eclipse/che-machine-exec-plugin/latest'
+      CHE_WORKSPACE_DEVFILE_DEFAULT__EDITOR: 'eclipse/che-theia/latest'
+      CHE_WORKSPACE_DEVFILE_DEFAULT__EDITOR_PLUGINS: 'eclipse/che-machine-exec-plugin/latest'
+    
+  storage:
+    # see https://github.com/eclipse/che/blob/master/assembly/assembly-wsmaster-war/src/main/webapp/WEB-INF/classes/che/che.properties#L266
+    pvcStrategy: 'common'
+
+  auth:
+    identityProviderAdminUserName: 'admin'
+    identityProviderPassword: 'admin'
+    openShiftoAuth: true
