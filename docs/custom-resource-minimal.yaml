@@ -27,7 +27,8 @@ spec:
     
   storage:
     # see https://github.com/eclipse/che/blob/master/assembly/assembly-wsmaster-war/src/main/webapp/WEB-INF/classes/che/che.properties#L266
-    pvcStrategy: 'common'
+    # set to per-workspace for CRW (required for OSD), set to common for Che.
+    pvcStrategy: 'per-workspace'
 
   auth:
     identityProviderAdminUserName: 'admin'

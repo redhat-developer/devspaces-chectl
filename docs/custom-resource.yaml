@@ -74,7 +74,8 @@ spec:
     postgresImage: ''
   storage:
     # see https://github.com/eclipse/che/blob/master/assembly/assembly-wsmaster-war/src/main/webapp/WEB-INF/classes/che/che.properties#L266
-    pvcStrategy: 'common'
+    # set to per-workspace for CRW (required for OSD), set to common for Che.
+    pvcStrategy: 'per-workspace'
     # size of a persistent volume claim for workspaces. Defaults to 1Gi
     pvcClaimSize: '1Gi'
     # instruct Che server to launch a special pod to precreate a subpath in a PV
