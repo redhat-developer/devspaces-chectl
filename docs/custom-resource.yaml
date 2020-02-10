@@ -43,7 +43,7 @@ spec:
     # overrides for https://github.com/eclipse/che/blob/master/assembly/assembly-wsmaster-war/src/main/webapp/WEB-INF/classes/che/multiuser.properties
     customCheProperties:	
       # CHE_WORKSPACE_SIDECAR_IMAGE__PULL__POLICY: 'Always'
-      # CHE_LIMITS_USER_WORKSPACES_RUN_COUNT: '-1'
+      CHE_LIMITS_USER_WORKSPACES_RUN_COUNT: '-1'
       # CHE_DOCKER_ALWAYS__PULL__IMAGE: 'true'
       # set by operator, probably don't need to override. Latest in https://github.com/eclipse/che-operator/blob/master/pkg/deploy/defaults.go#L47-L51
       # CHE_INFRA_KUBERNETES_PVC_JOBS_IMAGE: 'registry.access.redhat.com/ubi8-minimal:8.0'
