@@ -8,19 +8,21 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1beta1IngressList, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1DeleteOptions, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1ServiceAccount, V1ServiceList, V1Subject } from '@kubernetes/client-node'
 import { Context } from '@kubernetes/client-node/dist/config_types'
 import axios from 'axios'
 import { cli } from 'cli-ux'
 import * as fs from 'fs'
 import https = require('https')
 import * as yaml from 'js-yaml'
+import * as net from 'net'
 import { Writable } from 'stream'
 
 import { DEFAULT_CHE_IMAGE } from '../constants'
 
 export class KubeHelper {
   kc = new KubeConfig()
+  portForwardHelper = new PortForward(this.kc, true)
   logHelper = new Log(this.kc)
 
   podWaitTimeout: number
@@ -387,13 +389,13 @@ export class KubeHelper {
     }
   }
 
-  async configMapExist(name = '', namespace = ''): Promise<boolean> {
+  async getConfigMap(name = '', namespace = ''): Promise<V1ConfigMap | undefined> {
     const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
     try {
       const { body } = await k8sCoreApi.readNamespacedConfigMap(name, namespace)
-      return this.compare(body, name)
+      return this.compare(body, name) && body
     } catch {
-      return false
+      return
     }
   }
 
@@ -956,6 +958,7 @@ export class KubeHelper {
       const imageAndTag = cheImage.split(':', 2)
       yamlCr.spec.server.cheImage = imageAndTag[0]
       yamlCr.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
+      yamlCr.spec.server.cheDebug = flags.debug ? flags.debug.toString() : 'false'
 
       yamlCr.spec.auth.openShiftoAuth = flags['os-oauth']
       yamlCr.spec.server.tlsSupport = flags.tls
@@ -986,15 +989,6 @@ export class KubeHelper {
         yamlCr.spec.server.pluginRegistryImage = ''
         yamlCr.spec.server.devfileRegistryImage = ''
         yamlCr.spec.auth.identityProviderImage = ''
-      } else {
-        // We obviously are using a non-released version of crwctl
-        // or are providing a non-default `cheimage`, with a specific tag, to run with
-        // => We should override the image tags for all the associated docker images
-        const tagExp = /:[^:]*$/
-        const newTag = `:${yamlCr.spec.server.cheImageTag}`
-        yamlCr.spec.auth.identityProviderImage = yamlCr.spec.auth.identityProviderImage.replace(tagExp, newTag)
-        yamlCr.spec.server.pluginRegistryImage = yamlCr.spec.server.pluginRegistryImage.replace(tagExp, newTag)
-        yamlCr.spec.server.devfileRegistryImage = yamlCr.spec.server.devfileRegistryImage.replace(tagExp, newTag)
       }
     }
     const customObjectsApi = this.kc.makeApiClient(CustomObjectsApi)
@@ -1038,31 +1032,12 @@ export class KubeHelper {
    */
   async getDefaultServiceAccountToken(): Promise<string> {
     const k8sCoreApi = this.kc.makeApiClient(CoreV1Api)
+    const namespaceName = 'default'
+    const saName = 'default'
     let res
-    try {
-      res = await k8sCoreApi.listNamespacedServiceAccount('default')
-    } catch (e) {
-      throw this.wrapK8sClientError(e)
-    }
-    if (!res || !res.body) {
-      throw new Error('Unable to get default service account')
-    }
-    const v1ServiceAccountList = res.body
-    let secretName
-    if (v1ServiceAccountList.items && v1ServiceAccountList.items.length > 0) {
-      for (let v1ServiceAccount of v1ServiceAccountList.items) {
-        if (v1ServiceAccount.metadata!.name === 'default') {
-          secretName = v1ServiceAccount.secrets![0].name
-        }
-      }
-    }
-    if (!secretName) {
-      throw new Error('Unable to get default service account secret')
-    }
-
     // now get the matching secrets
     try {
-      res = await k8sCoreApi.listNamespacedSecret('default')
+      res = await k8sCoreApi.listNamespacedSecret(namespaceName)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1070,19 +1045,20 @@ export class KubeHelper {
       throw new Error('Unable to get default service account')
     }
     const v1SecretList = res.body
-    let encodedToken
-    if (v1SecretList.items && v1SecretList.items.length > 0) {
-      for (let v1Secret of v1SecretList.items) {
-        if (v1Secret.metadata!.name === secretName && v1Secret.type === 'kubernetes.io/service-account-token') {
-          encodedToken = v1Secret.data!.token
-        }
-      }
+
+    if (!v1SecretList.items || v1SecretList.items.length === 0) {
+      throw new Error(`Unable to get default service account token since there is no secret in '${namespaceName}' namespace`)
     }
-    if (!encodedToken) {
-      throw new Error('Unable to grab default service account token')
+
+    let v1DefaultSATokenSecret = v1SecretList.items.find(secret => secret.metadata!.annotations
+      && secret.metadata!.annotations['kubernetes.io/service-account.name'] === saName
+      && secret.type === 'kubernetes.io/service-account-token')
+
+    if (!v1DefaultSATokenSecret) {
+      throw new Error(`Secret for '${saName}' service account is not found in namespace '${namespaceName}'`)
     }
-    // decode the token
-    return Buffer.from(encodedToken, 'base64').toString()
+
+    return Buffer.from(v1DefaultSATokenSecret.data!.token, 'base64').toString()
   }
 
   async checkKubeApi() {
@@ -1300,6 +1276,7 @@ export class KubeHelper {
       }
 
       this.logHelper.log(namespace, pod, container, stream, error => {
+        stream.end()
         if (error) {
           reject(error)
         } else {
@@ -1307,6 +1284,22 @@ export class KubeHelper {
         }
       }, { follow })
     })
+  }
+
+  /**
+   * Forwards port, based on the example
+   * https://github.com/kubernetes-client/javascript/blob/master/examples/typescript/port-forward/port-forward.ts
+   */
+  async portForward(podName: string, namespace: string, port: number): Promise<void> {
+    try {
+      const server = net.createServer(async socket => {
+        await this.portForwardHelper.portForward(namespace, podName, [port], socket, null, socket)
+      })
+      server.listen(port, 'localhost')
+      return
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
   }
 
   /**

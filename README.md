@@ -82,7 +82,7 @@ EXAMPLES
   $ crwctl autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.4/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.5/src/commands/autocomplete/index.ts)_
 
 ## `crwctl devfile:generate`
 
@@ -131,7 +131,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.1/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3/src/commands/help.ts)_
 
 ## `crwctl server:delete`
 
@@ -227,6 +227,10 @@ OPTIONS
       [default: registry.redhat.io/codeready-workspaces/server-operator-rhel8:2.0] Container image of the operator. This 
       parameter is used only when the installer is the operator
 
+  --debug
+      Enables the debug mode for CodeReady Workspaces server. To debug CodeReady Workspaces Server from localhost use 
+      'server:debug' command.
+
   --deployment-name=deployment-name
       [default: codeready] CodeReady Workspaces deployment name
 
@@ -254,6 +258,9 @@ OPTIONS
   --self-signed-cert
       Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate 
       must be created in the configured namespace.
+
+  --skip-version-check
+      Skip minimal versions check.
 
   --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
       persistent volume(s) storage class name to use to store Eclipse Che workspaces data

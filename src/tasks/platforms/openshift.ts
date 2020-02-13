@@ -14,6 +14,7 @@ import * as execa from 'execa'
 import * as Listr from 'listr'
 
 import { KubeHelper } from '../../api/kube'
+import { VersionHelper } from '../../api/version'
 
 export class OpenshiftTasks {
   /**
@@ -65,6 +66,8 @@ export class OpenshiftTasks {
           }
         }
       },
+      VersionHelper.getOpenShiftCheckVersionTask(flags),
+      VersionHelper.getK8sCheckVersionTask(flags)
     ], { renderer: flags['listr-renderer'] as any })
   }
 
