@@ -100,7 +100,7 @@ export default class Start extends Command {
       default: ''
     }),
     debug: boolean({
-      description: 'Enables the debug mode for Che server. To debug Eclipse Che Server from localhost use \'server:debug\' command.',
+      description: 'Enables the debug mode for CodeReady Workspaces server. To debug CodeReady Workspaces Server from localhost use \'server:debug\' command.',
       default: false
     }),
     'os-oauth': flags.boolean({

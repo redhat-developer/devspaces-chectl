@@ -228,7 +228,8 @@ OPTIONS
       parameter is used only when the installer is the operator
 
   --debug
-      Enables the debug mode for Che server. To debug Eclipse Che Server from localhost use 'server:debug' command.
+      Enables the debug mode for CodeReady Workspaces server. To debug CodeReady Workspaces Server from localhost use 
+      'server:debug' command.
 
   --deployment-name=deployment-name
       [default: codeready] CodeReady Workspaces deployment name

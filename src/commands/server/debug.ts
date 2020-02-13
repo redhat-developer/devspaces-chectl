@@ -14,17 +14,17 @@ import * as Listr from 'listr'
 
 import { cheNamespace, listrRenderer } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
-import { K8sTasks } from '../../tasks/platforms/k8s'
+import { OpenshiftTasks } from '../../tasks/platforms/openshift'
 
 export default class Debug extends Command {
-  static description = 'Enable local debug of Eclipse Che server'
+  static description = 'Enable local debug of CodeReady Workspaces server'
 
   static flags = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'listr-renderer': listrRenderer,
     'debug-port': integer({
-      description: 'Eclipse Che Server debug port',
+      description: 'CodeReady Workspaces server debug port',
       default: 8000
     })
   }
@@ -34,16 +34,16 @@ export default class Debug extends Command {
     const ctx: any = {}
 
     const cheTasks = new CheTasks(flags)
-    const k8sTasks = new K8sTasks()
+    const openshiftTasks = new OpenshiftTasks()
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
 
-    tasks.add(k8sTasks.testApiTasks(flags, this))
+    tasks.add(openshiftTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.debugTask(flags))
 
     try {
       await tasks.run(ctx)
-      this.log(`Eclipse Che Server debug is available on localhost:${flags['debug-port']}.`)
+      this.log(`CodeReady Workspaces server debug is available on localhost:${flags['debug-port']}.`)
       this.log('The program keeps running to enable port forwarding.')
     } catch (error) {
       this.error(error)
