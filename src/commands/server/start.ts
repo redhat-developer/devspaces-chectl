@@ -9,7 +9,7 @@
  **********************************************************************/
 
 import { Command, flags } from '@oclif/command'
-import { string } from '@oclif/parser/lib/flags'
+import { boolean, string } from '@oclif/parser/lib/flags'
 import * as fs from 'fs-extra'
 import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
@@ -99,6 +99,10 @@ export default class Start extends Command {
       description: 'Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)',
       default: ''
     }),
+    debug: boolean({
+      description: 'Enables the debug mode for Che server. To debug Eclipse Che Server from localhost use \'server:debug\' command.',
+      default: false
+    }),
     'os-oauth': flags.boolean({
       description: 'Enable use of OpenShift credentials to log into CodeReady Workspaces',
       default: false
@@ -124,7 +128,11 @@ export default class Start extends Command {
     'postgres-pvc-storage-class-name': string({
       description: 'persistent volume storage class name to use to store Eclipse Che Postgres database',
       default: ''
-    })
+    }),
+    'skip-version-check': flags.boolean({
+      description: 'Skip minimal versions check.',
+      default: false
+    }),
   }
 
   static getTemplatesDir(): string {
@@ -237,7 +245,7 @@ export default class Start extends Command {
       await postInstallTasks.run(ctx)
       this.log('Command server:start has completed successfully.')
     } catch (err) {
-      this.error(err)
+      this.error(`${err}\nInstallation failed, check logs in '${ctx.directory}'`)
     }
 
     notifier.notify({
