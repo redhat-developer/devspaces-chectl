@@ -4,15 +4,15 @@ metadata:
   name: codeready-workspaces
 spec:
   server:
-    # operator is quay.io/crw/operator-rhel8:2.1-5
+    # operator is quay.io/crw/operator-rhel8:2.1-12
     # server image used in Che deployment
     cheImage: 'quay.io/crw/server-rhel8'
     # tag of an image used in Che deployment
     cheImageTag: '2.1-6'
     # image:tag used in Devfile registry deployment
-    devfileRegistryImage: 'quay.io/crw/devfileregistry-rhel8:2.1-10'
+    devfileRegistryImage: 'quay.io/crw/devfileregistry-rhel8:2.1-16'
     # image:tag used in plugin registry deployment
-    pluginRegistryImage: 'quay.io/crw/pluginregistry-rhel8:2.1-40'
+    pluginRegistryImage: 'quay.io/crw/pluginregistry-rhel8:2.1-44'
     # defaults to `che`. When set to `codeready`, CodeReady Workspaces is deployed
     # the difference is in images, labels, exec commands
     cheFlavor: 'codeready'
@@ -47,8 +47,8 @@ spec:
       # CHE_DOCKER_ALWAYS__PULL__IMAGE: 'true'
       # set by operator, probably don't need to override. Latest in https://github.com/eclipse/che-operator/blob/master/pkg/deploy/defaults.go#L47-L51
       # CHE_INFRA_KUBERNETES_PVC_JOBS_IMAGE: 'registry.access.redhat.com/ubi8-minimal:8.0'
-      CHE_WORKSPACE_PLUGIN__BROKER_METADATA_IMAGE: 'quay.io/crw/pluginbroker-metadata-rhel8:2.1-4'
-      CHE_WORKSPACE_PLUGIN__BROKER_ARTIFACTS_IMAGE: 'quay.io/crw/pluginbroker-artifacts-rhel8:2.1-4'
+      CHE_WORKSPACE_PLUGIN__BROKER_METADATA_IMAGE: 'quay.io/crw/pluginbroker-metadata-rhel8:2.1-5'
+      CHE_WORKSPACE_PLUGIN__BROKER_ARTIFACTS_IMAGE: 'quay.io/crw/pluginbroker-artifacts-rhel8:2.1-5'
       CHE_SERVER_SECURE__EXPOSER_JWTPROXY_IMAGE: 'quay.io/crw/jwtproxy-rhel8:2.1-7'
       CHE_FACTORY_DEFAULT__EDITOR: 'eclipse/che-theia/latest'
       CHE_FACTORY_DEFAULT__PLUGINS: 'eclipse/che-machine-exec-plugin/latest'
