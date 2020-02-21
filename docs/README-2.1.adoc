@@ -28,7 +28,7 @@ Or run this on the commandline to patch it:
 
     # replace CRW 2.0 operator with CRW 2.1
     oc get csv -o json > config.json
-    sed -e "s#registry.redhat.io/codeready-workspaces/server-operator-rhel8:2.0#quay.io/crw/operator-rhel8:latest#" -i config.json && oc replace -f config.json
+    sed -e "s#registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.1#quay.io/crw/operator-rhel8:latest#" -i config.json && oc replace -f config.json
 
     #check if fixed
     oc get csv -o yaml | yq '.items[0].metadata.annotations.containerImage'
