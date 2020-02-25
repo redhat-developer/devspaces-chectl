@@ -248,7 +248,7 @@ export default class Start extends Command {
       if (!ctx.isCheDeployed) {
         this.checkPlatformCompatibility(flags)
         await platformCheckTasks.run(ctx)
-        this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
+        this.log(`CodeReady Workspaces logs will be available in '${ctx.directory}'`)
         await logsTasks.run(ctx)
         await eventTasks.run(ctx)
         await installTasks.run(ctx)

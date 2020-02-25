@@ -504,7 +504,7 @@ export class CheTasks {
         }
       },
       {
-        title: `${follow ? 'Start following' : 'Read'} Eclipse Che logs`,
+        title: `${follow ? 'Start following' : 'Read'} CodeReady Workspaces logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.cheSelector, ctx.directory, follow)
           task.title = await `${task.title}...done`

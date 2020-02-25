@@ -55,7 +55,7 @@ export default class Delete extends Command {
     const cluster = kc.getCurrentCluster()
 
     if (!flags['skip-deletion-check']) {
-      const confirmed = await cli.confirm(`You're going to remove Eclipse Che server in namespace '${flags.chenamespace}' on server '${cluster ? cluster.server : ''}'. If you want to continue - press Y`)
+      const confirmed = await cli.confirm(`You're going to remove CodeReady Workspaces server in namespace '${flags.chenamespace}' on server '${cluster ? cluster.server : ''}'. If you want to continue - press Y`)
       if (!confirmed) {
         this.exit(0)
       }

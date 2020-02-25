@@ -136,7 +136,7 @@ _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3
 
 ## `crwctl server:debug`
 
-Enable local debug of Eclipse Che server
+Enable local debug of CodeReady Workspaces server
 
 ```
 USAGE
