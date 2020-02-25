@@ -14,7 +14,7 @@ import * as Listr from 'listr'
 
 import { cheNamespace, listrRenderer } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
-import { OpenshiftTasks } from '../../tasks/platforms/openshift'
+import { ApiTasks } from '../../tasks/platforms/api'
 
 export default class Debug extends Command {
   static description = 'Enable local debug of CodeReady Workspaces server'
@@ -34,10 +34,10 @@ export default class Debug extends Command {
     const ctx: any = {}
 
     const cheTasks = new CheTasks(flags)
-    const openshiftTasks = new OpenshiftTasks()
+    const apiTasks = new ApiTasks()
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
 
-    tasks.add(openshiftTasks.testApiTasks(flags, this))
+    tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.debugTask(flags))
 

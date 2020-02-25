@@ -8,13 +8,16 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
+import { KubeConfig } from '@kubernetes/client-node'
 import { Command, flags } from '@oclif/command'
+import { boolean } from '@oclif/command/lib/flags'
+import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
 
 import { cheNamespace, listrRenderer } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { OperatorTasks } from '../../tasks/installers/operator'
-import { OpenshiftTasks } from '../../tasks/platforms/openshift'
+import { ApiTasks } from '../../tasks/platforms/api'
 
 export default class Delete extends Command {
   static description = 'delete any CodeReady Workspaces related resource'
@@ -22,7 +25,11 @@ export default class Delete extends Command {
   static flags = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
-    'listr-renderer': listrRenderer
+    'listr-renderer': listrRenderer,
+    'skip-deletion-check': boolean({
+      description: 'Skip user confirmation on deletion check',
+      default: false
+    }),
   }
 
   async run() {
@@ -30,7 +37,7 @@ export default class Delete extends Command {
 
     const notifier = require('node-notifier')
 
-    const openshiftTasks = new OpenshiftTasks()
+    const apiTasks = new ApiTasks()
     const operatorTasks = new OperatorTasks()
     const cheTasks = new CheTasks(flags)
 
@@ -38,9 +45,21 @@ export default class Delete extends Command {
       { renderer: flags['listr-renderer'] as any }
     )
 
-    tasks.add(openshiftTasks.testApiTasks(flags, this))
+    tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(operatorTasks.deleteTasks(flags))
     tasks.add(cheTasks.deleteTasks(flags))
+
+    const kc = new KubeConfig()
+    kc.loadFromDefault()
+
+    const cluster = kc.getCurrentCluster()
+
+    if (!flags['skip-deletion-check']) {
+      const confirmed = await cli.confirm(`You're going to remove CodeReady Workspaces server in namespace '${flags.chenamespace}' on server '${cluster ? cluster.server : ''}'. If you want to continue - press Y`)
+      if (!confirmed) {
+        this.exit(0)
+      }
+    }
 
     await tasks.run()
 

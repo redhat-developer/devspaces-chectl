@@ -49,6 +49,7 @@ USAGE
 * [`crwctl autocomplete [SHELL]`](#crwctl-autocomplete-shell)
 * [`crwctl devfile:generate`](#crwctl-devfilegenerate)
 * [`crwctl help [COMMAND]`](#crwctl-help-command)
+* [`crwctl server:debug`](#crwctl-serverdebug)
 * [`crwctl server:delete`](#crwctl-serverdelete)
 * [`crwctl server:logs`](#crwctl-serverlogs)
 * [`crwctl server:start`](#crwctl-serverstart)
@@ -133,6 +134,27 @@ OPTIONS
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v2.2.3/src/commands/help.ts)_
 
+## `crwctl server:debug`
+
+Enable local debug of CodeReady Workspaces server
+
+```
+USAGE
+  $ crwctl server:debug
+
+OPTIONS
+  -h, --help                               show CLI help
+
+  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
+                                           is supposed to be deployed
+
+  --debug-port=debug-port                  [default: 8000] CodeReady Workspaces server debug port
+
+  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+```
+
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/server/debug.ts)_
+
 ## `crwctl server:delete`
 
 delete any CodeReady Workspaces related resource
@@ -148,6 +170,8 @@ OPTIONS
                                            is supposed to be deployed
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+
+  --skip-deletion-check                    Skip user confirmation on deletion check
 ```
 
 _See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.0.0/src/commands/server/delete.ts)_
@@ -218,6 +242,10 @@ OPTIONS
 
   -t, --templates=templates
       [default: templates] Path to the templates folder
+
+  --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
+      Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used 
+      only when the installer is the operator.
 
   --che-operator-cr-yaml=che-operator-cr-yaml
       Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer 
