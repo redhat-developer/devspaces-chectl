@@ -13,7 +13,7 @@ import { string } from '@oclif/parser/lib/flags'
 
 import { accessToken, cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
-import { OpenshiftTasks } from '../../tasks/platforms/openshift'
+import { ApiTasks } from '../../tasks/platforms/api'
 
 export default class Stop extends Command {
   static description = 'stop CodeReady Workspaces Server'
@@ -36,7 +36,7 @@ export default class Stop extends Command {
     const Listr = require('listr')
     const notifier = require('node-notifier')
     const cheTasks = new CheTasks(flags)
-    const openshiftTasks = new OpenshiftTasks()
+    const apiTasks = new ApiTasks()
 
     let tasks = new Listr(undefined,
       {
@@ -45,7 +45,7 @@ export default class Stop extends Command {
       }
     )
 
-    tasks.add(openshiftTasks.testApiTasks(flags, this))
+    tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     tasks.add([
       {

@@ -20,7 +20,7 @@ import { cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
 import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { InstallerTasks } from '../../tasks/installers/installer'
-import { OpenshiftTasks } from '../../tasks/platforms/openshift'
+import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 
 export default class Start extends Command {
@@ -115,6 +115,10 @@ export default class Start extends Command {
       description: 'Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer is the operator.',
       default: ''
     }),
+    'che-operator-cr-patch-yaml': string({
+      description: 'Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used only when the installer is the operator.',
+      default: ''
+    }),
     directory: string({
       char: 'd',
       description: 'Directory to store logs into',
@@ -132,7 +136,7 @@ export default class Start extends Command {
     'skip-version-check': flags.boolean({
       description: 'Skip minimal versions check.',
       default: false
-    }),
+    })
   }
 
   static getTemplatesDir(): string {
@@ -153,6 +157,24 @@ export default class Start extends Command {
 
   checkPlatformCompatibility(flags: any) {
     // matrix checks
+    if (flags.installer === 'operator' && flags['che-operator-cr-yaml']) {
+      const ignoredFlags = []
+      flags['plugin-registry-url'] && ignoredFlags.push('--plugin-registry-urlomain')
+      flags['devfile-registry-url'] && ignoredFlags.push('--devfile-registry-url')
+      flags['postgres-pvc-storage-class-name'] && ignoredFlags.push('--postgres-pvc-storage-class-name')
+      flags['workspace-pvc-storage-class-name'] && ignoredFlags.push('--workspace-pvc-storage-class-name')
+      flags['self-signed-cert'] && ignoredFlags.push('--self-signed-cert')
+      flags['os-oauth'] && ignoredFlags.push('--os-oauth')
+      flags.tls && ignoredFlags.push('--tls')
+      flags.cheimage && ignoredFlags.push('--cheimage')
+      flags.debug && ignoredFlags.push('--debug')
+      flags.domain && ignoredFlags.push('--domain')
+
+      if (ignoredFlags.length) {
+        this.warn(`--che-operator-cr-yaml is used. The following flag(s) will be ignored: ${ignoredFlags.join('\t')}`)
+      }
+    }
+
     if (flags.installer) {
       if (flags.installer === 'minishift-addon') {
         if (flags.platform !== 'minishift') {
@@ -183,14 +205,14 @@ export default class Start extends Command {
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()
     const installerTasks = new InstallerTasks()
-    const openShiftTasks = new OpenshiftTasks()
+    const apiTasks = new ApiTasks()
 
     // Platform Checks
     let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), listrOptions)
 
     // Checks if CodeReady Workspaces is already deployed
     let preInstallTasks = new Listr(undefined, listrOptions)
-    preInstallTasks.add(openShiftTasks.testApiTasks(flags, this))
+    preInstallTasks.add(apiTasks.testApiTasks(flags, this))
     preInstallTasks.add({
       title: '👀  Looking for an already existing CodeReady Workspaces instance',
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))

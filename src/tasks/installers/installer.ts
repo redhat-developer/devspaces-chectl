@@ -75,7 +75,7 @@ export class InstallerTasks {
       task = () => {
         // The operator installs CodeReady Workspaces multiuser only
         if (!flags.multiuser) {
-          command.warn("CodeReady Workspaces can only be deployed in Multi-User mode.")
+          command.warn('CodeReady Workspaces can only be deployed in Multi-User mode.')
           flags.multiuser = true
         }
 

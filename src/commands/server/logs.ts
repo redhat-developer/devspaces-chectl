@@ -17,7 +17,7 @@ import * as path from 'path'
 
 import { cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
-import { OpenshiftTasks } from '../../tasks/platforms/openshift'
+import { ApiTasks } from '../../tasks/platforms/api'
 
 export default class Logs extends Command {
   static description = 'Collect CodeReady Workspaces logs'
@@ -39,10 +39,10 @@ export default class Logs extends Command {
     const ctx: any = {}
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'crwctl-logs', Date.now().toString()))
     const cheTasks = new CheTasks(flags)
-    const openshiftTasks = new OpenshiftTasks()
+    const apiTasks = new ApiTasks()
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
 
-    tasks.add(openshiftTasks.testApiTasks(flags, this))
+    tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.serverLogsTasks(flags, false))
     tasks.add(cheTasks.namespaceEventsTask(flags.chenamespace, this, false))
