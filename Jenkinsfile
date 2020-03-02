@@ -46,9 +46,14 @@ timeout(180) {
 			}
 			def CUSTOM_TAG=GITHUB_RELEASE_NAME // OLD way: sh(returnStdout:true,script:"date +'%Y%m%d%H%M%S'").trim()
 			SHA_CTL = sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short=4 HEAD").trim()
-			sh "cd ${CTL_path}/ && sed -i -e 's#version\": \"\\(.*\\)\",#version\": \"'${CHECTL_VERSION}'\",#' package.json; egrep -v 'versioned|oclif' package.json | grep -e version"
-			sh "cd ${CTL_path}/ && git tag '${CUSTOM_TAG}'; rm yarn.lock"
-			sh "cd ${CTL_path}/ && yarn && npx oclif-dev pack -t ${platforms} && find ./dist/ -name \"*.tar*\""
+			sh '''#!/bin/bash -xe
+			cd ${CTL_path}
+			jq -M --arg CHECTL_VERSION "''' + CHECTL_VERSION + '''" '.version = $CHECTL_VERSION' package.json > package.json2; diff -u package.json*
+			mv -f package.json2 package.json
+			git tag '${CUSTOM_TAG}'
+			rm yarn.lock
+			yarn && npx oclif-dev pack -t ${platforms} && find ./dist/ -name \"*.tar*\""
+			'''
 			def RELEASE_DESCRIPTION="CI release ${GITHUB_RELEASE_NAME}"
 			sh "curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' --data '{\"tag_name\": \"${CUSTOM_TAG}\", \"target_commitish\": \"master\", \"name\": \"${GITHUB_RELEASE_NAME}\", \"body\": \"${RELEASE_DESCRIPTION}\", \"draft\": false, \"prerelease\": true}' https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}"
 			// Extract the id of the release from the creation response
