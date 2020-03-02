@@ -2,7 +2,8 @@
 
 // PARAMETERS for this pipeline:
 // branchToBuildCTL = refs/tags/20190401211444 or master
-// version = if set, used as a project/release version, otherwise version is generated based on current day
+// version = if set, use as version prefix before commitSHA, eg., 2.1.0.RC1 --> 2.1.0.RC1-commitSHA; 
+// 			 if unset, version is 0.0.YYYYmmdd-next.commitSHA
 
 def installNPM(){
 	def nodeHome = tool 'nodejs-10.15.3'
@@ -34,14 +35,16 @@ timeout(180) {
 			installNPM()
 			def CURRENT_DAY=sh(returnStdout:true,script:"date +'%Y%m%d'").trim()
 			def SHORT_SHA1=sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short HEAD").trim()
+			def CHECTL_VERSION=""
+			def GITHUB_RELEASE_NAME=""
 			if ("${version}") {
-				def CHECTL_VERSION="${version}"
-				def GITHUB_RELEASE_NAME="${version}-${SHORT_SHA1}"
+				CHECTL_VERSION="${version}"
+				GITHUB_RELEASE_NAME="${version}-${SHORT_SHA1}"
 			} else {
-				def CHECTL_VERSION="0.0.$CURRENT_DAY-next"
-				def GITHUB_RELEASE_NAME="0.0.$CURRENT_DAY-next.${SHORT_SHA1}"
+				CHECTL_VERSION="0.0.$CURRENT_DAY-next"
+				GITHUB_RELEASE_NAME="0.0.$CURRENT_DAY-next.${SHORT_SHA1}"
 			}
-			def CUSTOM_TAG=sh(returnStdout:true,script:"date +'%Y%m%d%H%M%S'").trim()
+			def CUSTOM_TAG=GITHUB_RELEASE_NAME // OLD way: sh(returnStdout:true,script:"date +'%Y%m%d%H%M%S'").trim()
 			SHA_CTL = sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short=4 HEAD").trim()
 			sh "cd ${CTL_path}/ && sed -i -e 's#version\": \"\\(.*\\)\",#version\": \"'${CHECTL_VERSION}'\",#' package.json; egrep -v 'versioned|oclif' package.json | grep -e version"
 			sh "cd ${CTL_path}/ && git tag '${CUSTOM_TAG}'; rm yarn.lock"
