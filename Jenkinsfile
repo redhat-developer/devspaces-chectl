@@ -6,13 +6,18 @@
 // 			 if unset, version is 0.0.YYYYmmdd-next.commitSHA
 
 def installNPM(){
-	def nodeHome = tool 'nodejs-10.15.3'
+	def yarnVersion="1.17.3"
+	def nodeHome = tool 'nodejs-10.14.1'
 	env.PATH="${nodeHome}/bin:${env.PATH}"
 	// remove windows 7z if installed
 	sh "rm -fr ${nodeHome}/lib/node_modules/7zip"
 	// link to rpm-installed p7zip
 	sh "if [[ -x /usr/bin/7za ]]; then pushd ${nodeHome}/bin >/dev/null; rm -f 7z*; ln -s /usr/bin/7za 7z; popd >/dev/null; fi"
-	sh "node --version && npm version && yarn -v"
+		sh '''#!/bin/bash -xe
+rm -f ${HOME}/.npmrc ${HOME}/.yarnrc
+npm install --global yarn@''' + yarnVersion + '''
+node --version && npm --version; yarn --version
+'''
 	// sh "whereis node" // /mnt/hudson_workspace/tools/jenkins.plugins.nodejs.tools.NodeJSInstallation/nodejs-10.15.3/
 }
 
