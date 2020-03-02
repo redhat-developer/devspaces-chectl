@@ -1,7 +1,7 @@
 {
   "name": "crwctl",
   "description": "CodeReady Workspaces CLI",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "author": "Mario Loriedo @l0rd",
   "bin": {
     "crwctl": "./bin/run"

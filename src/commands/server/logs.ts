@@ -53,8 +53,6 @@ export default class Logs extends Command {
       this.log('Command server:logs has completed successfully.')
     } catch (error) {
       this.error(error)
-    } finally {
-      this.log(`CodeReady Workspaces logs will be available in '${ctx.directory}'`)
     }
 
     notifier.notify({

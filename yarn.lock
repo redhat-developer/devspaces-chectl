@@ -1362,7 +1362,7 @@ code-point-at@^1.0.0:
 
 "codeready-workspaces-operator@git://github.com/redhat-developer/codeready-workspaces-operator#master":
   version "0.0.0"
-  resolved "git://github.com/redhat-developer/codeready-workspaces-operator#14477af7d251ebcc1bee37384a5f0b3b71821259"
+  resolved "git://github.com/redhat-developer/codeready-workspaces-operator#b1e89ca1e49125c28b28e388572cc55031cc2e8f"
 
 collection-visit@^1.0.0:
   version "1.0.0"
