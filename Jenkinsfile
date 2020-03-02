@@ -2,8 +2,9 @@
 
 // PARAMETERS for this pipeline:
 // branchToBuildCTL = refs/tags/20190401211444 or master
-// version = if set, use as version prefix before commitSHA, eg., 2.1.0.RC1 --> 2.1.0.RC1-commitSHA; 
+// version = if set, use as version prefix before commitSHA, eg., 2.1.0-RC1 --> 2.1.0-RC1-commitSHA; 
 // 			 if unset, version is 0.0.YYYYmmdd-next.commitSHA
+//           :: NOTE: yarn will fail for version = x.y.z.a but works with x.y.z-a
 
 def installNPM(){
 	def yarnVersion="1.17.3"
@@ -47,7 +48,7 @@ timeout(180) {
 				GITHUB_RELEASE_NAME="${version}-${SHORT_SHA1}"
 			} else {
 				CHECTL_VERSION="0.0.$CURRENT_DAY-next"
-				GITHUB_RELEASE_NAME="0.0.$CURRENT_DAY-next.${SHORT_SHA1}"
+				GITHUB_RELEASE_NAME="0.0.$CURRENT_DAY-next-${SHORT_SHA1}"
 			}
 			def CUSTOM_TAG=GITHUB_RELEASE_NAME // OLD way: sh(returnStdout:true,script:"date +'%Y%m%d%H%M%S'").trim()
 			SHA_CTL = sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short=4 HEAD").trim()
