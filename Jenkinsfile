@@ -51,7 +51,7 @@ timeout(180) {
 			jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''\" '.version = $CHECTL_VERSION' package.json > package.json2
 			diff -u package.json* || true
 			mv -f package.json2 package.json
-			git tag "''' + CUSTOM_TAG + '''""
+			git tag "''' + CUSTOM_TAG + '''"
 			rm yarn.lock
 			yarn && npx oclif-dev pack -t ''' + platforms + ''' && find ./dist/ -name \"*.tar*\""
 			'''
