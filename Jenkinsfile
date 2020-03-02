@@ -47,8 +47,8 @@ timeout(180) {
 			def CUSTOM_TAG=GITHUB_RELEASE_NAME // OLD way: sh(returnStdout:true,script:"date +'%Y%m%d%H%M%S'").trim()
 			SHA_CTL = sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short=4 HEAD").trim()
 			sh '''#!/bin/bash -xe
-			cd ${CTL_path}
-			jq -M --arg CHECTL_VERSION "''' + CHECTL_VERSION + '''" '.version = $CHECTL_VERSION' package.json > package.json2; diff -u package.json*
+			cd ${CTL_path}; ls -la package.json
+			jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''\" '.version = $CHECTL_VERSION' package.json > package.json2; diff -u package.json*
 			mv -f package.json2 package.json
 			git tag '${CUSTOM_TAG}'
 			rm yarn.lock
