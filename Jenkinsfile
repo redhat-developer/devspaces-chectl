@@ -26,11 +26,13 @@ node --version && npm --version; yarn --version
 def platforms = "linux-x64,darwin-x64,win32-x64"
 def CTL_path = "codeready-workspaces-chectl"
 def SHA_CTL = "SHA_CTL"
+def GITHUB_RELEASE_NAME=""
 
 timeout(180) {
 	node("rhel7-releng"){ 
 	  try {
 		notifyBuild('STARTED')
+		currentBuild.description="Running..."
 
 		withCredentials([string(credentialsId:'devstudio-release.token', variable: 'GITHUB_TOKEN')]) {
 			stage "Build ${CTL_path}"
@@ -46,7 +48,6 @@ timeout(180) {
 			def CURRENT_DAY=sh(returnStdout:true,script:"date +'%Y%m%d'").trim()
 			def SHORT_SHA1=sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short HEAD").trim()
 			def CHECTL_VERSION=""
-			def GITHUB_RELEASE_NAME=""
 			if ("${version}") {
 				CHECTL_VERSION="${version}"
 				GITHUB_RELEASE_NAME="${version}-${SHORT_SHA1}"
