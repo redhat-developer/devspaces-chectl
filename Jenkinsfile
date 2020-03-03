@@ -107,12 +107,22 @@ def notifyBuild(String buildStatus = 'STARTED') {
   // Default values
   def colorName = 'RED'
   def colorCode = '#FF0000'
-  def subject = "${buildStatus}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'"
+  def subject = "Build ${buildStatus} in Jenkins: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
   def summary = "${subject} (${env.BUILD_URL})"
   def details = """
-STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':
+Job ${env.JOB_NAME} #${env.BUILD_NUMBER} is ${buildStatus}.
 
-Check console output at "${env.JOB_NAME} [${env.BUILD_NUMBER}] "
+Build:
+
+${env.BUILD_URL}
+
+Parameters:
+
+${env.JENKINS_URL}/job/${env.JOB_NAME}/${env.BUILD_NUMBER}/parameters
+
+Console:
+
+${env.JENKINS_URL}/job/${env.JOB_NAME}/${env.BUILD_NUMBER}/console
 
  """
 
