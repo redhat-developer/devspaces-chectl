@@ -28,7 +28,7 @@ def SHA_CTL = "SHA_CTL"
 
 timeout(180) {
 	node("rhel7-releng"){ 
-		withCredentials([string(credentialsId:'devstudio-release.token', variable: 'GITHUB_TOKEN')) { 
+		withCredentials([string(credentialsId:'devstudio-release.token', variable: 'GITHUB_TOKEN')]) {
 			stage "Build ${CTL_path}"
 			cleanWs()
 			checkout([$class: 'GitSCM', 
