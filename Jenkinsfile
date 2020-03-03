@@ -33,7 +33,7 @@ timeout(180) {
 	node("rhel7-releng"){ 
 	  try {
 		currentBuild.description="Running..."
-		notifyBuild('STARTED')
+		notifyBuild('STARTED', '')
 
 		withCredentials([string(credentialsId:'devstudio-release.token', variable: 'GITHUB_TOKEN')]) {
 			stage "Build ${CTL_path}"
@@ -107,12 +107,12 @@ timeout(180) {
 		throw e
 	  } finally {
 		// If success or failure, send notifications
-		notifyBuild(currentBuild.result)
+		notifyBuild(currentBuild.result, " :: " + (slackLink ? slackLink : "${currentBuild.description}"))
 	  }
 	}
 }
 
-def notifyBuild(String buildStatus = 'STARTED') {
+def notifyBuild(String buildStatus = 'STARTED', String buildDesc = '') {
   // build status of null means successful
   buildStatus =  buildStatus ?: 'SUCCESSFUL'
 
@@ -120,7 +120,7 @@ def notifyBuild(String buildStatus = 'STARTED') {
   def colorName = 'RED'
   def colorCode = '#FF0000'
   def subject = "Build ${buildStatus} in Jenkins: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-  def summary = "${subject} :: ${env.BUILD_URL} :: " + (slackLink ? slackLink : "${currentBuild.description}")
+  def summary = "${subject} :: ${env.BUILD_URL}${buildDesc}"
   // NOTE: ${env.BUILD_URL} = ${env.JENKINS_URL}/job/${env.JOB_NAME}/${env.BUILD_NUMBER}
   def details = """
 Build ${buildStatus} in Jenkins for ${env.JOB_NAME} #${env.BUILD_NUMBER} !
