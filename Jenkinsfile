@@ -28,7 +28,7 @@ def SHA_CTL = "SHA_CTL"
 
 timeout(180) {
 	node("rhel7-releng"){ 
-		withCredentials([string(credentialsId: 'codeready-bot', variable: 'GITHUB_TOKEN')]) { 
+		withCredentials([string(credentialsId:'devstudio-release.token', variable: 'GITHUB_TOKEN')) { 
 			stage "Build ${CTL_path}"
 			cleanWs()
 			checkout([$class: 'GitSCM', 
@@ -54,6 +54,8 @@ timeout(180) {
 			SHA_CTL = sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short=4 HEAD").trim()
 			sh '''#!/bin/bash -xe
 			cd ''' + CTL_path + '''
+			# clean up from previous build if applicable
+			rm -fr dist/channels/
 			jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''\" '.version = $CHECTL_VERSION' package.json > package.json2
 			diff -u package.json* || true
 			mv -f package.json2 package.json
@@ -67,7 +69,7 @@ timeout(180) {
 			def RELEASE_ID=sh(returnStdout:true,script:"jq -r .id /tmp/${CUSTOM_TAG}").trim()
 
 			// TODO RENAME artifacts to include version in the tarball
-			
+
 			// Upload the artifacts
 			sh "cd ${CTL_path}/dist/channels/*/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @crwctl-linux-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=crwctl-linux-x64.tar.gz"
 			sh "cd ${CTL_path}/dist/channels/*/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @crwctl-win32-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=crwctl-win32-x64.tar.gz"
