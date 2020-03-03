@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 
 // PARAMETERS for this pipeline:
-// PUBLISH_ARTIFACTS = default false; check box for true
+// PUBLISH_ARTIFACTS = check box for true, uncheck for false
 // branchToBuild     = refs/tags/20190401211444 or master
 // version           = if set, use as version prefix before commitSHA, eg., 2.1.0-RC1 --> 2.1.0-RC1-commitSHA;
 // 			           if unset, version is 0.0.YYYYmmdd-next.commitSHA
@@ -30,7 +30,7 @@ def SHA_CTL = "SHA_CTL"
 timeout(180) {
 	node("rhel7-releng"){ 
 	  try {
-		//notifyBuild('STARTED')
+		notifyBuild('STARTED')
 
 		withCredentials([string(credentialsId:'devstudio-release.token', variable: 'GITHUB_TOKEN')]) {
 			stage "Build ${CTL_path}"
@@ -90,8 +90,10 @@ timeout(180) {
 				sh "cd ${CTL_path}/ && git clone https://devstudio-release:${GITHUB_TOKEN}@github.com/redhat-developer/codeready-workspaces-chectl -b gh-pages --single-branch gh-pages"
 				sh "cd ${CTL_path}/ && echo \$(date +%s) > gh-pages/update"
 				sh "cd ${CTL_path}/gh-pages && git add update && git commit -m \"Update github pages\" && git push origin gh-pages"
+				currentBuild.description = "<a href=https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME + ">" + GITHUB_RELEASE_NAME + "</a>"
 			} else {
 				echo 'PUBLISH_ARTIFACTS != true, so nothing published to github.'
+				currentBuild.description = GITHUB_RELEASE_NAME + " not published"
 			}
 			archiveArtifacts fingerprint: false, artifacts:"**/*.log, **/*logs/**, **/dist/**/*.tar.gz, **/dist/*.json, **/dist/linux-x64, **/dist/win32-x64, **/dist/darwin-x64"
 		}
@@ -101,7 +103,8 @@ timeout(180) {
 		currentBuild.result = "FAILED"
 		throw e
 	  } finally {
-		// Success or failure, always send notifications
+		// If success or failure, send notifications
+		currentBuild.description="${GITHUB_RELEASE_NAME} failed!"
 		notifyBuild(currentBuild.result)
 	  }
 	}
@@ -115,7 +118,7 @@ def notifyBuild(String buildStatus = 'STARTED') {
   def colorName = 'RED'
   def colorCode = '#FF0000'
   def subject = "Build ${buildStatus} in Jenkins: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-  def summary = "${subject} (${env.BUILD_URL})"
+  def summary = "${subject} :: ${env.BUILD_URL} :: ${currentBuild.description}"
   // NOTE: ${env.BUILD_URL} = ${env.JENKINS_URL}/job/${env.JOB_NAME}/${env.BUILD_NUMBER}
   def details = """
 Build ${buildStatus} in Jenkins for ${env.JOB_NAME} #${env.BUILD_NUMBER} !
@@ -149,12 +152,15 @@ ${env.BUILD_URL}/flowGraphTable
     colorCode = '#FF0000'
   }
 
-  // Send notifications
-  emailext (
-      subject: subject,
-      body: details,
-      recipientProviders: [[$class: 'DevelopersRecipientProvider']]
-    )
+  // Send emails only for failure
+  if (currentBuild.result.equals("FAILED")) {
+	emailext (
+		subject: subject,
+		body: details,
+		recipientProviders: [[$class: 'DevelopersRecipientProvider']]
+		)
+  }
 
-	slackSend (color: colorCode, message: summary)
+  // always send slack message
+  slackSend (color: colorCode, message: summary)
 }
