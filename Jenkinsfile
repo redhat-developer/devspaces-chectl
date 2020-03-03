@@ -105,7 +105,6 @@ timeout(180) {
 		throw e
 	  } finally {
 		// If success or failure, send notifications
-		currentBuild.description="${GITHUB_RELEASE_NAME} failed!"
 		notifyBuild(currentBuild.result)
 	  }
 	}
@@ -155,6 +154,7 @@ ${env.BUILD_URL}/flowGraphTable
 
   // Send emails only for failure
   if (currentBuild.result.equals("FAILED")) {
+	currentBuild.description="${GITHUB_RELEASE_NAME} failed!"
 	emailext (
 		subject: subject,
 		body: details,
