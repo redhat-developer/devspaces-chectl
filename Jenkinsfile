@@ -30,7 +30,7 @@ def SHA_CTL = "SHA_CTL"
 timeout(180) {
 	node("rhel7-releng"){ 
 	  try {
-		notifyBuild('STARTED')
+		//notifyBuild('STARTED')
 
 		withCredentials([string(credentialsId:'devstudio-release.token', variable: 'GITHUB_TOKEN')]) {
 			stage "Build ${CTL_path}"
@@ -109,20 +109,24 @@ def notifyBuild(String buildStatus = 'STARTED') {
   def colorCode = '#FF0000'
   def subject = "Build ${buildStatus} in Jenkins: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
   def summary = "${subject} (${env.BUILD_URL})"
+  // NOTE: ${env.BUILD_URL} = ${env.JENKINS_URL}/job/${env.JOB_NAME}/${env.BUILD_NUMBER}
   def details = """
-Job ${env.JOB_NAME} #${env.BUILD_NUMBER} is ${buildStatus}.
+Build ${buildStatus} in Jenkins for ${env.JOB_NAME} #${env.BUILD_NUMBER} !
 
 Build:
 
-${env.BUILD_URL}
+${env.BUILD_URL} or
+${env.BUILD_URL}/display/redirect
 
-Parameters:
+Changes & parameters:
 
-${env.JENKINS_URL}/job/${env.JOB_NAME}/${env.BUILD_NUMBER}/parameters
+${env.BUILD_URL}/changes
+${env.BUILD_URL}/parameters
 
-Console:
+Console & steps:
 
-${env.JENKINS_URL}/job/${env.JOB_NAME}/${env.BUILD_NUMBER}/console
+${env.BUILD_URL}/console
+${env.BUILD_URL}/flowGraphTable
 
  """
 
@@ -144,4 +148,6 @@ ${env.JENKINS_URL}/job/${env.JOB_NAME}/${env.BUILD_NUMBER}/console
       body: details,
       recipientProviders: [[$class: 'DevelopersRecipientProvider']]
     )
+
+	slackSend (color: colorCode, message: summary)
 }
