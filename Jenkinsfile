@@ -27,12 +27,13 @@ def platforms = "linux-x64,darwin-x64,win32-x64"
 def CTL_path = "codeready-workspaces-chectl"
 def SHA_CTL = "SHA_CTL"
 def GITHUB_RELEASE_NAME=""
+def slackLink=""
 
 timeout(180) {
 	node("rhel7-releng"){ 
 	  try {
-		notifyBuild('STARTED')
 		currentBuild.description="Running..."
+		notifyBuild('STARTED')
 
 		withCredentials([string(credentialsId:'devstudio-release.token', variable: 'GITHUB_TOKEN')]) {
 			stage "Build ${CTL_path}"
@@ -92,6 +93,7 @@ timeout(180) {
 				sh "cd ${CTL_path}/ && echo \$(date +%s) > gh-pages/update"
 				sh "cd ${CTL_path}/gh-pages && git add update && git commit -m \"Update github pages\" && git push origin gh-pages"
 				currentBuild.description = "<a href=https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME + ">" + GITHUB_RELEASE_NAME + "</a>"
+				slackLink="https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME
 			} else {
 				echo 'PUBLISH_ARTIFACTS != true, so nothing published to github.'
 				currentBuild.description = GITHUB_RELEASE_NAME + " not published"
@@ -118,7 +120,7 @@ def notifyBuild(String buildStatus = 'STARTED') {
   def colorName = 'RED'
   def colorCode = '#FF0000'
   def subject = "Build ${buildStatus} in Jenkins: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-  def summary = "${subject} :: ${env.BUILD_URL} :: ${currentBuild.description}"
+  def summary = "${subject} :: ${env.BUILD_URL} :: " + (slackLink ? slackLink : "${currentBuild.description}")
   // NOTE: ${env.BUILD_URL} = ${env.JENKINS_URL}/job/${env.JOB_NAME}/${env.BUILD_NUMBER}
   def details = """
 Build ${buildStatus} in Jenkins for ${env.JOB_NAME} #${env.BUILD_NUMBER} !
