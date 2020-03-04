@@ -25,7 +25,7 @@ export class InstallerTasks {
 
     // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
-      title = '🏃‍  Running the CodeReady Workspaces Operator Update'
+      title = '�‍  Running the CodeReady Workspaces operator update'
       task = () => {
         return operatorTasks.updateTasks(flags, command)
       }
@@ -48,7 +48,7 @@ export class InstallerTasks {
 
     // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
-      title = '🏃‍  Running the CodeReady Workspaces Operator Update'
+      title = '�‍  Running the CodeReady Workspaces operator update'
       task = () => {
         return operatorTasks.preUpdateTasks(flags, command)
       }
@@ -71,7 +71,7 @@ export class InstallerTasks {
 
     // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
-      title = '🏃‍  Running the CodeReady Workspaces Operator'
+      title = '�‍  Running the CodeReady Workspaces operator'
       task = () => {
         // The operator installs CodeReady Workspaces multiuser only
         if (!flags.multiuser) {

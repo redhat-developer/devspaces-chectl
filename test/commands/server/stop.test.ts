@@ -13,7 +13,7 @@ describe('stop', () => {
   test
     .stdout()
     .command(['stop'])
-    .it('stop Eclipse Che Server', ctx => {
+    .it('stop CodeReady Workspaces server', ctx => {
       expect(ctx.stdout).to.contain('Successfully stopped')
     })
 })

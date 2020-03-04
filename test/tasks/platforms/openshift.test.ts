@@ -19,7 +19,7 @@ let openshift = new OpenshiftTasks()
 describe('start', () => {
   fancy
     .it('confirms that openshift is running when it does run', async () => {
-      const status = `In project che on server https://master.rhpds311.openshift.opentlc.com:443
+      const status = `In project CodeReady Workspaces on server https://master.rhpds311.openshift.opentlc.com:443
 
       http://che-che.apps.rhpds311.openshift.opentlc.com (svc/che-host)
         deployment/che deploys eclipse/che-server:latest
@@ -42,7 +42,7 @@ describe('start', () => {
     })
 
   fancy
-    .it('confirms that openshift is not running when both minishift and OpenShift are stopped', async () => {
+    .it('confirms that openshift is not running', async () => {
       const status = `Error from server (Forbidden): projects.project.openshift.io "che" is forbidden: User "system:anonymous" cannot get projects.project.openshift.io in the namespace "che": no RBAC policy matched
       `;
 

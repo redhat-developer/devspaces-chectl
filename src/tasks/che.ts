@@ -91,7 +91,7 @@ export class CheTasks {
         task: () => this.kubeTasks.podStartTasks(command, this.cheSelector, this.cheNamespace)
       },
       {
-        title: 'Retrieving CodeReady Workspaces Server URL',
+        title: 'Retrieving CodeReady Workspaces server URL',
         task: async (ctx: any, task: any) => {
           ctx.cheURL = await this.che.cheURL(flags.chenamespace)
           task.title = await `${task.title}...${ctx.cheURL}`
@@ -163,7 +163,7 @@ export class CheTasks {
             return new Listr([
               {
                 enabled: () => ctx.isCheDeployed,
-                title: `Found ${ctx.isCheStopped ? 'stopped' : 'running'} che deployment`,
+                title: `Found ${ctx.isCheStopped ? 'stopped' : 'running'} CodeReady Workspaces deployment`,
                 task: () => { }
               },
               {
@@ -350,7 +350,7 @@ export class CheTasks {
       title: 'Wait until Devfile registry pod is deleted',
       enabled: (ctx: any) => ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryStopped,
       task: async (_ctx: any, task: any) => {
-        await this.kube.waitUntilPodIsDeleted('app=che,component=devfile-registry', this.cheNamespace)
+        await this.kube.waitUntilPodIsDeleted('app=codeready,component=devfile-registry', this.cheNamespace)
         task.title = `${task.title}...done.`
       }
     },
@@ -370,7 +370,7 @@ export class CheTasks {
       title: 'Wait until Plugin registry pod is deleted',
       enabled: (ctx: any) => ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryStopped,
       task: async (_ctx: any, task: any) => {
-        await this.kube.waitUntilPodIsDeleted('app=che,component=plugin-registry', this.cheNamespace)
+        await this.kube.waitUntilPodIsDeleted('app=codeready,component=plugin-registry', this.cheNamespace)
         task.title = `${task.title}...done.`
       }
     }]
@@ -412,7 +412,7 @@ export class CheTasks {
         }
       },
       {
-        title: 'Delete configmaps che and che-operator',
+        title: 'Delete configmaps for CodeReady Workspaces server and operator',
         task: async (_ctx: any, task: any) => {
           if (await this.kube.getConfigMap('che', flags.chenamespace)) {
             await this.kube.deleteConfigMap('che', flags.chenamespace)
@@ -568,11 +568,11 @@ export class CheTasks {
   debugTask(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Find Che Server pod',
+        title: 'Find CodeReady Workspaces server pod',
         task: async (ctx: any, task: any) => {
           const chePods = await this.kube.listNamespacedPod(flags.chenamespace, undefined, this.cheSelector)
           if (chePods.items.length === 0) {
-            throw new Error(`Che Server pod not found in the namespace '${flags.chenamespace}'`)
+            throw new Error(`CodeReady Workspaces server pod not found in the namespace '${flags.chenamespace}'`)
           }
           ctx.podName = chePods.items[0].metadata!.name!
           task.title = `${task.title}...done`
@@ -583,7 +583,7 @@ export class CheTasks {
         task: async (task: any) => {
           const configMap = await this.kube.getConfigMap('che', flags.chenamespace)
           if (!configMap || configMap.data!.CHE_DEBUG_SERVER !== 'true') {
-            throw new Error('Che Server should be redeployed with \'--debug\' flag')
+            throw new Error('CodeReady Workspaces server should be redeployed with \'--debug\' flag')
           }
 
           task.title = `${task.title}...done`

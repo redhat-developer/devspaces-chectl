@@ -24,7 +24,7 @@ import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 
 export default class Update extends Command {
-  static description = 'update CodeReady Workspaces Server'
+  static description = 'update CodeReady Workspaces server'
 
   static flags = {
     installer: string({
@@ -80,6 +80,10 @@ export default class Update extends Command {
     if (flags.installer === 'operator') {
       // operator already supports updating
       return
+    }
+
+    if (flags.installer === 'minishift-addon' || flags.installer === 'helm') {
+      this.error(`� The specified installer ${flags.installer} does not support updating yet.`)
     }
 
     this.error(`🛑 Unknown installer ${flags.installer} is specified.`)

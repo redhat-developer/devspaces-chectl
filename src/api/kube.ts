@@ -987,7 +987,7 @@ export class KubeHelper {
       if (flags.cheimage === DEFAULT_CHE_IMAGE &&
         yamlCr.spec.server.cheImageTag !== 'nightly' &&
         yamlCr.spec.server.cheImageTag !== 'latest') {
-        // We obviously are using a release version of chectl with the default `cheimage`
+        // We obviously are using a release version of crwctl with the default `cheimage`
         // => We should use the operator defaults for docker images
         yamlCr.spec.server.cheImage = ''
         yamlCr.spec.server.cheImageTag = ''

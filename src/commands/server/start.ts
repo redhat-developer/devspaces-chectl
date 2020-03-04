@@ -24,7 +24,7 @@ import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
 
 export default class Start extends Command {
-  static description = 'start CodeReady Workspaces Server'
+  static description = 'start CodeReady Workspaces server'
 
   static flags = {
     help: flags.help({ char: 'h' }),
@@ -100,7 +100,7 @@ export default class Start extends Command {
       default: ''
     }),
     debug: boolean({
-      description: 'Enables the debug mode for CodeReady Workspaces server. To debug CodeReady Workspaces Server from localhost use \'server:debug\' command.',
+      description: 'Enables the debug mode for CodeReady Workspaces server. To debug CodeReady Workspaces server from localhost use \'server:debug\' command.',
       default: false
     }),
     'os-oauth': flags.boolean({
@@ -125,12 +125,12 @@ export default class Start extends Command {
       env: 'CHE_LOGS'
     }),
     'workspace-pvc-storage-class-name': string({
-      description: 'persistent volume(s) storage class name to use to store Eclipse Che workspaces data',
+      description: 'persistent volume(s) storage class name to use to store CodeReady Workspaces workspaces data',
       env: 'CHE_INFRA_KUBERNETES_PVC_STORAGE__CLASS__NAME',
       default: ''
     }),
     'postgres-pvc-storage-class-name': string({
-      description: 'persistent volume storage class name to use to store Eclipse Che Postgres database',
+      description: 'persistent volume storage class name to use to store CodeReady Workspaces postgres database',
       default: ''
     }),
     'skip-version-check': flags.boolean({

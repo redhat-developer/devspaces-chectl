@@ -163,13 +163,13 @@ export class OperatorTasks {
         }
       },
       {
-        title: `Create CodeReady Workspaces Cluster ${this.operatorCheCluster} in namespace ${flags.chenamespace}`,
+        title: `Create CodeReady Workspaces cluster ${this.operatorCheCluster} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
           const exist = await kube.cheClusterExist(this.operatorCheCluster, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            // CodeReady Workspaces Operator supports only Multi-User Che
+            // CodeReady Workspaces operator supports only Multi-User Che
             ctx.isCheDeployed = true
             ctx.isPostgresDeployed = true
             ctx.isKeycloakDeployed = true
@@ -304,7 +304,7 @@ export class OperatorTasks {
         }
       },
       {
-        title: `Updating CodeReady Workspaces Cluster CRD ${this.cheClusterCrd}`,
+        title: `Updating CodeReady Workspaces cluster CRD ${this.cheClusterCrd}`,
         task: async (_ctx: any, task: any) => {
           const crd = await kube.getCrd(this.cheClusterCrd)
           const yamlFilePath = this.resourcesPath + 'crds/org_v1_che_crd.yaml'
