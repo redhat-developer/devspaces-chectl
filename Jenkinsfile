@@ -93,7 +93,7 @@ timeout(180) {
 				sh "cd ${CTL_path}/ && echo \$(date +%s) > gh-pages/update"
 				sh "cd ${CTL_path}/gh-pages && git add update && git commit -m \"Update github pages\" && git push origin gh-pages"
 				currentBuild.description = "<a href=https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME + ">" + GITHUB_RELEASE_NAME + "</a>"
-				slackLink="https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME
+				// slackLink="https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME
 			} else {
 				echo 'PUBLISH_ARTIFACTS != true, so nothing published to github.'
 				currentBuild.description = GITHUB_RELEASE_NAME + " not published"
@@ -120,7 +120,7 @@ def notifyBuild(String buildStatus = 'STARTED', String buildDesc = '') {
   def colorName = 'RED'
   def colorCode = '#FF0000'
   def subject = "Build ${buildStatus} in Jenkins: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
-  def summary = "${subject} :: ${env.BUILD_URL}${buildDesc}"
+  // def summary = "${subject} :: ${env.BUILD_URL}${buildDesc}"
   // NOTE: ${env.BUILD_URL} = ${env.JENKINS_URL}/job/${env.JOB_NAME}/${env.BUILD_NUMBER}
   def details = """
 Build ${buildStatus} in Jenkins for ${env.JOB_NAME} #${env.BUILD_NUMBER} !
@@ -165,5 +165,6 @@ ${env.BUILD_URL}/flowGraphTable
   }
 
   // always send slack message
-  slackSend (color: colorCode, message: summary)
+  // disabled as slackSend plugin is incompatible with Kerberos SSO plugin on our Jenkins
+  // slackSend (color: colorCode, message: summary)
 }
