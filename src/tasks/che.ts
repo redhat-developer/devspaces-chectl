@@ -43,7 +43,7 @@ export class CheTasks {
   pluginRegistryDeploymentName = 'plugin-registry'
   pluginRegistrySelector = 'app=codeready,component=plugin-registry'
 
-  cheOperatorSelector = 'app=che-operator'
+  cheOperatorSelector = 'app=codeready-operator'
 
   constructor(flags: any) {
     this.kube = new KubeHelper(flags)
@@ -417,8 +417,8 @@ export class CheTasks {
           if (await this.kube.getConfigMap('che', flags.chenamespace)) {
             await this.kube.deleteConfigMap('che', flags.chenamespace)
           }
-          if (await this.kube.getConfigMap('che-operator', flags.chenamespace)) {
-            await this.kube.deleteConfigMap('che-operator', flags.chenamespace)
+          if (await this.kube.getConfigMap('codeready-operator', flags.chenamespace)) {
+            await this.kube.deleteConfigMap('codeready-operator', flags.chenamespace)
           }
           task.title = await `${task.title}...OK`
         }
@@ -429,8 +429,8 @@ export class CheTasks {
           if (await this.kube.roleBindingExist('che', flags.chenamespace)) {
             await this.kube.deleteRoleBinding('che', flags.chenamespace)
           }
-          if (await this.kube.roleBindingExist('che-operator', flags.chenamespace)) {
-            await this.kube.deleteRoleBinding('che-operator', flags.chenamespace)
+          if (await this.kube.roleBindingExist('codeready-operator', flags.chenamespace)) {
+            await this.kube.deleteRoleBinding('codeready-operator', flags.chenamespace)
           }
           if (await this.kube.roleBindingExist('che-workspace-exec', flags.chenamespace)) {
             await this.kube.deleteRoleBinding('che-workspace-exec', flags.chenamespace)

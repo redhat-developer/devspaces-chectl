@@ -24,7 +24,7 @@ export default class Stop extends Command {
     'deployment-name': cheDeployment,
     'che-selector': string({
       description: 'Selector for CodeReady Workspaces server resources',
-      default: 'app=codeready,component=che',
+      default: 'app=codeready,component=codeready',
       env: 'CHE_SELECTOR'
     }),
     'access-token': accessToken,
