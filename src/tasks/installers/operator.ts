@@ -442,10 +442,10 @@ export class OperatorTasks {
       }
     },
     {
-      title: 'Delete PVC che-operator',
+      title: 'Delete PVC codeready-operator',
       task: async (_ctx: any, task: any) => {
-        if (await kh.persistentVolumeClaimExist('che-operator', flags.chenamespace)) {
-          await kh.deletePersistentVolumeClaim('che-operator', flags.chenamespace)
+        if (await kh.persistentVolumeClaimExist('codeready-operator', flags.chenamespace)) {
+          await kh.deletePersistentVolumeClaim('codeready-operator', flags.chenamespace)
         }
         task.title = await `${task.title}...OK`
       }
@@ -454,8 +454,8 @@ export class OperatorTasks {
   }
 
   async copyCheOperatorResources(templatesDir: string, cacheDir: string): Promise<string> {
-    const srcDir = path.join(templatesDir, '/codeready-workspaces-operator/')
-    const destDir = path.join(cacheDir, '/templates/codeready-workspaces-operator/')
+    const srcDir = path.join(templatesDir, '/codeready-operator/')
+    const destDir = path.join(cacheDir, '/templates/codeready-operator/')
     await remove(destDir)
     await mkdirp(destDir)
     await copy(srcDir, destDir)
@@ -466,7 +466,7 @@ export class OperatorTasks {
     if (flags['che-operator-image']) {
       return flags['che-operator-image']
     } else {
-      const filePath = flags.templates + '/codeready-workspaces-operator/operator.yaml'
+      const filePath = flags.templates + '/codeready-operator/operator.yaml'
       const yamlFile = readFileSync(filePath)
       const yamlDeployment = yaml.safeLoad(yamlFile.toString()) as V1Deployment
       return yamlDeployment.spec!.template.spec!.containers[0].image!
