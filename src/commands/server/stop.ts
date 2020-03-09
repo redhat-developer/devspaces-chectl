@@ -24,7 +24,7 @@ export default class Stop extends Command {
     'deployment-name': cheDeployment,
     'che-selector': string({
       description: 'Selector for CodeReady Workspaces server resources',
-      default: 'app=che,component=che',
+      default: 'app=codeready,component=che',
       env: 'CHE_SELECTOR'
     }),
     'access-token': accessToken,
@@ -61,7 +61,7 @@ export default class Stop extends Command {
         task: async () => { }
       },
       {
-        title: 'CodeReady Workspaces server Pod is not ready. It may be failing to start. Skipping shutdown request',
+        title: 'CodeReady Workspaces server pod is not ready. It may be failing to start. Skipping shutdown request',
         enabled: (ctx: any) => (ctx.isNotReadyYet),
         task: async () => { }
       }

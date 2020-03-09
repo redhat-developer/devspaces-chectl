@@ -75,11 +75,12 @@ export default class Start extends Command {
       char: 's',
       description: `Enable TLS encryption.
                     Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured namespace.
-                    For OpenShift, router will use default cluster certificates.`,
-      default: false
+                    For OpenShift, router will use default cluster certificates.`
     }),
     'self-signed-cert': flags.boolean({
-      description: 'Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate must be created in the configured namespace.',
+      description: `Authorize usage of self signed certificates for encryption.
+                    This is the flag for CodeReady Workspaces to propagate the certificate to components, so they will trust it.
+                    Note that \`che-tls\` secret with CA certificate must be created in the configured namespace.`,
       default: false
     }),
     platform: string({
@@ -178,7 +179,7 @@ export default class Start extends Command {
     if (flags.installer) {
       if (flags.installer === 'minishift-addon') {
         if (flags.platform !== 'minishift') {
-          this.error(`🛑 Current platform is ${flags.platform}. Minishift addon is only available on top of Minishift platform.`)
+          this.error(`🛑 Current platform is ${flags.platform}. Minishift-addon is only available for Minishift.`)
         }
       } else if (flags.installer === 'helm') {
         if (flags.platform !== 'k8s' && flags.platform !== 'minikube' && flags.platform !== 'microk8s' && flags.platform !== 'docker-desktop') {

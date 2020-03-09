@@ -35,7 +35,7 @@ export default class Update extends Command {
     }),
     platform: string({
       char: 'p',
-      description: 'Type of Kubernetes platform. Valid values are \"openshift\", \"crc (for CodeReady Containers)\".',
+      description: 'Type of OpenShift platform. Valid values are \"openshift\", \"crc (for CodeReady Containers)\".',
       options: ['openshift', 'crc'],
       default: 'openshift'
     }),
@@ -134,7 +134,7 @@ export default class Update extends Command {
           await cli.anykey(`      Found deployed CodeReady Workspaces with operator [${ctx.deployedCheOperatorImage}]:${ctx.deployedCheOperatorTag}.
       You are going to update it to [${ctx.newCheOperatorImage}]:${ctx.newCheOperatorTag}.
       Note that CodeReady Workspaces operator will update component images (server, plugin registry) only if their values
-      are not overridden in eclipse-che Customer Resource. So, you may need to remove them manually.
+      are not overridden in eclipse-che Custom Resource. So, you may need to remove them manually.
       Press q to quit or any key to continue`)
         }
 
