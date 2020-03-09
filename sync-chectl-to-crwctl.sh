@@ -2,15 +2,20 @@
 #
 # convert chectl upstream to downstream using sed transforms
 
+# set -x
+set -e
+
 if [[ $# -lt 3 ]]; then
 	echo "Usage:   $0 SOURCEDIR TARGETDIR CRW_TAG"
 	echo "Example: $0 /path/to/chectl /path/to/crwctl 2.1"
+	echo ""
+	echo "Note: CRW_TAG = default image tags (eg., server-rhel8:2.1 and crw-2-rhel8-operator:2.1)"
 	exit 1
 fi
 
 SOURCEDIR=$1; SOURCEDIR=${SOURCEDIR%/}
 TARGETDIR=$2; TARGETDIR=${TARGETDIR%/}
-CRW_TAG="$3"
+CRW_TAG="$3" # eg., 2.1 as in server-rhel8:2.1 to set as default
 
 # global / generic changes
 pushd $SOURCEDIR >/dev/null
@@ -29,21 +34,21 @@ pushd $SOURCEDIR >/dev/null
 			`#-e "s|che-operator|codeready-operator|g"` \
 			-e "s|/che-operator/|/codeready-workspaces-operator/|g" \
 			-e "s|codeready-operator-(cr.+yaml)|che-operator-\1|g" \
-			\
 			-e "s|codeready-operator-(cr.+yaml)|che-operator-\1|g" \
+			\
 			-e "s|codeready-operator-image|che-operator-image|g" \
 			-e "s|operatorCheCluster = 'eclipse-che'|operatorCheCluster = 'codeready-workspaces'|g" \
 			-e "s|Eclipse Che|CodeReady Workspaces|g" \
 			-e "s| when both minishift and OpenShift are stopped||" \
-			\
 			-e "s|resource: Kubernetes/OpenShift/Helm|resource|g" \
+			\
 			-e "s|import \{ HelmTasks \} from '../../tasks/installers/helm'||g" \
 			-e "s|import \{ MinishiftAddonTasks \} from '../../tasks/installers/minishift-addon'||g" \
 			-e "s|    const helmTasks = new HelmTasks\(\)||g" \
-			-e "s|    const (minishiftAddonTasks|msAddonTasks) = new MinishiftAddonTasks\(\)||g" \
-			\
+			-e "s#    const (minishiftAddonTasks|msAddonTasks) = new MinishiftAddonTasks\(\)##g" \
 			-e "s|.+tasks.add\(helmTasks.+||g" \
-			-e "s|.+tasks.add\(msAddonTasks.+||g" \
+			\
+			-e "s#.+tasks.add\((minishiftAddonTasks|msAddonTasks).+##g" \
 			-e "s|(const DEFAULT_CHE_IMAGE =).+|\1 'registry.redhat.io/codeready-workspaces/server-rhel8:${CRW_TAG}'|g" \
 			-e "s|(const DEFAULT_CHE_OPERATOR_IMAGE =).+|\1 'registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:${CRW_TAG}'|g" \
 			-e "s|CodeReady Workspaces will be deployed in Multi-User mode.+mode.|CodeReady Workspaces can only be deployed in Multi-User mode.|" \
