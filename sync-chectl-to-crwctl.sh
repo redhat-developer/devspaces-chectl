@@ -31,26 +31,28 @@ pushd $SOURCEDIR >/dev/null
 			\
 			-e "s|/codeready-workspaces-crwctl|/codeready-workspaces-chectl|g" \
 			-e "s|app=che|app=codeready|g" \
-			`#-e "s|che-operator|codeready-operator|g"` \
+			-e "s|app=codeready,component=che|app=codeready,component=codeready|" \
+			-e "s|che-operator|codeready-operator|g" \
 			-e "s|/che-operator/|/codeready-workspaces-operator/|g" \
-			-e "s|codeready-operator-(cr.+yaml)|che-operator-\1|g" \
-			-e "s|codeready-operator-(cr.+yaml)|che-operator-\1|g" \
 			\
+			-e "s|codeready-operator-(cr.+yaml)|che-operator-\1|g" \
+			-e "s|codeready-operator-(cr.+yaml)|che-operator-\1|g" \
 			-e "s|codeready-operator-image|che-operator-image|g" \
 			-e "s|operatorCheCluster = 'eclipse-che'|operatorCheCluster = 'codeready-workspaces'|g" \
 			-e "s|Eclipse Che|CodeReady Workspaces|g" \
+			\
 			-e "s| when both minishift and OpenShift are stopped||" \
 			-e "s|resource: Kubernetes/OpenShift/Helm|resource|g" \
-			\
 			-e "s|import \{ HelmTasks \} from '../../tasks/installers/helm'||g" \
 			-e "s|import \{ MinishiftAddonTasks \} from '../../tasks/installers/minishift-addon'||g" \
 			-e "s|    const helmTasks = new HelmTasks\(\)||g" \
+			\
 			-e "s#    const (minishiftAddonTasks|msAddonTasks) = new MinishiftAddonTasks\(\)##g" \
 			-e "s|.+tasks.add\(helmTasks.+||g" \
-			\
 			-e "s#.+tasks.add\((minishiftAddonTasks|msAddonTasks).+##g" \
 			-e "s|(const DEFAULT_CHE_IMAGE =).+|\1 'registry.redhat.io/codeready-workspaces/server-rhel8:${CRW_TAG}'|g" \
 			-e "s|(const DEFAULT_CHE_OPERATOR_IMAGE =).+|\1 'registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:${CRW_TAG}'|g" \
+			\
 			-e "s|CodeReady Workspaces will be deployed in Multi-User mode.+mode.|CodeReady Workspaces can only be deployed in Multi-User mode.|" \
 		> ${TARGETDIR}/${d}
 	done
@@ -119,25 +121,6 @@ pushd $TARGETDIR >/dev/null
 	done
 popd >/dev/null
 
-
-operatorSelectorString="  pluginRegistrySelector = 'app=codeready,component=plugin-registry'\n\
-\n\
-  cheOperatorSelector = 'app=che-operator'"
-pushd $TARGETDIR >/dev/null
-	for d in src/tasks/che.ts; do
-		echo "Convert ${d}"
-		mkdir -p ${TARGETDIR}/${d%/*}
-		sed -r \
-			-e "s|app=codeready,component=che|app=codeready,component=codeready|" \
-			-e "s|codeready-operator|che-operator|g" \
-			-e "s#.+pluginRegistrySelector =.+#${operatorSelectorString}#" \
-			-i ${TARGETDIR}/${d} 
-# 			-e "s|app=codeready,component=devfile-registry|app=che,component=devfile-registry|" \
-# 			-e "s|app=codeready,component=plugin-registry|app=che,component=plugin-registry|" \
-	done
-popd >/dev/null
-
-
 pushd $TARGETDIR >/dev/null
 	for d in src/common-flags.ts; do
 		echo "Convert ${d}"
@@ -168,6 +151,18 @@ pushd $TARGETDIR >/dev/null
 		sed -r -e "s#INSERT-CONTENT-HERE.+#${operatorTasksString}#" -i ${TARGETDIR}/${d}
 	done
 popd >/dev/null
+
+# remove if blocks
+pushd $TARGETDIR >/dev/null
+	for d in src/tasks/installers/installer.ts src/tasks/platforms/platform.ts; do
+		filename="${d##*/}"
+		echo "Convert ${d}"
+		mkdir -p ${TARGETDIR}/${d%/*}
+		perl -0777 -p -i -e 's|(\/\* .+ BEGIN CHE ONLY \*\/?/.+ END CHE ONLY \*\/)|  ${1} =~ /.+else if.+/?"":${1}|gse' ${TARGETDIR}/${d}
+		sed -r -e "s#.*(import|const).+(Helm|Minishift|DockerDesktop|K8s|MicroK8s|Minikube).*Tasks.*##g" -i ${TARGETDIR}/${d}
+	done
+popd >/dev/null
+
 
 
 # 			-e "s#.+(helm|Helm).+##g" \
