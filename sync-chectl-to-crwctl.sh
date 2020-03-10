@@ -27,11 +27,11 @@ TARGETDIR=$2; TARGETDIR=${TARGETDIR%/}
 CRW_TAG="$3" # eg., 2.1 as in server-rhel8:2.1 to set as default
 
 # global / generic changes
-pushd $SOURCEDIR >/dev/null
-	for d in $(find src test -type f -name "*"); do
+pushd "${SOURCEDIR}" >/dev/null
+	while IFS= read -r -d '' d; do
 		echo "Convert ${d}"
-		mkdir -p ${TARGETDIR}/${d%/*}
-		cat $d | sed -r \
+		mkdir -p "${TARGETDIR}"/"${d%/*}"
+		sed -r \
 			-e "s|route_names = \['che'|route_names = \['codeready'|g" \
 			-e "s|https://github.com/che-incubator/chectl|https://github.com/redhat-developer/codeready-workspaces-chectl|g" \
 			-e "s|chectl|crwctl|g" \
@@ -64,20 +64,18 @@ pushd $SOURCEDIR >/dev/null
 			\
 			-e "s|CodeReady Workspaces will be deployed in Multi-User mode.+mode.|CodeReady Workspaces can only be deployed in Multi-User mode.|" \
 			-e "s|che-incubator/crwctl|redhat-developer/codeready-workspaces-chectl|g" \
-		> ${TARGETDIR}/${d}
-	done
+		"$d" > "${TARGETDIR}/${d}"
+	done <   <(find src test -type f -name "*" -print0)
 popd >/dev/null
 
-# Remove files:
-# helm*.js
-# minishift*.js
-pushd $TARGETDIR >/dev/null
-	for d in $(find . -type f -name "helm*" -o -name "minishift*" -o -name "minikube*" -o -name "microk8s*" -o -name "k8s*" -o -name "docker-desktop*"); do
-		echo "Delete $d"
-		rm -f $d
-	done
+# Remove files
+pushd "${TARGETDIR}" >/dev/null
+	while IFS= read -r -d '' d; do
+		echo "Delete ${d#./}"
+		rm -f "$d"
+		# 
+	done <   <(find . -regextype posix-extended -iregex '.+/(helm|minishift|minishift-addon|minikube|microk8s|k8s|docker-desktop)(.test|).ts' -print0)
 popd >/dev/null
-
 
 # per-file changes:
 platformString="    platform: string({\n\
@@ -116,31 +114,30 @@ setPlaformDefaultsString="  static setPlaformDefaults(flags: any) {\n\
       }\n\
     }\n\
 "
-pushd $TARGETDIR >/dev/null
+pushd "${TARGETDIR}" >/dev/null
 	for d in src/commands/server/update.ts src/commands/server/start.ts; do
 		echo "Convert ${d}"
-		mkdir -p ${TARGETDIR}/${d%/*}
-		perl -0777 -p -i -e 's|(\ +platform: string\({.*?}\),)| ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' ${TARGETDIR}/${d}
-		sed -r -e "s#INSERT-CONTENT-HERE#${platformString}#" -i ${TARGETDIR}/${d}
+		mkdir -p "${TARGETDIR}/${d%/*}"
+		perl -0777 -p -i -e 's|(\ +platform: string\({.*?}\),)| ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
+		sed -r -e "s#INSERT-CONTENT-HERE#${platformString}#" -i "${TARGETDIR}/${d}"
 
-		perl -0777 -p -i -e 's|(\ +installer: string\({.*?}\),)| ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' ${TARGETDIR}/${d}
-		sed -r -e "s#INSERT-CONTENT-HERE#${installerString}#" -i ${TARGETDIR}/${d}
+		perl -0777 -p -i -e 's|(\ +installer: string\({.*?}\),)| ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
+		sed -r -e "s#INSERT-CONTENT-HERE#${installerString}#" -i "${TARGETDIR}/${d}"
 
-		perl -0777 -p -i -e 's|(\ +static setPlaformDefaults.+ \{.*?.+matrix checks)|  ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' ${TARGETDIR}/${d}
-		sed -r -e "s#INSERT-CONTENT-HERE#${setPlaformDefaultsString}#" -i ${TARGETDIR}/${d}
+		perl -0777 -p -i -e 's|(\ +static setPlaformDefaults.+ \{.*?.+matrix checks)|  ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
+		sed -r -e "s#INSERT-CONTENT-HERE#${setPlaformDefaultsString}#" -i "${TARGETDIR}/${d}"
 	done
 popd >/dev/null
 
-pushd $TARGETDIR >/dev/null
-	for d in src/common-flags.ts; do
-		echo "Convert ${d}"
-		mkdir -p ${TARGETDIR}/${d%/*}
-		sed -r \
-			`# replace line after specified one with new default` \
-			-e "/description: 'Kubernetes namespace/{n;s/.+/  default: 'workspaces',/}" \
-			-e "/description: .+ deployment name.+/{n;s/.+/  default: 'codeready',/}" \
-			-i ${TARGETDIR}/${d} 
-	done
+pushd "${TARGETDIR}" >/dev/null
+	d=src/common-flags.ts
+	echo "Convert ${d}"
+	mkdir -p "${TARGETDIR}/${d%/*}"
+	sed -r \
+		`# replace line after specified one with new default` \
+		-e "/description: 'Kubernetes namespace/{n;s/.+/  default: 'workspaces',/}" \
+		-e "/description: .+ deployment name.+/{n;s/.+/  default: 'codeready',/}" \
+		-i "${TARGETDIR}/${d}" 
 popd >/dev/null
 
 operatorTasksString="export class OperatorTasks {\n\
@@ -153,34 +150,20 @@ operatorTasksString="export class OperatorTasks {\n\
   operatorName = 'codeready-operator'\n\
   operatorCheCluster = 'codeready-workspaces'\n\
   resourcesPath = ''"
-pushd $TARGETDIR >/dev/null
-	for d in src/tasks/installers/operator.ts; do
-		echo "Convert ${d}"
-		mkdir -p ${TARGETDIR}/${d%/*}
-		perl -0777 -p -i -e 's|(export class OperatorTasks.*?  resourcesPath = )|  ${1} =~ /.+che-operator.+/?"INSERT-CONTENT-HERE":${1}|gse' ${TARGETDIR}/${d}
-		sed -r -e "s#INSERT-CONTENT-HERE.+#${operatorTasksString}#" -i ${TARGETDIR}/${d}
-	done
+pushd "${TARGETDIR}" >/dev/null
+	d=src/tasks/installers/operator.ts
+	echo "Convert ${d}"
+	mkdir -p "${TARGETDIR}/${d%/*}"
+	perl -0777 -p -i -e 's|(export class OperatorTasks.*?  resourcesPath = )|  ${1} =~ /.+che-operator.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
+	sed -r -e "s#INSERT-CONTENT-HERE.+#${operatorTasksString}#" -i "${TARGETDIR}/${d}"
 popd >/dev/null
 
 # remove if blocks
-pushd $TARGETDIR >/dev/null
+pushd "${TARGETDIR}" >/dev/null
 	for d in src/tasks/installers/installer.ts src/tasks/platforms/platform.ts; do
-		filename="${d##*/}"
 		echo "Convert ${d}"
-		mkdir -p ${TARGETDIR}/${d%/*}
-		perl -0777 -p -i -e 's|(\/\* .+ BEGIN CHE ONLY \*\/?/.+ END CHE ONLY \*\/)|  ${1} =~ /.+else if.+/?"":${1}|gse' ${TARGETDIR}/${d}
-		sed -r -e "s#.*(import|const).+(Helm|Minishift|DockerDesktop|K8s|MicroK8s|Minikube).*Tasks.*##g" -i ${TARGETDIR}/${d}
+		mkdir -p "${TARGETDIR}/${d%/*}"
+		perl -0777 -p -i -e 's|(\/\* .+ BEGIN CHE ONLY \*\/?/.+ END CHE ONLY \*\/)|  ${1} =~ /.+else if.+/?"":${1}|gse' "${TARGETDIR}/${d}"
+		sed -r -e "s#.*(import|const).+(Helm|Minishift|DockerDesktop|K8s|MicroK8s|Minikube).*Tasks.*##g" -i "${TARGETDIR}/${d}"
 	done
 popd >/dev/null
-
-
-
-# 			-e "s#.+(helm|Helm).+##g" \
-# 			-e "s#.+(minishift|msAddon).+##g" \
-
-# * server/start.ts
-# * server/update.ts
-# * update.ts
-# * installer/installer.ts
-# common-flags.ts
-
