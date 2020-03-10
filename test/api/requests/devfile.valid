@@ -1,11 +1,11 @@
 apiVersion: 1.0.0
 metadata:
-  name: chectl
+  name: crwctl
 projects:
-  - name: chectl
+  - name: crwctl
     source:
       type: git
-      location: 'git@github.com:che-incubator/chectl.git'
+      location: 'git@github.com:redhat-developer/codeready-workspaces-chectl.git'
 tools:
   - alias: theia-ide
     type: cheEditor
@@ -19,10 +19,10 @@ commands:
       - type: exec
         tool: theia-ide
         command: yarn
-        workdir: /projects/chectl
+        workdir: /projects/crwctl
   - name: test
     actions:
       - type: exec
         tool: theia-ide
         command: yarn test
-        workdir: /projects/chectl
+        workdir: /projects/crwctl
