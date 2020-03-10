@@ -27,7 +27,7 @@ export class InstallerTasks {
 
     // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
-      title = '🏃  Running the CodeReady Workspaces operator update'
+      title = '🏃‍  Running the CodeReady Workspaces operator update'
       task = () => {
         return operatorTasks.updateTasks(flags, command)
       }
