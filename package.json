@@ -23,7 +23,7 @@
     "@types/ws": "^7.2.1",
     "axios": "^0.19.0",
     "cli-ux": "^5.4.4",
-    "codeready-operator": "git://github.com/redhat-developer/codeready-workspaces-operator#master",
+    "codeready-workspaces-operator": "git://github.com/redhat-developer/codeready-workspaces-operator#master",
     "command-exists": "^1.2.8",
     "debug": "^4.1.1",
     "esprima": "^4.0.1",

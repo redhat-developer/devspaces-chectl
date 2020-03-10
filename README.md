@@ -241,8 +241,7 @@ OPTIONS
                            For OpenShift, router will use default cluster certificates.
 
   -t, --templates=templates
-      [default: /home/nboldt/5-Che/1.github_upstream__manual-sync_to_pkgs.devel/codeready-workspaces-chectl/templates] 
-      Path to the templates folder
+      [default: templates] Path to the templates folder
 
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
       Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used 
@@ -343,9 +342,7 @@ OPTIONS
   -p, --platform=openshift|crc             [default: openshift] Type of OpenShift platform. Valid values are
                                            "openshift", "crc (for CodeReady Containers)".
 
-  -t, --templates=templates                [default:
-                                           /home/nboldt/5-Che/1.github_upstream__manual-sync_to_pkgs.devel/codeready-wor
-                                           kspaces-chectl/templates] Path to the templates folder
+  -t, --templates=templates                [default: templates] Path to the templates folder
 
   --che-operator-image=che-operator-image  [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.1]
                                            Container image of the operator. This parameter is used only when the
