@@ -16,15 +16,15 @@ import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
 
 export default class Stop extends Command {
-  static description = 'stop CodeReady Workspaces Server'
+  static description = 'stop CodeReady Workspaces server'
 
   static flags = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'deployment-name': cheDeployment,
     'che-selector': string({
-      description: 'Selector for CodeReady Workspaces Server resources',
-      default: 'app=che,component=che',
+      description: 'Selector for CodeReady Workspaces server resources',
+      default: 'app=codeready,component=codeready',
       env: 'CHE_SELECTOR'
     }),
     'access-token': accessToken,
@@ -52,7 +52,7 @@ export default class Stop extends Command {
         title: 'Deployment doesn\'t exist',
         enabled: (ctx: any) => !ctx.isCheDeployed,
         task: async () => {
-          await this.error(`E_BAD_DEPLOY - Deployment do not exist.\nA Deployment named "${flags['deployment-name']}" exist in namespace \"${flags.chenamespace}\", CodeReady Workspaces Server cannot be stopped.\nFix with: verify the namespace where CodeReady Workspaces is running (oc get projects)\nhttps://github.com/eclipse/che`, { code: 'E_BAD_DEPLOY' })
+          await this.error(`E_BAD_DEPLOY - Deployment do not exist.\nA Deployment named "${flags['deployment-name']}" exist in namespace \"${flags.chenamespace}\", CodeReady Workspaces server cannot be stopped.\nFix with: verify the namespace where CodeReady Workspaces is running (oc get projects)\nhttps://github.com/eclipse/che`, { code: 'E_BAD_DEPLOY' })
         }
       },
       {
@@ -61,7 +61,7 @@ export default class Stop extends Command {
         task: async () => { }
       },
       {
-        title: 'CodeReady Workspaces server Pod is not ready. It may be failing to start. Skipping shutdown request',
+        title: 'CodeReady Workspaces server pod is not ready. It may be failing to start. Skipping shutdown request',
         enabled: (ctx: any) => (ctx.isNotReadyYet),
         task: async () => { }
       }

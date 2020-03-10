@@ -107,9 +107,9 @@ OPTIONS
 
   --namespace=namespace      Kubernetes namespace where the resources are defined
 
-  --plugin=plugin            Che plugin to include in the workspace. The format is JSON. For example this is a valid Che
-                             Plugin specification: {"type": "TheEndpointName.ChePlugin", "alias": "java-ls", "id":
-                             "redhat/java/0.38.0"}
+  --plugin=plugin            CodeReady Workspaces plugin to include in the workspace. The format is JSON. For example
+                             this is a valid CodeReady Workspaces plugin specification: {"type":
+                             "TheEndpointName.ChePlugin", "alias": "java-ls", "id": "redhat/java/0.38.0"}
 
   --selector=selector        label selector to filter the Kubernetes resources. For example
                              --selector="app.kubernetes.io/name=employee-manager"
@@ -200,7 +200,7 @@ _See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/cod
 
 ## `crwctl server:start`
 
-start CodeReady Workspaces Server
+start CodeReady Workspaces server
 
 ```
 USAGE
@@ -256,7 +256,7 @@ OPTIONS
       parameter is used only when the installer is the operator
 
   --debug
-      Enables the debug mode for CodeReady Workspaces server. To debug CodeReady Workspaces Server from localhost use 
+      Enables the debug mode for CodeReady Workspaces server. To debug CodeReady Workspaces server from localhost use 
       'server:debug' command.
 
   --deployment-name=deployment-name
@@ -281,24 +281,26 @@ OPTIONS
       The URL of the external plugin registry.
 
   --postgres-pvc-storage-class-name=postgres-pvc-storage-class-name
-      persistent volume storage class name to use to store Eclipse Che Postgres database
+      persistent volume storage class name to use to store CodeReady Workspaces postgres database
 
   --self-signed-cert
-      Authorize usage of self signed certificates for encryption. Note that `self-signed-cert` secret with CA certificate 
-      must be created in the configured namespace.
+      Authorize usage of self signed certificates for encryption.
+                           This is the flag for CodeReady Workspaces to propagate the certificate to components, so they 
+      will trust it.
+                           Note that `che-tls` secret with CA certificate must be created in the configured namespace.
 
   --skip-version-check
       Skip minimal versions check.
 
   --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
-      persistent volume(s) storage class name to use to store Eclipse Che workspaces data
+      persistent volume(s) storage class name to use to store CodeReady Workspaces workspaces data
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.0/src/commands/server/start.ts)_
 
 ## `crwctl server:stop`
 
-stop CodeReady Workspaces Server
+stop CodeReady Workspaces server
 
 ```
 USAGE
@@ -312,8 +314,8 @@ OPTIONS
 
   --access-token=access-token              CodeReady Workspaces OIDC Access Token
 
-  --che-selector=che-selector              [default: app=che,component=che] Selector for CodeReady Workspaces Server
-                                           resources
+  --che-selector=che-selector              [default: app=codeready,component=codeready] Selector for CodeReady
+                                           Workspaces server resources
 
   --deployment-name=deployment-name        [default: codeready] CodeReady Workspaces deployment name
 
@@ -324,7 +326,7 @@ _See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/cod
 
 ## `crwctl server:update`
 
-update CodeReady Workspaces Server
+update CodeReady Workspaces server
 
 ```
 USAGE
@@ -337,7 +339,7 @@ OPTIONS
   -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
                                            is supposed to be deployed
 
-  -p, --platform=openshift|crc             [default: openshift] Type of Kubernetes platform. Valid values are
+  -p, --platform=openshift|crc             [default: openshift] Type of OpenShift platform. Valid values are
                                            "openshift", "crc (for CodeReady Containers)".
 
   -t, --templates=templates                [default: templates] Path to the templates folder

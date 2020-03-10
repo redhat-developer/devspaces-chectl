@@ -964,8 +964,8 @@ export class KubeHelper {
       yamlCr.spec.server.cheDebug = flags.debug ? flags.debug.toString() : 'false'
 
       yamlCr.spec.auth.openShiftoAuth = flags['os-oauth']
-      yamlCr.spec.server.tlsSupport = flags.tls
       if (flags.tls) {
+        yamlCr.spec.server.tlsSupport = flags.tls
         yamlCr.spec.k8s.tlsSecretName = 'che-tls'
       }
       yamlCr.spec.server.selfSignedCert = flags['self-signed-cert']
@@ -987,7 +987,7 @@ export class KubeHelper {
       if (flags.cheimage === DEFAULT_CHE_IMAGE &&
         yamlCr.spec.server.cheImageTag !== 'nightly' &&
         yamlCr.spec.server.cheImageTag !== 'latest') {
-        // We obviously are using a release version of chectl with the default `cheimage`
+        // We obviously are using a release version of crwctl with the default `cheimage`
         // => We should use the operator defaults for docker images
         yamlCr.spec.server.cheImage = ''
         yamlCr.spec.server.cheImageTag = ''

@@ -3,9 +3,9 @@
      apiVersion: 'v1',
      metadata: {},
      status: 'Failure',
-     message: 'namespaces "che-operator" not found',
+     message: 'namespaces "codeready-operator" not found',
      reason: 'NotFound',
-     details: { name: 'che-operator', kind: 'namespaces'
+     details: { name: 'codeready-operator', kind: 'namespaces'
     },
      code: 404
   }

@@ -54,7 +54,7 @@ export default class Logs extends Command {
     tasks.add(cheTasks.workspaceLogsTasks(flags.namespace, flags.workspace))
 
     try {
-      this.log(`Eclipse Che logs will be available in '${ctx.directory}'`)
+      this.log(`CodeReady Workspaces logs will be available in '${ctx.directory}'`)
       await tasks.run(ctx)
 
       if (!ctx['workspace-run']) {

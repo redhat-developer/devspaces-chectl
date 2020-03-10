@@ -43,7 +43,7 @@ export class CheTasks {
   pluginRegistryDeploymentName = 'plugin-registry'
   pluginRegistrySelector = 'app=codeready,component=plugin-registry'
 
-  cheOperatorSelector = 'app=che-operator'
+  cheOperatorSelector = 'app=codeready-operator'
 
   constructor(flags: any) {
     this.kube = new KubeHelper(flags)
@@ -91,7 +91,7 @@ export class CheTasks {
         task: () => this.kubeTasks.podStartTasks(command, this.cheSelector, this.cheNamespace)
       },
       {
-        title: 'Retrieving CodeReady Workspaces Server URL',
+        title: 'Retrieving CodeReady Workspaces server URL',
         task: async (ctx: any, task: any) => {
           ctx.cheURL = await this.che.cheURL(flags.chenamespace)
           task.title = await `${task.title}...${ctx.cheURL}`
@@ -163,7 +163,7 @@ export class CheTasks {
             return new Listr([
               {
                 enabled: () => ctx.isCheDeployed,
-                title: `Found ${ctx.isCheStopped ? 'stopped' : 'running'} che deployment`,
+                title: `Found ${ctx.isCheStopped ? 'stopped' : 'running'} CodeReady Workspaces deployment`,
                 task: () => { }
               },
               {
@@ -299,7 +299,7 @@ export class CheTasks {
       enabled: (ctx: any) => ctx.isKeycloakDeployed && !ctx.isKeycloakStopped,
       task: async (_ctx: any, task: any) => {
         try {
-          await this.kube.scaleDeployment('keycloak', this.cheNamespace, 0)
+          await this.kube.scaleDeployment(this.keycloakDeploymentName, this.cheNamespace, 0)
           task.title = await `${task.title}...done`
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale keycloak deployment. ${error.message}`)
@@ -310,7 +310,7 @@ export class CheTasks {
       title: 'Wait until Keycloak pod is deleted',
       enabled: (ctx: any) => ctx.isKeycloakDeployed && !ctx.isKeycloakStopped,
       task: async (_ctx: any, task: any) => {
-        await this.kube.waitUntilPodIsDeleted('app=keycloak', this.cheNamespace)
+        await this.kube.waitUntilPodIsDeleted(this.keycloakSelector, this.cheNamespace)
         task.title = `${task.title}...done.`
       }
     },
@@ -319,7 +319,7 @@ export class CheTasks {
       enabled: (ctx: any) => ctx.isPostgresDeployed && !ctx.isPostgresStopped,
       task: async (_ctx: any, task: any) => {
         try {
-          await this.kube.scaleDeployment('postgres', this.cheNamespace, 0)
+          await this.kube.scaleDeployment(this.postgresDeploymentName, this.cheNamespace, 0)
           task.title = await `${task.title}...done`
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale postgres deployment. ${error.message}`)
@@ -330,7 +330,7 @@ export class CheTasks {
       title: 'Wait until Postgres pod is deleted',
       enabled: (ctx: any) => ctx.isPostgresDeployed && !ctx.isPostgresStopped,
       task: async (_ctx: any, task: any) => {
-        await this.kube.waitUntilPodIsDeleted('app=postgres', this.cheNamespace)
+        await this.kube.waitUntilPodIsDeleted(this.postgresSelector, this.cheNamespace)
         task.title = `${task.title}...done.`
       }
     },
@@ -339,7 +339,7 @@ export class CheTasks {
       enabled: (ctx: any) => ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryStopped,
       task: async (_ctx: any, task: any) => {
         try {
-          await this.kube.scaleDeployment('devfile-registry', this.cheNamespace, 0)
+          await this.kube.scaleDeployment(this.devfileRegistryDeploymentName, this.cheNamespace, 0)
           task.title = await `${task.title}...done`
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale devfile-registry deployment. ${error.message}`)
@@ -350,7 +350,7 @@ export class CheTasks {
       title: 'Wait until Devfile registry pod is deleted',
       enabled: (ctx: any) => ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryStopped,
       task: async (_ctx: any, task: any) => {
-        await this.kube.waitUntilPodIsDeleted('app=che,component=devfile-registry', this.cheNamespace)
+        await this.kube.waitUntilPodIsDeleted(this.devfileRegistrySelector, this.cheNamespace)
         task.title = `${task.title}...done.`
       }
     },
@@ -359,7 +359,7 @@ export class CheTasks {
       enabled: (ctx: any) => ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryStopped,
       task: async (_ctx: any, task: any) => {
         try {
-          await this.kube.scaleDeployment('plugin-registry', this.cheNamespace, 0)
+          await this.kube.scaleDeployment(this.pluginRegistryDeploymentName, this.cheNamespace, 0)
           task.title = await `${task.title}...done`
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale plugin-registry deployment. ${error.message}`)
@@ -370,7 +370,7 @@ export class CheTasks {
       title: 'Wait until Plugin registry pod is deleted',
       enabled: (ctx: any) => ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryStopped,
       task: async (_ctx: any, task: any) => {
-        await this.kube.waitUntilPodIsDeleted('app=che,component=plugin-registry', this.cheNamespace)
+        await this.kube.waitUntilPodIsDeleted(this.pluginRegistrySelector, this.cheNamespace)
         task.title = `${task.title}...done.`
       }
     }]
@@ -412,13 +412,13 @@ export class CheTasks {
         }
       },
       {
-        title: 'Delete configmaps che and che-operator',
+        title: 'Delete configmaps for CodeReady Workspaces server and operator',
         task: async (_ctx: any, task: any) => {
           if (await this.kube.getConfigMap('che', flags.chenamespace)) {
             await this.kube.deleteConfigMap('che', flags.chenamespace)
           }
-          if (await this.kube.getConfigMap('che-operator', flags.chenamespace)) {
-            await this.kube.deleteConfigMap('che-operator', flags.chenamespace)
+          if (await this.kube.getConfigMap('codeready-operator', flags.chenamespace)) {
+            await this.kube.deleteConfigMap('codeready-operator', flags.chenamespace)
           }
           task.title = await `${task.title}...OK`
         }
@@ -429,8 +429,8 @@ export class CheTasks {
           if (await this.kube.roleBindingExist('che', flags.chenamespace)) {
             await this.kube.deleteRoleBinding('che', flags.chenamespace)
           }
-          if (await this.kube.roleBindingExist('che-operator', flags.chenamespace)) {
-            await this.kube.deleteRoleBinding('che-operator', flags.chenamespace)
+          if (await this.kube.roleBindingExist('codeready-operator', flags.chenamespace)) {
+            await this.kube.deleteRoleBinding('codeready-operator', flags.chenamespace)
           }
           if (await this.kube.roleBindingExist('che-workspace-exec', flags.chenamespace)) {
             await this.kube.deleteRoleBinding('che-workspace-exec', flags.chenamespace)
@@ -568,11 +568,11 @@ export class CheTasks {
   debugTask(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Find Che Server pod',
+        title: 'Find CodeReady Workspaces server pod',
         task: async (ctx: any, task: any) => {
           const chePods = await this.kube.listNamespacedPod(flags.chenamespace, undefined, this.cheSelector)
           if (chePods.items.length === 0) {
-            throw new Error(`Che Server pod not found in the namespace '${flags.chenamespace}'`)
+            throw new Error(`CodeReady Workspaces server pod not found in the namespace '${flags.chenamespace}'`)
           }
           ctx.podName = chePods.items[0].metadata!.name!
           task.title = `${task.title}...done`
@@ -583,7 +583,7 @@ export class CheTasks {
         task: async (task: any) => {
           const configMap = await this.kube.getConfigMap('che', flags.chenamespace)
           if (!configMap || configMap.data!.CHE_DEBUG_SERVER !== 'true') {
-            throw new Error('Che Server should be redeployed with \'--debug\' flag')
+            throw new Error('CodeReady Workspaces server should be redeployed with \'--debug\' flag')
           }
 
           task.title = `${task.title}...done`

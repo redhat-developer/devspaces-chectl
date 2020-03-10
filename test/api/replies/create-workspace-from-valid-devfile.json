@@ -1,7 +1,7 @@
 {
   "links": {
     "self": "https://che-che.192.168.64.39.nip.io/api/workspace/devfile/workspace2m8y4wt8wyfkm6ia",
-    "ide": "https://che-che.192.168.64.39.nip.io/che/chectl"
+    "ide": "https://che-che.192.168.64.39.nip.io/che/crwctl"
   },
   "attributes": {
     "created": "1544394063204"
@@ -15,19 +15,19 @@
     "projects": [
       {
         "links": [],
-        "name": "chectl",
+        "name": "crwctl",
         "attributes": {},
         "source": {
-          "location": "git@github.com:che-incubator/chectl.git",
+          "location": "git@github.com:redhat-developer/codeready-workspaces-chectl.git",
           "type": "git",
           "parameters": {}
         },
-        "path": "/chectl",
+        "path": "/crwctl",
         "mixins": [],
         "problems": []
       }
     ],
-    "name": "chectl",
+    "name": "crwctl",
     "attributes": {
       "editor": "eclipse/che-theia/1.0.0",
       "plugins": "eclipse/che-machine-exec-plugin/0.0.1",
@@ -39,7 +39,7 @@
         "name": "build:theia-ide",
         "attributes": {
           "pluginId": "eclipse/che-theia/1.0.0",
-          "workingDir": "/projects/chectl"
+          "workingDir": "/projects/crwctl"
         },
         "type": "exec"
       },
@@ -48,7 +48,7 @@
         "name": "test:theia-ide",
         "attributes": {
           "pluginId": "eclipse/che-theia/1.0.0",
-          "workingDir": "/projects/chectl"
+          "workingDir": "/projects/crwctl"
         },
         "type": "exec"
       }

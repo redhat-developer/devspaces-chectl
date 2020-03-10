@@ -38,7 +38,7 @@ describe('Kube API helper', () => {
       .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dche`)
       .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-running.json', { 'Content-Type': 'application/json' }))
     .it('retrieves the phase of a pod', async () => {
-      const selector = 'app=che'
+      const selector = 'app=codeready'
       const res = await kube.getPodPhase(selector, namespace)
       expect(res).to.equal('Running')
     })
@@ -51,7 +51,7 @@ describe('Kube API helper', () => {
       .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dche`)
       .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-running.json', { 'Content-Type': 'application/json' }))
     .it('waits until the pod is in the "Running" phase', async () => {
-      const selector = 'app=che'
+      const selector = 'app=codeready'
       const phase = 'Running'
       const interval = 10
       const timeout = 1000
@@ -63,7 +63,7 @@ describe('Kube API helper', () => {
       .times(4)
       .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-pending.json', { 'Content-Type': 'application/json' }))
     .do(async () => {
-      const selector = 'app=che'
+      const selector = 'app=codeready'
       const phase = 'Running'
       const interval = 10
       const timeout = 40
@@ -80,7 +80,7 @@ describe('Kube API helper', () => {
       .times(2)
       .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-pending.json', { 'Content-Type': 'application/json' }))
     .it('waits until the pod is in the "Pending" phase', async () => {
-      const selector = 'app=che'
+      const selector = 'app=codeready'
       const interval = 10
       const timeout = 1000
       await kube.waitForPodPending(selector, namespace, interval, timeout)
@@ -93,7 +93,7 @@ describe('Kube API helper', () => {
       .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dche`)
       .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-running-ready.json', { 'Content-Type': 'application/json' }))
     .it('waits until the pod Ready status is "True"', async () => {
-      const selector = 'app=che'
+      const selector = 'app=codeready'
       const interval = 10
       const timeout = 1000
       await kube.waitForPodReady(selector, namespace, interval, timeout)

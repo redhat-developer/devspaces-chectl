@@ -11,6 +11,8 @@
 import Command from '@oclif/command'
 import * as Listr from 'listr'
 
+
+
 import { OperatorTasks } from './operator'
 
 /**
@@ -25,7 +27,7 @@ export class InstallerTasks {
 
     // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
-      title = '🏃‍  Running the CodeReady Workspaces Operator Update'
+      title = '🏃‍  Running the CodeReady Workspaces operator update'
       task = () => {
         return operatorTasks.updateTasks(flags, command)
       }
@@ -48,7 +50,7 @@ export class InstallerTasks {
 
     // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
-      title = '🏃‍  Running the CodeReady Workspaces Operator Update'
+      title = '🏃‍  Running the CodeReady Workspaces operator update'
       task = () => {
         return operatorTasks.preUpdateTasks(flags, command)
       }
@@ -64,23 +66,26 @@ export class InstallerTasks {
   }
 
   installTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
+
     const operatorTasks = new OperatorTasks()
+
 
     let title: string
     let task: any
 
     // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
-      title = '🏃‍  Running the CodeReady Workspaces Operator'
+      title = '🏃‍  Running the CodeReady Workspaces operator'
       task = () => {
-        // The operator installs CodeReady Workspaces multiuser only
+        // The operator installs CodeReady Workspaces in multiuser mode only
         if (!flags.multiuser) {
-          command.warn('CodeReady Workspaces can only be deployed in Multi-User mode.')
+          command.warn("CodeReady Workspaces can only be deployed in Multi-User mode.")
           flags.multiuser = true
         }
 
         return operatorTasks.startTasks(flags, command)
       }
+    
     } else {
       title = '🏃‍  Installer preflight check'
       task = () => { command.error(`Installer ${flags.installer} is not supported ¯\\_(ツ)_/¯`) }
