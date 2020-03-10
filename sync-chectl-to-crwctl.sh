@@ -1,8 +1,17 @@
 #!/bin/bash
 #
-# convert chectl upstream to downstream using sed transforms
+# Copyright (c) 2020 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+# convert chectl upstream to downstream using sed & perl transforms, and deleting files
 
-# set -x
 set -e
 
 if [[ $# -lt 3 ]]; then
@@ -63,7 +72,7 @@ popd >/dev/null
 # helm*.js
 # minishift*.js
 pushd $TARGETDIR >/dev/null
-	for d in $(find . -type f -name "helm*" -o -name "minishift*" -o -name "minikube*" -o -name "microk8s*"); do
+	for d in $(find . -type f -name "helm*" -o -name "minishift*" -o -name "minikube*" -o -name "microk8s*" -o -name "k8s*" -o -name "docker-desktop*"); do
 		echo "Delete $d"
 		rm -f $d
 	done
