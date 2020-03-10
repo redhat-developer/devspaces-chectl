@@ -30,7 +30,7 @@ CRW_TAG="$3" # eg., 2.1 as in server-rhel8:2.1 to set as default
 pushd "${SOURCEDIR}" >/dev/null
 	while IFS= read -r -d '' d; do
 		echo "Convert ${d}"
-		mkdir -p "${TARGETDIR}"/"${d%/*}"
+		if [[ -d "${SOURCEDIR}/${d%/*}" ]]; then mkdir -p "${TARGETDIR}"/"${d%/*}"; fi
 		sed -r \
 			-e "s|route_names = \['che'|route_names = \['codeready'|g" \
 			-e "s|https://github.com/che-incubator/chectl|https://github.com/redhat-developer/codeready-workspaces-chectl|g" \
@@ -66,6 +66,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|che-incubator/crwctl|redhat-developer/codeready-workspaces-chectl|g" \
 		"$d" > "${TARGETDIR}/${d}"
 	done <   <(find src test -type f -name "*" -print0)
+	# TODO add package.json into the above?
 popd >/dev/null
 
 # Remove files
@@ -167,3 +168,12 @@ pushd "${TARGETDIR}" >/dev/null
 		sed -r -e "s#.*(import|const).+(Helm|Minishift|DockerDesktop|K8s|MicroK8s|Minikube).*Tasks.*##g" -i "${TARGETDIR}/${d}"
 	done
 popd >/dev/null
+
+# TODO implement changes for converting package.json from chectl to crwclt
+# pushd "${TARGETDIR}" >/dev/null
+# 	d=package.json
+# 	echo "Convert ${d}"
+# 	sed -r  \
+# 			-e "s|che-operator|codeready-workspaces-operator|g" \
+# 		-i "${TARGETDIR}/${d}" 
+# popd >/dev/null
