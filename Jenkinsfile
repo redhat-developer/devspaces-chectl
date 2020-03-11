@@ -74,7 +74,7 @@ timeout(180) {
 			./sync-chectl-to-crwctl.sh ${WORKSPACE}/chectl ${WORKSPACE}/crwctl_generated ${CRW_TAG}
 			# check for differences
 			set +x
-			for d in $(cd ${WORKSPACE}/crwctl_generated/; find src test -type f); do diff -u ${WORKSPACE}/crwctl_generated/${d} ${d} || true; done
+			for d in $(cd ${WORKSPACE}/crwctl_generated/; find src test -type f); do diff -u ${d} ${WORKSPACE}/crwctl_generated/${d} || true; done
 			# apply differences
 			rsync -aqrz ${WORKSPACE}/crwctl_generated/* .
 			git config user.email "nickboldt+devstudio-release@gmail.com"
