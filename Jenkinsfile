@@ -47,7 +47,7 @@ timeout(180) {
 				submoduleCfg: [], 
 				userRemoteConfigs: [[url: "https://github.com/redhat-developer/${CTL_path}.git"]]])
 			installNPM()
-			def CURRENT_DAY=sh(returnStdout:true,script:"date +'%Y%m%d'").trim()
+			def CURRENT_DAY=sh(returnStdout:true,script:"date +'%Y%m%d-%H%M'").trim()
 			def SHORT_SHA1=sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short HEAD").trim()
 			def CHECTL_VERSION=""
 			if ("${versionSuffix}") {
