@@ -95,10 +95,9 @@ timeout(180) {
 			#### 3. now build using maste-quay branch, -quay suffix and quay.io/crw/ URLs
 
 			YAML_REPO="`cat package.json | jq -r '.dependencies["codeready-workspaces-operator"]'`-quay"
-			jq -M --arg YAML_REPO \"${YAML_REPO}\" '.dependencies["codeready-workspaces-operator"]' = $YAML_REPO' package.json > package.json2
-			jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''-quay\" '.version = $CHECTL_VERSION' package.json > package.json2
-			diff -u package.json* || true
-			mv -f package.json2 package.json
+			jq -M --arg YAML_REPO \"${YAML_REPO}\" '.dependencies["codeready-workspaces-operator"] = $YAML_REPO' package.json > package.json2
+			jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''-quay\" '.version = $CHECTL_VERSION' package.json2 > package.json
+			git diff -u package.json
 			git tag -f "''' + CUSTOM_TAG + '''-quay"
 			rm yarn.lock
 			yarn && npx oclif-dev pack -t ''' + platforms + ''' && find ./dist/ -name "*.tar*"
@@ -133,7 +132,7 @@ timeout(180) {
 				currentBuild.description = GITHUB_RELEASE_NAME + " not published"
 			}
 			// move the quay-friendly version to /latest/ in Jenkins so E2E/CI jobs can use it in a standard location
-			sh "cd ${CTL_path}/dist/channels/ && mv `find . -type d -not -name '.' -a -not -name 'redhat'` latest"
+			sh "cd ${CTL_path}/dist/channels/ && mv `find . -type d -not -name '.' -a -not -name '*redhat'` latest"
 			archiveArtifacts fingerprint: false, artifacts:"**/*.log, **/*logs/**, **/dist/**/*.tar.gz, **/dist/*.json, **/dist/linux-x64, **/dist/win32-x64, **/dist/darwin-x64"
 		}
 
