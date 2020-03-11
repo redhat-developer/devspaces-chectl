@@ -4,15 +4,15 @@ metadata:
   name: codeready-workspaces
 spec:
   server:
-    # operator is quay.io/crw/operator-rhel8:2.1-12
+    # operator is quay.io/crw/operator-rhel8:2.1
     # server image used in Che deployment
     cheImage: 'quay.io/crw/server-rhel8'
     # tag of an image used in Che deployment
-    cheImageTag: '2.1-6'
+    cheImageTag: '2.1'
     # image:tag used in Devfile registry deployment
-    devfileRegistryImage: 'quay.io/crw/devfileregistry-rhel8:2.1-16'
+    devfileRegistryImage: 'quay.io/crw/devfileregistry-rhel8:2.1'
     # image:tag used in plugin registry deployment
-    pluginRegistryImage: 'quay.io/crw/pluginregistry-rhel8:2.1-44'
+    pluginRegistryImage: 'quay.io/crw/pluginregistry-rhel8:2.1'
     # defaults to `che`. When set to `codeready`, CodeReady Workspaces is deployed
     # the difference is in images, labels, exec commands
     cheFlavor: 'codeready'
@@ -21,7 +21,10 @@ spec:
     cheWorkspaceClusterRole: ''
     # when set to true the operator will attempt to get a secret in OpenShift router namespace
     # to add it to Java trust store of Che server. Requires cluster-admin privileges for operator service account
-    selfSignedCert: true
+    selfSignedCert: false
+    ## If enabled then the certificate from `che-git-self-signed-cert` config map
+    ## will be propagated to the Che components and provide particular configuration for Git.
+    gitSelfSignedCert: false
     # TLS mode for Che. Make sure you either have public cert, or set selfSignedCert to true
     tlsSupport: true
     # protocol+hostname of a proxy server. Automatically added as JAVA_OPTS and https(s)_proxy
@@ -39,22 +42,27 @@ spec:
     serverMemoryRequest: ''
     # sets mem limit for server deployment. Defaults to 1Gi
     serverMemoryLimit: ''
+    # sets default namespace where new workspaces will be created
+    workspaceNamespaceDefault: ''
+    # defines if user is able to specify namespace different from the default
+    allowUserDefinedWorkspaceNamespaces: false
     # overrides for https://github.com/eclipse/che/blob/master/assembly/assembly-wsmaster-war/src/main/webapp/WEB-INF/classes/che/che.properties and
     # overrides for https://github.com/eclipse/che/blob/master/assembly/assembly-wsmaster-war/src/main/webapp/WEB-INF/classes/che/multiuser.properties
-    customCheProperties:	
-      # CHE_WORKSPACE_SIDECAR_IMAGE__PULL__POLICY: 'Always'
+    customCheProperties:
+      CHE_WORKSPACE_SIDECAR_IMAGE__PULL__POLICY: 'Always'
       CHE_LIMITS_USER_WORKSPACES_RUN_COUNT: '-1'
-      # CHE_DOCKER_ALWAYS__PULL__IMAGE: 'true'
+      CHE_INFRA_KUBERNETES_WORKSPACE__UNRECOVERABLE__EVENTS: 'Failed Scheduling,Failed to pull image'
+      CHE_DOCKER_ALWAYS__PULL__IMAGE: 'true'
       # set by operator, probably don't need to override. Latest in https://github.com/eclipse/che-operator/blob/master/pkg/deploy/defaults.go#L47-L51
       # CHE_INFRA_KUBERNETES_PVC_JOBS_IMAGE: 'registry.access.redhat.com/ubi8-minimal:8.0'
-      CHE_WORKSPACE_PLUGIN__BROKER_METADATA_IMAGE: 'quay.io/crw/pluginbroker-metadata-rhel8:2.1-5'
-      CHE_WORKSPACE_PLUGIN__BROKER_ARTIFACTS_IMAGE: 'quay.io/crw/pluginbroker-artifacts-rhel8:2.1-5'
-      CHE_SERVER_SECURE__EXPOSER_JWTPROXY_IMAGE: 'quay.io/crw/jwtproxy-rhel8:2.1-7'
+      CHE_WORKSPACE_PLUGIN__BROKER_METADATA_IMAGE: 'quay.io/crw/pluginbroker-metadata-rhel8:2.1'
+      CHE_WORKSPACE_PLUGIN__BROKER_ARTIFACTS_IMAGE: 'quay.io/crw/pluginbroker-artifacts-rhel8:2.1'
+      CHE_SERVER_SECURE__EXPOSER_JWTPROXY_IMAGE: 'quay.io/crw/jwtproxy-rhel8:2.1'
       CHE_FACTORY_DEFAULT__EDITOR: 'eclipse/che-theia/latest'
       CHE_FACTORY_DEFAULT__PLUGINS: 'eclipse/che-machine-exec-plugin/latest'
       CHE_WORKSPACE_DEVFILE_DEFAULT__EDITOR: 'eclipse/che-theia/latest'
       CHE_WORKSPACE_DEVFILE_DEFAULT__EDITOR_PLUGINS: 'eclipse/che-machine-exec-plugin/latest'
-    
+
   database:
     # when set to true, the operator skips deploying Postgres, and passes connection details of existing DB to Che server
     # otherwise a Postgres deployment is created
@@ -113,3 +121,7 @@ spec:
     # image:tag used in Keycloak deployment
     # set by operator, probably don't need to override. Latest in https://github.com/eclipse/che-operator/blob/master/pkg/deploy/defaults.go#L47-L51
     identityProviderImage: ''
+  
+  metrics:
+    # Enables '/metrics' endpoint of Che server.
+    enable: false
