@@ -93,6 +93,9 @@ timeout(180) {
 			rm -fr yarn.lock lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/
 			yarn && npx oclif-dev pack -t ''' + platforms + ''' && find ./dist/ -name "*.tar*"
 
+			git commit -s -m "[update] commit latest yarn.lock" yarn.lock || true
+			git push origin '''+branchCRWCTL+''' || true
+
 			#### 2. prepare master-quay branch of crw operator repo
 
 			# check out from master
