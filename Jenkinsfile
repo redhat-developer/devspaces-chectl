@@ -69,7 +69,7 @@ timeout(180) {
 			jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''-redhat\" '.version = $CHECTL_VERSION' package.json > package.json2; mv -f package.json2 package.json
 			git diff -u package.json
 			git tag -f "''' + CUSTOM_TAG + '''-redhat"
-			rm yarn.lock
+			rm -fr yarn.lock lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo
 			yarn && npx oclif-dev pack -t ''' + platforms + ''' && find ./dist/ -name "*.tar*"
 
 			cd ${CTL_path}/dist/channels/ && mv `find . -type d -not -name '.'` redhat
@@ -98,7 +98,7 @@ timeout(180) {
 			jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''-quay\" '.version = $CHECTL_VERSION' package.json2 > package.json
 			git diff -u package.json
 			git tag -f "''' + CUSTOM_TAG + '''-quay"
-			rm yarn.lock
+			rm -fr yarn.lock lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo
 			yarn && npx oclif-dev pack -t ''' + platforms + ''' && find ./dist/ -name "*.tar*"
 			'''
 			def RELEASE_DESCRIPTION=""
