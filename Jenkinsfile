@@ -81,6 +81,7 @@ timeout(180) {
 			git clone git@github.com:redhat-developer/codeready-workspaces-operator.git
 			cd codeready-workspaces-operator/
 			git branch master-quay -f
+			git checkout master-quay
 			# change files
 			FILES="deploy/operator.yaml deploy/operator-local.yaml controller-manifests/v''' + CRW_VERSION + '''/codeready-workspaces.''' + CRW_VERSION + '''.clusterserviceversion.yaml"
 			for d in ${FILES}; do sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/#quay.io/crw/#g"; done
