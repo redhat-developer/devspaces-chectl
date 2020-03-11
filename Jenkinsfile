@@ -81,8 +81,8 @@ timeout(180) {
 			git config user.name "Red Hat Devstudio Release Bot"
 			git config --global push.default matching
 			set -x
-			git commit -s -m "[sync] Push latest in chectl/''' + branchCHECTL + ''' to crwctl/'''+branchCRWCTL+'''" .
-			git push origin '''+branchCRWCTL+'''
+			git commit -s -m "[sync] Push latest in chectl/''' + branchCHECTL + ''' to crwctl/'''+branchCRWCTL+'''" . || true
+			git push origin '''+branchCRWCTL+''' || true
 
 			#### 1. build using -redhat suffix and registry.redhat.io/codeready-workspaces/ URLs
 
@@ -93,7 +93,7 @@ timeout(180) {
 			rm -fr yarn.lock lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/
 			yarn && npx oclif-dev pack -t ''' + platforms + ''' && find ./dist/ -name "*.tar*"
 
-			git commit -s -m "[update] commit latest yarn.lock" yarn.lock || true
+			git commit -s -m "[update] commit latest yarn.lock, package.json + README.md" yarn.lock package.json README.md || true
 			git push origin '''+branchCRWCTL+''' || true
 
 			#### 2. prepare master-quay branch of crw operator repo
