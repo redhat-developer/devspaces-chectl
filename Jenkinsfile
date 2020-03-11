@@ -65,10 +65,11 @@ timeout(180) {
 
 			# 0. sync from upstream chectl
 			pushd ${WORKSPACE} >/dev/null
-			git clone https://github.com/che-incubator/chectl
-			cd chectl
-			git checkout ''' + branchCHECTL + '''
+				git clone https://github.com/che-incubator/chectl
+				cd chectl
+				git checkout ''' + branchCHECTL + '''
 			popd >/dev/null
+			git checkout ''' + branchCRWCTL + '''
 			CRW_TAG="''' + CRW_VERSION + '''"; CRW_TAG=${CRW_TAG%.*} # for 2.1.0 -> 2.1
 			./sync-chectl-to-crwctl.sh ${WORKSPACE}/chectl ${WORKSPACE}/crwctl_generated ${CRW_TAG}
 			# check for differences
@@ -96,19 +97,19 @@ timeout(180) {
 
 			# check out from master
 			pushd ${WORKSPACE} >/dev/null
-			git clone git@github.com:redhat-developer/codeready-workspaces-operator.git
-			cd codeready-workspaces-operator/
-			git config user.email "nickboldt+devstudio-release@gmail.com"
-			git config user.name "Red Hat Devstudio Release Bot"
-			git config --global push.default matching
-			git branch master-quay -f
-			git checkout master-quay
-			# change files
-			FILES="deploy/operator.yaml deploy/operator-local.yaml controller-manifests/v''' + CRW_VERSION + '''/codeready-workspaces.''' + CRW_VERSION + '''.clusterserviceversion.yaml"
-			for d in ${FILES}; do sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/#quay.io/crw/#g"; done
-			# push to master-quay branch
-			git commit -s -m "[update] Push latest in master to master-quay branch" ${FILES}
-			git push origin master-quay -f
+				git clone git@github.com:redhat-developer/codeready-workspaces-operator.git
+				cd codeready-workspaces-operator/
+				git config user.email "nickboldt+devstudio-release@gmail.com"
+				git config user.name "Red Hat Devstudio Release Bot"
+				git config --global push.default matching
+				git branch master-quay -f
+				git checkout master-quay
+				# change files
+				FILES="deploy/operator.yaml deploy/operator-local.yaml controller-manifests/v''' + CRW_VERSION + '''/codeready-workspaces.''' + CRW_VERSION + '''.clusterserviceversion.yaml"
+				for d in ${FILES}; do sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/#quay.io/crw/#g"; done
+				# push to master-quay branch
+				git commit -s -m "[update] Push latest in master to master-quay branch" ${FILES}
+				git push origin master-quay -f
 			popd >/dev/null
 			# cleanup
 			rm -fr ${WORKSPACE}/codeready-workspaces-operator/
