@@ -57,7 +57,7 @@ export default class Start extends Command {
     }
     const tasks = new Listr([
       {
-        title: 'Retrieving CodeReady Workspaces Server URL',
+        title: 'Retrieving CodeReady Workspaces server URL',
         task: async (ctx: any, task: any) => {
           ctx.cheURL = await che.cheURL(flags.chenamespace)
           task.title = await `${task.title}...${ctx.cheURL}`
@@ -67,7 +67,7 @@ export default class Start extends Command {
         title: 'Verify if CodeReady Workspaces server is running',
         task: async (ctx: any, task: any) => {
           if (!await che.isCheServerReady(ctx.cheURL)) {
-            this.error(`E_SRV_NOT_RUNNING - CodeReady Workspaces Server is not available by ${ctx.cheURL}`, { code: 'E_SRV_NOT_RUNNNG' })
+            this.error(`E_SRV_NOT_RUNNING - CodeReady Workspaces server is not available by ${ctx.cheURL}`, { code: 'E_SRV_NOT_RUNNNG' })
           }
           const status = await che.getCheServerStatus(ctx.cheURL)
           ctx.isAuthEnabled = await che.isAuthenticationEnabled(ctx.cheURL)
