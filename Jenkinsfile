@@ -80,6 +80,9 @@ timeout(180) {
 			pushd ${WORKSPACE} >/dev/null
 			git clone git@github.com:redhat-developer/codeready-workspaces-operator.git
 			cd codeready-workspaces-operator/
+			git config user.email "nickboldt+devstudio-release@gmail.com"
+			git config user.name "Red Hat Devstudio Release Bot"
+			git config --global push.default matching
 			git branch master-quay -f
 			git checkout master-quay
 			# change files
