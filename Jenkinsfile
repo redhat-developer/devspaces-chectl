@@ -72,8 +72,6 @@ timeout(180) {
 			rm -fr yarn.lock lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo
 			yarn && npx oclif-dev pack -t ''' + platforms + ''' && find ./dist/ -name "*.tar*"
 
-			cd ${CTL_path}/dist/channels/ && mv `find . -type d -not -name '.'` redhat
-
 			#### 2. prepare master-quay branch of crw operator repo
 
 			# check out from master
@@ -135,7 +133,7 @@ timeout(180) {
 				currentBuild.description = GITHUB_RELEASE_NAME + " not published"
 			}
 			// move the quay-friendly version to /latest/ in Jenkins so E2E/CI jobs can use it in a standard location
-			sh "cd ${CTL_path}/dist/channels/ && mv `find . -type d -not -name '.' -a -not -name '*redhat'` latest"
+			sh "cd ${CTL_path}/dist/channels/ && cp -r `find . -type d -not -name '.' -a -not -name '*redhat'` latest"
 			archiveArtifacts fingerprint: false, artifacts:"**/*.log, **/*logs/**, **/dist/**/*.tar.gz, **/dist/*.json, **/dist/linux-x64, **/dist/win32-x64, **/dist/darwin-x64"
 		}
 
