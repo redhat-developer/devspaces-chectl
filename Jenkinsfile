@@ -3,8 +3,9 @@
 // PARAMETERS for this pipeline:
 // PUBLISH_ARTIFACTS = check box for true, uncheck for false
 // branchToBuild     = refs/tags/20190401211444 or master
-// version           = if set, use as version prefix before commitSHA, eg., 2.1.0-RC1 --> 2.1.0-RC1-commitSHA;
-// 			           if unset, version is 0.0.YYYYmmdd-next.commitSHA
+// CRW_VERSION       = Full version (x.y.z), used in CSV and crwctl version
+// versionSuffix     = if set, use as version suffix before commitSHA, eg., RC1 --> 2.1.0-RC1-commitSHA;
+//                     if unset, version is CRW_VERSION-YYYYmmdd-commitSHA
 //                  :: NOTE: yarn will fail for version = x.y.z.a but works with x.y.z-a
 
 def installNPM(){
@@ -49,12 +50,12 @@ timeout(180) {
 			def CURRENT_DAY=sh(returnStdout:true,script:"date +'%Y%m%d'").trim()
 			def SHORT_SHA1=sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short HEAD").trim()
 			def CHECTL_VERSION=""
-			if ("${version}") {
-				CHECTL_VERSION="${version}"
-				GITHUB_RELEASE_NAME="${version}-${SHORT_SHA1}"
+			if ("${versionSuffix}") {
+				CHECTL_VERSION="${CRW_VERSION}-${versionSuffix}"
+				GITHUB_RELEASE_NAME="${CRW_VERSION}-${versionSuffix}-${SHORT_SHA1}"
 			} else {
-				CHECTL_VERSION="0.0.$CURRENT_DAY-next"
-				GITHUB_RELEASE_NAME="0.0.$CURRENT_DAY-next-${SHORT_SHA1}"
+				CHECTL_VERSION="${CRW_VERSION}-$CURRENT_DAY"
+				GITHUB_RELEASE_NAME="${CRW_VERSION}-$CURRENT_DAY-${SHORT_SHA1}"
 			}
 			def CUSTOM_TAG=GITHUB_RELEASE_NAME // OLD way: sh(returnStdout:true,script:"date +'%Y%m%d%H%M%S'").trim()
 			SHA_CTL = sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short=4 HEAD").trim()
@@ -62,15 +63,48 @@ timeout(180) {
 			cd ''' + CTL_path + '''
 			# clean up from previous build if applicable
 			rm -fr dist/channels/
-			jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''\" '.version = $CHECTL_VERSION' package.json > package.json2
+
+			#### 1. build using -redhat suffix and registry.redhat.io/codeready-workspaces/ URLs
+
+			jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''-redhat\" '.version = $CHECTL_VERSION' package.json > package.json2
 			diff -u package.json* || true
 			mv -f package.json2 package.json
-			git tag -f "''' + CUSTOM_TAG + '''"
+			git tag -f "''' + CUSTOM_TAG + '''-redhat"
+			rm yarn.lock
+			yarn && npx oclif-dev pack -t ''' + platforms + ''' && find ./dist/ -name "*.tar*"
+
+			cd ${CTL_path}/dist/channels/ && mv `find . -type d -not -name '.'` redhat
+
+			#### 2. prepare master-quay branch of crw operator repo
+
+			# check out from master
+			pushd ${WORKSPACE} >/dev/null
+			git clone git@github.com:redhat-developer/codeready-workspaces-operator.git
+			cd codeready-workspaces-operator/
+			git branch master-quay -f
+			# change files
+			FILES="deploy/operator.yaml deploy/operator-local.yaml controller-manifests/v''' + CRW_VERSION + '''/codeready-workspaces.''' + CRW_VERSION + '''.clusterserviceversion.yaml"
+			for d in ${FILES}; do sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/#quay.io/crw/#g"; done
+			# push to master-quay branch
+			git commit -s -m "[update] Push latest in master to master-quay branch" ${FILES}
+			git push origin master-quay -f
+			popd >/dev/null
+			# cleanup
+			rm -fr ${WORKSPACE}/codeready-workspaces-operator/
+ 
+			#### 3. now build using maste-quay branch, -quay suffix and quay.io/crw/ URLs
+
+			YAML_REPO="`cat package.json | jq -r '.dependencies["codeready-workspaces-operator"]'`-quay"
+			jq -M --arg YAML_REPO \"${YAML_REPO}\" '.dependencies["codeready-workspaces-operator"]' = $YAML_REPO' package.json > package.json2
+			jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''-quay\" '.version = $CHECTL_VERSION' package.json > package.json2
+			diff -u package.json* || true
+			mv -f package.json2 package.json
+			git tag -f "''' + CUSTOM_TAG + '''-quay"
 			rm yarn.lock
 			yarn && npx oclif-dev pack -t ''' + platforms + ''' && find ./dist/ -name "*.tar*"
 			'''
 			def RELEASE_DESCRIPTION=""
-			if ("${version}") {
+			if ("${versionSuffix}") {
 				RELEASE_DESCRIPTION="Stable release ${GITHUB_RELEASE_NAME}"
 			} else {
 				RELEASE_DESCRIPTION="CI release ${GITHUB_RELEASE_NAME}"
@@ -98,7 +132,8 @@ timeout(180) {
 				echo 'PUBLISH_ARTIFACTS != true, so nothing published to github.'
 				currentBuild.description = GITHUB_RELEASE_NAME + " not published"
 			}
-			sh "cd ${CTL_path}/dist/channels/ && mv `find . -type d -not -name '.'` latest"
+			// move the quay-friendly version to /latest/ in Jenkins so E2E/CI jobs can use it in a standard location
+			sh "cd ${CTL_path}/dist/channels/ && mv `find . -type d -not -name '.' -a -not -name 'redhat'` latest"
 			archiveArtifacts fingerprint: false, artifacts:"**/*.log, **/*logs/**, **/dist/**/*.tar.gz, **/dist/*.json, **/dist/linux-x64, **/dist/win32-x64, **/dist/darwin-x64"
 		}
 
