@@ -98,6 +98,7 @@ timeout(180) {
 				echo 'PUBLISH_ARTIFACTS != true, so nothing published to github.'
 				currentBuild.description = GITHUB_RELEASE_NAME + " not published"
 			}
+			sh "cd ${CTL_path}/dist/channels/ && mv $(find . -type d -not -name '.') latest"
 			archiveArtifacts fingerprint: false, artifacts:"**/*.log, **/*logs/**, **/dist/**/*.tar.gz, **/dist/*.json, **/dist/linux-x64, **/dist/win32-x64, **/dist/darwin-x64"
 		}
 
