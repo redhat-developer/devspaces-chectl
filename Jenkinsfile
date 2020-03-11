@@ -2,7 +2,8 @@
 
 // PARAMETERS for this pipeline:
 // PUBLISH_ARTIFACTS = check box for true, uncheck for false
-// branchToBuild     = refs/tags/20190401211444 or master
+// branchCHECTL      = branch or tag of https://github.com/che-incubator/chectl
+// branchCRWCTL      = branch or tag of https://redhat-developer/codeready-workspaces-chectl
 // CRW_VERSION       = Full version (x.y.z), used in CSV and crwctl version
 // versionSuffix     = if set, use as version suffix before commitSHA, eg., RC1 --> 2.1.0-RC1-commitSHA;
 //                     if unset, version is CRW_VERSION-YYYYmmdd-commitSHA
@@ -40,7 +41,7 @@ timeout(180) {
 			stage "Build ${CTL_path}"
 			cleanWs()
 			checkout([$class: 'GitSCM', 
-				branches: [[name: "${branchToBuild}"]],
+				branches: [[name: "${branchCRWCTL}"]],
 				doGenerateSubmoduleConfigurations: false, 
 				poll: true,
 				extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CTL_path}"]], 
@@ -61,15 +62,32 @@ timeout(180) {
 			SHA_CTL = sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short=4 HEAD").trim()
 			sh '''#!/bin/bash -xe
 			cd ''' + CTL_path + '''
-			# clean up from previous build if applicable
-			rm -fr dist/channels/
+
+			# 0. sync from upstream chectl
+			pushd ${WORKSPACE} >/dev/null
+			git clone https://github.com/che-incubator/chectl
+			cd chectl
+			git checkout ''' + branchCHECTL + '''
+			popd >/dev/null
+			CRW_TAG="''' + CRW_VERSION + '''"; CRW_TAG=${CRW_TAG%.*} # for 2.1.0 -> 2.1
+			./sync-chectl-to-crwctl.sh ${WORKSPACE}/chectl ${WORKSPACE}/crwctl_generated ${CRW_TAG}
+			# check for differences
+			for d in $(cd ${WORKSPACE}/crwctl_generated/; find src test -type f); do diff -u ${WORKSPACE}/crwctl_generated/${d} ${d} || true; done
+			# apply differences
+			rsync -aPrz ${WORKSPACE}/crwctl_generated/* .
+			git config user.email "nickboldt+devstudio-release@gmail.com"
+			git config user.name "Red Hat Devstudio Release Bot"
+			git config --global push.default matching
+			git commit -s -m "[sync] Push latest in chectl/''' + branchCHECTL + ''' to crwctl/'''+branchCRWCTL+'''" .
+			git push origin '''+branchCRWCTL+'''
 
 			#### 1. build using -redhat suffix and registry.redhat.io/codeready-workspaces/ URLs
 
+			# clean up from previous build if applicable
 			jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''-redhat\" '.version = $CHECTL_VERSION' package.json > package.json2; mv -f package.json2 package.json
 			git diff -u package.json
 			git tag -f "''' + CUSTOM_TAG + '''-redhat"
-			rm -fr yarn.lock lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo
+			rm -fr yarn.lock lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/
 			yarn && npx oclif-dev pack -t ''' + platforms + ''' && find ./dist/ -name "*.tar*"
 
 			#### 2. prepare master-quay branch of crw operator repo
