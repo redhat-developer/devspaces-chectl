@@ -66,9 +66,8 @@ timeout(180) {
 
 			#### 1. build using -redhat suffix and registry.redhat.io/codeready-workspaces/ URLs
 
-			jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''-redhat\" '.version = $CHECTL_VERSION' package.json > package.json2
-			diff -u package.json* || true
-			mv -f package.json2 package.json
+			jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''-redhat\" '.version = $CHECTL_VERSION' package.json > package.json2; mv -f package.json2 package.json
+			git diff -u package.json
 			git tag -f "''' + CUSTOM_TAG + '''-redhat"
 			rm yarn.lock
 			yarn && npx oclif-dev pack -t ''' + platforms + ''' && find ./dist/ -name "*.tar*"
