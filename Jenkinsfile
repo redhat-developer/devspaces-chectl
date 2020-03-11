@@ -46,7 +46,7 @@ timeout(180) {
 				poll: true,
 				extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CTL_path}"]], 
 				submoduleCfg: [], 
-				userRemoteConfigs: [[url: "https://github.com/redhat-developer/${CTL_path}.git"]]])
+				userRemoteConfigs: [[url: "git@github.com:redhat-developer/${CTL_path}.git"]]])
 			installNPM()
 			def CURRENT_DAY=sh(returnStdout:true,script:"date +'%Y%m%d-%H%M'").trim()
 			def SHORT_SHA1=sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short HEAD").trim()
@@ -72,12 +72,14 @@ timeout(180) {
 			CRW_TAG="''' + CRW_VERSION + '''"; CRW_TAG=${CRW_TAG%.*} # for 2.1.0 -> 2.1
 			./sync-chectl-to-crwctl.sh ${WORKSPACE}/chectl ${WORKSPACE}/crwctl_generated ${CRW_TAG}
 			# check for differences
+			set +x
 			for d in $(cd ${WORKSPACE}/crwctl_generated/; find src test -type f); do diff -u ${WORKSPACE}/crwctl_generated/${d} ${d} || true; done
 			# apply differences
-			rsync -aPrz ${WORKSPACE}/crwctl_generated/* .
+			rsync -aqrz ${WORKSPACE}/crwctl_generated/* .
 			git config user.email "nickboldt+devstudio-release@gmail.com"
 			git config user.name "Red Hat Devstudio Release Bot"
 			git config --global push.default matching
+			set -x
 			git commit -s -m "[sync] Push latest in chectl/''' + branchCHECTL + ''' to crwctl/'''+branchCRWCTL+'''" .
 			git push origin '''+branchCRWCTL+'''
 
