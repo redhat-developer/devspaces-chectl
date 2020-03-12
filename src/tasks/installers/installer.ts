@@ -68,8 +68,6 @@ export class InstallerTasks {
   installTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
 
     const operatorTasks = new OperatorTasks()
-
-
     let title: string
     let task: any
 
@@ -85,7 +83,6 @@ export class InstallerTasks {
 
         return operatorTasks.startTasks(flags, command)
       }
-    
     } else {
       title = '🏃‍  Installer preflight check'
       task = () => { command.error(`Installer ${flags.installer} is not supported ¯\\_(ツ)_/¯`) }

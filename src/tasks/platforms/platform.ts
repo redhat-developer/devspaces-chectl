@@ -48,7 +48,6 @@ export class PlatformTasks {
         title: '✈️  CodeReady Containers preflight checklist',
         task: () => crc.preflightCheckTasks(flags, command)
       }
-    
     } else {
       task = {
         title: '✈️  Platform preflight checklist',

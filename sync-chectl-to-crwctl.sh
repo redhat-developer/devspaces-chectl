@@ -64,6 +64,8 @@ pushd "${SOURCEDIR}" >/dev/null
 			\
 			-e "s|CodeReady Workspaces will be deployed in Multi-User mode.+mode.|CodeReady Workspaces can only be deployed in Multi-User mode.|" \
 			-e "s|che-incubator/crwctl|redhat-developer/codeready-workspaces-chectl|g" \
+			`# remove double empty lines` \
+			-e 'N;/^\n$/d;P;D' \
 		"$d" > "${TARGETDIR}/${d}"
 	done <   <(find src test -type f -name "*" -print0)
 	# TODO add package.json into the above?

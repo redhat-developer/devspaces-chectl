@@ -53,8 +53,6 @@ export default class Delete extends Command {
     tasks.add(operatorTasks.deleteTasks(flags))
     tasks.add(cheTasks.deleteTasks(flags))
 
-
-
     const kc = new KubeConfig()
     kc.loadFromDefault()
 
