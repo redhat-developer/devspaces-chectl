@@ -90,10 +90,10 @@ timeout(180) {
 			jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''-redhat\" '.version = $CHECTL_VERSION' package.json > package.json2; mv -f package.json2 package.json
 			git diff -u package.json
 			git tag -f "''' + CUSTOM_TAG + '''-redhat"
-			rm -fr yarn.lock lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/
+			rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/
 			yarn && npx oclif-dev pack -t ''' + platforms + ''' && find ./dist/ -name "*.tar*"
 
-			git commit -s -m "[update] commit latest yarn.lock, package.json + README.md" yarn.lock package.json README.md || true
+			git commit -s -m "[update] commit latest package.json + README.md" package.json README.md || true
 			git push origin '''+branchCRWCTL+''' || true
 
 			#### 2. prepare master-quay branch of crw operator repo
@@ -124,7 +124,7 @@ timeout(180) {
 			jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''-quay\" '.version = $CHECTL_VERSION' package.json2 > package.json
 			git diff -u package.json
 			git tag -f "''' + CUSTOM_TAG + '''-quay"
-			rm -fr yarn.lock lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo
+			rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo
 			yarn && npx oclif-dev pack -t ''' + platforms + ''' && find ./dist/ -name "*.tar*"
 			'''
 			def RELEASE_DESCRIPTION=""
