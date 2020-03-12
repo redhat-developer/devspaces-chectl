@@ -36,7 +36,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|https://github.com/che-incubator/chectl|https://github.com/redhat-developer/codeready-workspaces-chectl|g" \
 			-e "s|chectl|crwctl|g" \
 			-e "s|crwctl-generated|chectl-generated|g" \
-			-e "s|ide/che/crwctl|ide/che/chectl|g" \
+			-e "s|labelSelector=app%3Dche|labelSelector=app%3Dcodeready|g" \
 			\
 			-e "s|/codeready-workspaces-crwctl|/codeready-workspaces-chectl|g" \
 			-e "s|app=che|app=codeready|g" \

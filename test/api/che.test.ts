@@ -142,7 +142,7 @@ describe('CodeReady Workspaces helper', () => {
         .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
       .it('succeds creating a workspace from a valid devfile', async () => {
         const res = await ch.createWorkspaceFromDevfile(namespace, __dirname + '/requests/devfile.valid', undefined)
-        expect(res).to.equal('https://che-che.192.168.64.39.nip.io/dashboard/#/ide/che/chectl')
+        expect(res).to.equal('https://che-che.192.168.64.39.nip.io/dashboard/#/ide/che/crwctl')
       })
     fancy
       .stub(ch, 'cheNamespaceExist', () => true)
@@ -172,7 +172,7 @@ describe('CodeReady Workspaces helper', () => {
         .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
       .it('succeeds creating a workspace from a remote devfile', async () => {
         const res = await ch.createWorkspaceFromDevfile(namespace, devfileServerURL + '/devfile.yaml', undefined)
-        expect(res).to.equal('https://che-che.192.168.64.39.nip.io/dashboard/#/ide/che/chectl')
+        expect(res).to.equal('https://che-che.192.168.64.39.nip.io/dashboard/#/ide/che/crwctl')
       })
     fancy
       .stub(ch, 'cheNamespaceExist', () => true)
@@ -193,7 +193,7 @@ describe('CodeReady Workspaces helper', () => {
         .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
       .it('succeds creating a workspace from a valid workspaceconfig', async () => {
         const res = await ch.createWorkspaceFromWorkspaceConfig(namespace, __dirname + '/requests/workspaceconfig.valid')
-        expect(res).to.equal('https://che-che.192.168.64.39.nip.io/dashboard/#/ide/che/chectl')
+        expect(res).to.equal('https://che-che.192.168.64.39.nip.io/dashboard/#/ide/che/crwctl')
       })
   })
   describe('buildDashboardURL', () => {

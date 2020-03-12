@@ -35,7 +35,7 @@ const kube = new KubeHelper(undefined, kubeContext)
 describe('Kube API helper', () => {
   fancy
     .nock(kubeClusterURL, api => api
-      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dche`)
+      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dcodeready`)
       .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-running.json', { 'Content-Type': 'application/json' }))
     .it('retrieves the phase of a pod', async () => {
       const selector = 'app=codeready'
@@ -44,11 +44,11 @@ describe('Kube API helper', () => {
     })
   fancy
     .nock(kubeClusterURL, api => api
-      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dche`)
+      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dcodeready`)
       .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-pending.json', { 'Content-Type': 'application/json' })
-      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dche`)
+      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dcodeready`)
       .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-pending.json', { 'Content-Type': 'application/json' })
-      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dche`)
+      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dcodeready`)
       .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-running.json', { 'Content-Type': 'application/json' }))
     .it('waits until the pod is in the "Running" phase', async () => {
       const selector = 'app=codeready'
@@ -59,7 +59,7 @@ describe('Kube API helper', () => {
     })
   fancy
     .nock(kubeClusterURL, api => api
-      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dche`)
+      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dcodeready`)
       .times(4)
       .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-pending.json', { 'Content-Type': 'application/json' }))
     .do(async () => {
@@ -73,10 +73,10 @@ describe('Kube API helper', () => {
     .it('fails if timeout is reached waiting for a pod "Running" phase')
   fancy
     .nock(kubeClusterURL, api => api
-      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dche`)
+      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dcodeready`)
       .times(2)
       .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-not-existing.json', { 'Content-Type': 'application/json' })
-      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dche`)
+      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dcodeready`)
       .times(2)
       .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-pending.json', { 'Content-Type': 'application/json' }))
     .it('waits until the pod is in the "Pending" phase', async () => {
@@ -87,10 +87,10 @@ describe('Kube API helper', () => {
     })
   fancy
     .nock(kubeClusterURL, api => api
-      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dche`)
+      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dcodeready`)
       .times(2)
       .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-running.json', { 'Content-Type': 'application/json' })
-      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dche`)
+      .get(`/api/v1/namespaces/${namespace}/pods?includeUninitialized=true&labelSelector=app%3Dcodeready`)
       .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-running-ready.json', { 'Content-Type': 'application/json' }))
     .it('waits until the pod Ready status is "True"', async () => {
       const selector = 'app=codeready'
