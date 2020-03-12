@@ -164,7 +164,7 @@ pushd "${TARGETDIR}" >/dev/null
 	for d in src/tasks/installers/installer.ts src/tasks/platforms/platform.ts; do
 		echo "Convert ${d}"
 		mkdir -p "${TARGETDIR}/${d%/*}"
-		perl -0777 -p -i -e 's|(\/\* .+ BEGIN CHE ONLY \*\/?/.+ END CHE ONLY \*\/)|  ${1} =~ /.+else if.+/?"":${1}|gse' "${TARGETDIR}/${d}"
+		perl -0777 -p -i -e 's|(\/\/ .+ BEGIN CHE ONLY \*\/?/.+ END CHE ONLY)|  ${1} =~ /.+else if.+/?"":${1}|gse' "${TARGETDIR}/${d}"
 		sed -r -e "s#.*(import|const).+(Helm|Minishift|DockerDesktop|K8s|MicroK8s|Minikube).*Tasks.*##g" -i "${TARGETDIR}/${d}"
 	done
 popd >/dev/null
