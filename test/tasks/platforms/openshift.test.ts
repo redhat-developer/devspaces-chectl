@@ -32,6 +32,8 @@ describe('start', () => {
       svc/postgres - 172.30.187.205:5432
         deployment/postgres deploys registry.access.redhat.com/rhscl/postgresql-96-rhel7:1-25
           deployment #1 running for 18 hours - 1 pod
+
+
       3 infos identified, use 'oc status --suggest' to see details.`;
 
       (execa as any).mockResolvedValue({ exitCode: 0, stdout: status })

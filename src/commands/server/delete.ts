@@ -16,8 +16,6 @@ import * as Listrq from 'listr'
 
 import { cheNamespace, listrRenderer } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
-
-
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { ApiTasks } from '../../tasks/platforms/api'
 
@@ -40,8 +38,6 @@ export default class Delete extends Command {
     const notifier = require('node-notifier')
 
     const apiTasks = new ApiTasks()
-
-
     const operatorTasks = new OperatorTasks()
     const cheTasks = new CheTasks(flags)
 

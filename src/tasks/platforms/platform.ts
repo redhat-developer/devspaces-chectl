@@ -11,11 +11,6 @@ import Command from '@oclif/command'
 import * as Listr from 'listr'
 
 import { CRCHelper } from './crc'
-
-
-
-
-
 import { OpenshiftTasks } from './openshift'
 
 /**
@@ -24,13 +19,8 @@ import { OpenshiftTasks } from './openshift'
  */
 export class PlatformTasks {
   preflightCheckTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
-
-
-
     const openshiftTasks = new OpenshiftTasks()
-
     const crc = new CRCHelper()
-
 
     let task: Listr.ListrTask
     if (!flags.platform) {

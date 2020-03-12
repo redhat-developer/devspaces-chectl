@@ -11,8 +11,6 @@
 import Command from '@oclif/command'
 import * as Listr from 'listr'
 
-
-
 import { OperatorTasks } from './operator'
 
 /**
@@ -66,8 +64,8 @@ export class InstallerTasks {
   }
 
   installTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
-
     const operatorTasks = new OperatorTasks()
+
     let title: string
     let task: any
 

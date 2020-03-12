@@ -52,20 +52,18 @@ pushd "${SOURCEDIR}" >/dev/null
 			\
 			-e "s| when both minishift and OpenShift are stopped||" \
 			-e "s|resource: Kubernetes/OpenShift/Helm|resource|g" \
-			-e "s|import \{ HelmTasks \} from '../../tasks/installers/helm'||g" \
-			-e "s|import \{ MinishiftAddonTasks \} from '../../tasks/installers/minishift-addon'||g" \
-			-e "s|    const helmTasks = new HelmTasks\(\)||g" \
+			-e "/import \{ HelmTasks \} from '..\/..\/tasks\/installers\/helm'/d" \
+			-e "/import \{ MinishiftAddonTasks \} from '..\/..\/tasks\/installers\/minishift-addon'/d" \
+			-e "/    const helmTasks = new HelmTasks\(\)/d" \
 			\
-			-e "s#    const (minishiftAddonTasks|msAddonTasks) = new MinishiftAddonTasks\(\)##g" \
-			-e "s|.+tasks.add\(helmTasks.+||g" \
-			-e "s#.+tasks.add\((minishiftAddonTasks|msAddonTasks).+##g" \
+			-e "/    const (minishiftAddonTasks|msAddonTasks) = new MinishiftAddonTasks\(\)/d" \
+			-e '/.+tasks.add\(helmTasks.+/d' \
+			-e '/.+tasks.add\((minishiftAddonTasks|msAddonTasks).+/d' \
 			-e "s|(const DEFAULT_CHE_IMAGE =).+|\1 'registry.redhat.io/codeready-workspaces/server-rhel8:${CRW_TAG}'|g" \
 			-e "s|(const DEFAULT_CHE_OPERATOR_IMAGE =).+|\1 'registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:${CRW_TAG}'|g" \
 			\
 			-e "s|CodeReady Workspaces will be deployed in Multi-User mode.+mode.|CodeReady Workspaces can only be deployed in Multi-User mode.|" \
 			-e "s|che-incubator/crwctl|redhat-developer/codeready-workspaces-chectl|g" \
-			`# remove double empty lines` \
-			-e 'N;/^\n$/d;P;D' \
 		"$d" > "${TARGETDIR}/${d}"
 	done <   <(find src test -type f -name "*" -print0)
 	# TODO add package.json into the above?
@@ -167,7 +165,7 @@ pushd "${TARGETDIR}" >/dev/null
 		echo "Convert ${d}"
 		mkdir -p "${TARGETDIR}/${d%/*}"
 		sed -i -r -e '/.+BEGIN CHE ONLY$/,/.+END CHE ONLY$/d' "${TARGETDIR}/${d}"
-		sed -r -e "s#.*(import|const).+(Helm|Minishift|DockerDesktop|K8s|MicroK8s|Minikube).*Tasks.*##g" -i "${TARGETDIR}/${d}"
+		sed -r -e "/.*(import|const).+(Helm|Minishift|DockerDesktop|K8s|MicroK8s|Minikube).*Tasks.*/d" -i "${TARGETDIR}/${d}"
 	done
 popd >/dev/null
 
