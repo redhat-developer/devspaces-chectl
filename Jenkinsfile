@@ -102,7 +102,7 @@ timeout(180) {
 				e=${d/redhat\\/crwctl/redhat\\/'''+TARBALL_PREFIX+'''-crwctl}
  				mv ${d} ${e}
 			done <   <(find dist/channels/redhat -type f -name "*gz" -print0)
-			find ./dist/channels -name "*gz"
+			du ./dist/channels/*/*gz
 
 			git commit -s -m "[update] commit latest package.json + README.md" package.json README.md || true
 			git push origin '''+branchCRWCTL+''' || true
@@ -145,7 +145,7 @@ timeout(180) {
 				e=${d/latest\\/crwctl/quay\\/'''+TARBALL_PREFIX+'''-crwctl}
  				cp ${d} ${e}
 			done <   <(find dist/channels/latest -type f -name "*gz" -print0)
-			find dist/channels/ -name "*gz"
+			du ./dist/channels/*/*gz
 			'''
 			def RELEASE_DESCRIPTION=""
 			if ("${versionSuffix}") {
