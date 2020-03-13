@@ -59,6 +59,10 @@ timeout(180) {
 				GITHUB_RELEASE_NAME="${CRW_VERSION}-$CURRENT_DAY-${SHORT_SHA1}"
 			}
 			def CUSTOM_TAG=GITHUB_RELEASE_NAME // OLD way: sh(returnStdout:true,script:"date +'%Y%m%d%H%M%S'").trim()
+
+			// RENAME artifacts to include version in the tarball: codeready-workspaces-2.1.0-crwctl-*.tar.gz
+			def TARBALL_PREFIX="codeready-workspaces-${CHECTL_VERSION}"
+
 			SHA_CTL = sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short=4 HEAD").trim()
 			sh '''#!/bin/bash -xe
 			cd ''' + CTL_path + '''
@@ -91,7 +95,14 @@ timeout(180) {
 			git diff -u package.json
 			git tag -f "''' + CUSTOM_TAG + '''-redhat"
 			rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/
-			yarn && npx oclif-dev pack -t ''' + platforms + ''' && find ./dist/ -name "*.tar*"
+			yarn && npx oclif-dev pack -t ''' + platforms + '''
+			# move from *-redhat/ (specific folder, generic name) to redhat/ (generic folder, specific name)
+			mv dist/channels/*redhat dist/channels/redhat
+			while IFS= read -r -d '' d; do
+				e=${d/redhat\/crwctl/redhat\/'''+TARBALL_PREFIX+'''-}
+ 				mv ${d} ${e}
+			done <   <(find dist/channels/redhat -type f -name "*gz" -print0)
+			find ./dist/channels -name "*gz"
 
 			git commit -s -m "[update] commit latest package.json + README.md" package.json README.md || true
 			git push origin '''+branchCRWCTL+''' || true
@@ -117,7 +128,7 @@ timeout(180) {
 			# cleanup
 			rm -fr ${WORKSPACE}/codeready-workspaces-operator/
  
-			#### 3. now build using maste-quay branch, -quay suffix and quay.io/crw/ URLs
+			#### 3. now build using master-quay branch, -quay suffix and quay.io/crw/ URLs
 
 			YAML_REPO="`cat package.json | jq -r '.dependencies["codeready-workspaces-operator"]'`-quay"
 			jq -M --arg YAML_REPO \"${YAML_REPO}\" '.dependencies["codeready-workspaces-operator"] = $YAML_REPO' package.json > package.json2
@@ -125,7 +136,16 @@ timeout(180) {
 			git diff -u package.json
 			git tag -f "''' + CUSTOM_TAG + '''-quay"
 			rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo
-			yarn && npx oclif-dev pack -t ''' + platforms + ''' && find ./dist/ -name "*.tar*"
+			yarn && npx oclif-dev pack -t ''' + platforms + '''
+			mv dist/channels/*quay dist/channels/latest
+			rm -fr dist/channels/quay; mkdir -p dist/channels/quay
+			# copy from latest/ (generic folder, generic name) to quay/ (generic folder, specific name)
+			# need this so E2E/CI jobs can access tarballs from generic folder and filename (name doesn't change between builds)
+			while IFS= read -r -d '' d; do
+				e=${d/latest\/crwctl/quay\/'''+TARBALL_PREFIX+'''-}
+ 				cp ${d} ${e}
+			done <   <(find dist/channels/latest -type f -name "*gz" -print0)
+			find dist/channels/ -name "*gz"
 			'''
 			def RELEASE_DESCRIPTION=""
 			if ("${versionSuffix}") {
@@ -133,8 +153,6 @@ timeout(180) {
 			} else {
 				RELEASE_DESCRIPTION="CI release ${GITHUB_RELEASE_NAME}"
 			}
-			// RENAME artifacts to include version in the tarball: codeready-workspaces-2.1.0-crwctl-*.tar.gz
-			def TARBALL_PREFIX="codeready-workspaces-${CHECTL_VERSION}"
 
 			// Upload the artifacts and rename them on the fly to add ${TARBALL_PREFIX}-
 			if (PUBLISH_ARTIFACTS.equals("true"))
@@ -143,9 +161,9 @@ timeout(180) {
 				// Extract the id of the release from the creation response
 				def RELEASE_ID=sh(returnStdout:true,script:"jq -r .id /tmp/${CUSTOM_TAG}").trim()
 
-				sh "cd ${CTL_path}/dist/channels/*/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @crwctl-linux-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-linux-x64.tar.gz"
-				sh "cd ${CTL_path}/dist/channels/*/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @crwctl-win32-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-win32-x64.tar.gz"
-				sh "cd ${CTL_path}/dist/channels/*/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @crwctl-darwin-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-darwin-x64.tar.gz"
+				sh "cd ${CTL_path}/dist/channels/quay/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @${TARBALL_PREFIX}-crwctl-linux-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-linux-x64.tar.gz"
+				sh "cd ${CTL_path}/dist/channels/quay/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @${TARBALL_PREFIX}-crwctl-win32-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-win32-x64.tar.gz"
+				sh "cd ${CTL_path}/dist/channels/quay/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @${TARBALL_PREFIX}-crwctl-darwin-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-darwin-x64.tar.gz"
 				// refresh github pages
 				sh "cd ${CTL_path}/ && git clone https://devstudio-release:${GITHUB_TOKEN}@github.com/redhat-developer/codeready-workspaces-chectl -b gh-pages --single-branch gh-pages"
 				sh "cd ${CTL_path}/ && echo \$(date +%s) > gh-pages/update"
@@ -156,8 +174,6 @@ timeout(180) {
 				echo 'PUBLISH_ARTIFACTS != true, so nothing published to github.'
 				currentBuild.description = GITHUB_RELEASE_NAME + " not published"
 			}
-			// move the quay-friendly version to /latest/ in Jenkins so E2E/CI jobs can use it in a standard location
-			sh "cd ${CTL_path}/dist/channels/ && cp -r `find . -type d -not -name '.' -a -not -name '*redhat'` latest"
 			archiveArtifacts fingerprint: false, artifacts:"**/*.log, **/*logs/**, **/dist/**/*.tar.gz, **/dist/*.json, **/dist/linux-x64, **/dist/win32-x64, **/dist/darwin-x64"
 		}
 
