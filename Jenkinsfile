@@ -99,7 +99,7 @@ timeout(180) {
 			# move from *-redhat/ (specific folder, generic name) to redhat/ (generic folder, specific name)
 			mv dist/channels/*redhat dist/channels/redhat
 			while IFS= read -r -d '' d; do
-				e=${d/redhat\/crwctl/redhat\/'''+TARBALL_PREFIX+'''-}
+				e=${d/redhat\\/crwctl/redhat\\/'''+TARBALL_PREFIX+'''-}
  				mv ${d} ${e}
 			done <   <(find dist/channels/redhat -type f -name "*gz" -print0)
 			find ./dist/channels -name "*gz"
@@ -142,7 +142,7 @@ timeout(180) {
 			# copy from latest/ (generic folder, generic name) to quay/ (generic folder, specific name)
 			# need this so E2E/CI jobs can access tarballs from generic folder and filename (name doesn't change between builds)
 			while IFS= read -r -d '' d; do
-				e=${d/latest\/crwctl/quay\/'''+TARBALL_PREFIX+'''-}
+				e=${d/latest\\/crwctl/quay\\/'''+TARBALL_PREFIX+'''-}
  				cp ${d} ${e}
 			done <   <(find dist/channels/latest -type f -name "*gz" -print0)
 			find dist/channels/ -name "*gz"
