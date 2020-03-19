@@ -90,6 +90,7 @@ commands:
         command: >
                  yarn format
         workdir: /projects/crwctl
+
         - name: Attach remote debugger
         actions:
           - referenceContent: |
