@@ -210,8 +210,8 @@ klist # verify working
 # generate source tarball
 pushd ${WORKSPACE}/''' + CTL_path + ''' >/dev/null
 	# purge generated binaries and temp files
-	rm -fr coverage/ dist/ lib/ node_modules/ templates/ tmp/ 
-	tar czf ${WORKSPACE}/''' + TARBALL_PREFIX + '''-crwctl-sources.tar.gz ./*
+	rm -fr coverage/ lib/ node_modules/ templates/ tmp/ 
+	tar czf ${WORKSPACE}/''' + TARBALL_PREFIX + '''-crwctl-sources.tar.gz --exclude=dist/ ./*
 popd >/dev/null 
 
 # set up sshfs mount
