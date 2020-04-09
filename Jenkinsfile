@@ -30,7 +30,6 @@ def platforms = "linux-x64,darwin-x64,win32-x64"
 def CTL_path = "codeready-workspaces-chectl"
 def SHA_CTL = "SHA_CTL"
 def GITHUB_RELEASE_NAME=""
-def slackLink=""
 
 timeout(180) {
 	node("rhel7-releng"){ 
@@ -229,8 +228,8 @@ done
 ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw && mkdir -p CRW-''' + CRW_VERSION + '''/CRWCTL/ && ls -la . "
 rsync -Pzrlt --rsh=ssh --protocol=28 \
     ${WORKSPACE}/''' + TARBALL_PREFIX + '''-crwctl-sources.tar.gz \
-  	''' + CTL_path + '''/dist/channels/redhat/''' + TARBALL_PREFIX + '''-crwctl*.gz \
-  ${WORKSPACE}/${mnt}-ssh/CRW-''' + CRW_VERSION + '''/CRWCTL/
+    ${WORKSPACE}/''' + CTL_path + '''/dist/channels/redhat/*gz \
+    ${WORKSPACE}/${mnt}-ssh/CRW-''' + CRW_VERSION + '''/CRWCTL/
 ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw/CRW-''' + CRW_VERSION + '''/ && tree"
 '''
 			}
@@ -243,10 +242,8 @@ ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw/CRW-''' + CRW_VERSION + '''/ &&
 				currentBuild.description = "Published to RCM: " + GITHUB_RELEASE_NAME
 			} else if (PUBLISH_ARTIFACTS_TO_GITHUB.equals("true") && !PUBLISH_ARTIFACTS_TO_RCM.equals("true")) {
 				currentBuild.description = "<a href=https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME + ">" + GITHUB_RELEASE_NAME + "</a>"
-				// slackLink="https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME
 			} else if (PUBLISH_ARTIFACTS_TO_GITHUB.equals("true") && PUBLISH_ARTIFACTS_TO_RCM.equals("true")) {
 				currentBuild.description = "<a href=https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME + ">" + GITHUB_RELEASE_NAME + "</a>; published to RCM"
-				// slackLink="https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME
 			}
 		}
 	  } catch (e) {
@@ -255,7 +252,7 @@ ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw/CRW-''' + CRW_VERSION + '''/ &&
 		throw e
 	  } finally {
 		// If success or failure, send notifications
-		notifyBuild(currentBuild.result, " :: " + (slackLink ? slackLink : "${currentBuild.description}"))
+		notifyBuild(currentBuild.result, " :: " + "${currentBuild.description}")
 	  }
 	}
 }
@@ -312,7 +309,5 @@ ${env.BUILD_URL}/flowGraphTable
 		)
   }
 
-  // always send slack message
-  // disabled as slackSend plugin is incompatible with Kerberos SSO plugin on our Jenkins
-  // slackSend (color: colorCode, message: summary)
+  // NOTE: slackSend plugin is incompatible with Kerberos SSO plugin on our Jenkins
 }
