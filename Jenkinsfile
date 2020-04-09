@@ -230,7 +230,7 @@ rsync -Pzrlt --rsh=ssh --protocol=28 \
     ${WORKSPACE}/''' + TARBALL_PREFIX + '''-crwctl-sources.tar.gz \
     ${WORKSPACE}/''' + CTL_path + '''/dist/channels/redhat/*gz \
     ${WORKSPACE}/${mnt}-ssh/CRW-''' + CRW_VERSION + '''/CRWCTL/
-ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw/CRW-''' + CRW_VERSION + '''/ && tree"
+ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw/CRW-''' + CRW_VERSION + '''/CRWCTL/ && tree"
 '''
 			}
 
