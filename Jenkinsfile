@@ -1,7 +1,8 @@
 #!/usr/bin/env groovy
 
 // PARAMETERS for this pipeline:
-// PUBLISH_ARTIFACTS = check box for true, uncheck for false
+// PUBLISH_ARTIFACTS_TO_GITHUB = default false; check box to publish to GH releases
+// PUBLISH_ARTIFACTS_TO_RCM    = default false; check box to upload sources + binaries to RCM for a GA release ONLY
 // branchCHECTL      = branch or tag of https://github.com/che-incubator/chectl
 // branchCRWCTL      = branch or tag of https://redhat-developer/codeready-workspaces-chectl
 // CRW_VERSION       = Full version (x.y.z), used in CSV and crwctl version
@@ -37,7 +38,8 @@ timeout(180) {
 		currentBuild.description="Running..."
 		notifyBuild('STARTED', '')
 
-		withCredentials([string(credentialsId:'devstudio-release.token', variable: 'GITHUB_TOKEN')]) {
+	    withCredentials([string(credentialsId:'devstudio-release.token', variable: 'GITHUB_TOKEN'), 
+          file(credentialsId: 'crw-build.keytab', variable: 'CRW_KEYTAB')]) {
 			stage "Build ${CTL_path}"
 			cleanWs()
 			checkout([$class: 'GitSCM', 
@@ -155,7 +157,7 @@ timeout(180) {
 			}
 
 			// Upload the artifacts and rename them on the fly to add ${TARBALL_PREFIX}-
-			if (PUBLISH_ARTIFACTS.equals("true"))
+			if (PUBLISH_ARTIFACTS_TO_GITHUB.equals("true"))
 			{
 				sh "curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' --data '{\"tag_name\": \"${CUSTOM_TAG}\", \"target_commitish\": \"master\", \"name\": \"${GITHUB_RELEASE_NAME}\", \"body\": \"${RELEASE_DESCRIPTION}\", \"draft\": false, \"prerelease\": true}' https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}"
 				// Extract the id of the release from the creation response
@@ -171,12 +173,73 @@ timeout(180) {
 				currentBuild.description = "<a href=https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME + ">" + GITHUB_RELEASE_NAME + "</a>"
 				// slackLink="https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME
 			} else {
-				echo 'PUBLISH_ARTIFACTS != true, so nothing published to github.'
+				echo 'PUBLISH_ARTIFACTS_TO_GITHUB != true, so nothing published to github.'
 				currentBuild.description = GITHUB_RELEASE_NAME + " not published"
 			}
-			archiveArtifacts fingerprint: false, artifacts:"**/*.log, **/*logs/**, **/dist/**/*.tar.gz, **/dist/*.json, **/dist/linux-x64, **/dist/win32-x64, **/dist/darwin-x64"
-		}
 
+			archiveArtifacts fingerprint: false, artifacts:"**/*.log, **/*logs/**, **/dist/**/*.tar.gz, **/dist/*.json, **/dist/linux-x64, **/dist/win32-x64, **/dist/darwin-x64"
+
+			// Upload the artifacts and sources to RCM_GUEST server
+			if (PUBLISH_ARTIFACTS_TO_RCM.equals("true"))
+			{
+            	sh '''#!/bin/bash -xe
+
+# bootstrapping: if keytab is lost, upload to 
+# https://codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com/credentials/store/system/domain/_/
+# then set Use secret text above and set Bindings > Variable (path to the file) as ''' + CRW_KEYTAB + '''
+chmod 700 ''' + CRW_KEYTAB + ''' && chown ''' + USER + ''' ''' + CRW_KEYTAB + '''
+# create .k5login file
+echo "crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM" > ~/.k5login
+chmod 644 ~/.k5login && chown ''' + USER + ''' ~/.k5login
+echo "pkgs.devel.redhat.com,10.19.208.80 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAplqWKs26qsoaTxvWn3DFcdbiBxqRLhFngGiMYhbudnAj4li9/VwAJqLm1M6YfjOoJrj9dlmuXhNzkSzvyoQODaRgsjCG5FaRjuN8CSM/y+glgCYsWX1HFZSnAasLDuW0ifNLPR2RBkmWx61QKq+TxFDjASBbBywtupJcCsA5ktkjLILS+1eWndPJeSUJiOtzhoN8KIigkYveHSetnxauxv1abqwQTk5PmxRgRt20kZEFSRqZOJUlcl85sZYzNC/G7mneptJtHlcNrPgImuOdus5CW+7W49Z/1xqqWI/iRjwipgEMGusPMlSzdxDX4JzIx6R53pDpAwSAQVGDz4F9eQ==
+rcm-guest.app.eng.bos.redhat.com,10.16.101.129 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEApd6cnyFVRnS2EFf4qeNvav0o+xwd7g7AYeR9dxzJmCR3nSoVHA4Q/kV0qvWkyuslvdA41wziMgSpwq6H/DPLt41RPGDgJ5iGB5/EDo3HAKfnFmVAXzYUrJSrYd25A1eUDYHLeObtcL/sC/5bGPp/0deohUxLtgyLya4NjZoYPQY8vZE6fW56/CTyTdCEWohDRUqX76sgKlVBkYVbZ3uj92GZ9M88NgdlZk74lOsy5QiMJsFQ6cpNw+IPW3MBCd5NHVYFv/nbA3cTJHy25akvAwzk8Oi3o9Vo0Z4PSs2SsD9K9+UvCfP1TUTI4PXS8WpJV6cxknprk0PSIkDdNODzjw==
+" >> ~/.ssh/known_hosts
+
+ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+
+# see https://mojo.redhat.com/docs/DOC-1071739
+if [[ -f ~/.ssh/config ]]; then mv -f ~/.ssh/config{,.BAK}; fi
+echo "
+GSSAPIAuthentication yes
+GSSAPIDelegateCredentials yes
+
+Host pkgs.devel.redhat.com
+User crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM
+" > ~/.ssh/config
+chmod 600 ~/.ssh/config
+
+# initialize kerberos
+export KRB5CCNAME=/var/tmp/crw-build_ccache
+kinit "crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM" -kt ''' + CRW_KEYTAB + '''
+klist # verify working
+
+# generate source tarball
+pushd ${WORKSPACE}/''' + CTL_path + ''' >/dev/null
+	# purge generated binaries and temp files
+	rm -fr coverage/ dist/ lib/ node_modules/ templates/ tmp/ 
+	tar czf ${WORKSPACE}/''' + TARBALL_PREFIX + '''-crwctl-sources.tar.gz ./*
+popd >/dev/null 
+
+# set up sshfs mount
+DESTHOST="crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@rcm-guest.app.eng.bos.redhat.com"
+RCMG="${DESTHOST}:/mnt/rcm-guest/staging/crw"
+sshfs --version
+for mnt in RCMG; do 
+  mkdir -p ${WORKSPACE}/${mnt}-ssh; 
+  if [[ $(file ${WORKSPACE}/${mnt}-ssh 2>&1) == *"Transport endpoint is not connected"* ]]; then fusermount -uz ${WORKSPACE}/${mnt}-ssh; fi
+  if [[ ! -d ${WORKSPACE}/${mnt}-ssh/crw ]]; then  sshfs ${!mnt} ${WORKSPACE}/${mnt}-ssh; fi
+done
+
+# copy files to rcm-guest
+ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw && mkdir -p CRW-''' + CRW_VERSION + '''/CRWCTL/ && ls -la . "
+rsync -Pzrlt --rsh=ssh --protocol=28 \
+    ${WORKSPACE}/''' + TARBALL_PREFIX + '''-crwctl-sources.tar.gz \
+  	''' + CTL_path + '''/dist/channels/redhat/''' + TARBALL_PREFIX + '''-crwctl*.gz \
+  ${WORKSPACE}/${mnt}-ssh/CRW-''' + CRW_VERSION + '''/CRWCTL/
+ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw/CRW-''' + CRW_VERSION + '''/ && tree"
+'''
+			}
+		}
 	  } catch (e) {
 		// If there was an exception thrown, the build failed
 		currentBuild.result = "FAILED"
