@@ -170,11 +170,6 @@ timeout(180) {
 				sh "cd ${CTL_path}/ && git clone https://devstudio-release:${GITHUB_TOKEN}@github.com/redhat-developer/codeready-workspaces-chectl -b gh-pages --single-branch gh-pages"
 				sh "cd ${CTL_path}/ && echo \$(date +%s) > gh-pages/update"
 				sh "cd ${CTL_path}/gh-pages && git add update && git commit -m \"Update github pages\" && git push origin gh-pages"
-				currentBuild.description = "<a href=https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME + ">" + GITHUB_RELEASE_NAME + "</a>"
-				// slackLink="https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME
-			} else {
-				echo 'PUBLISH_ARTIFACTS_TO_GITHUB != true, so nothing published to github.'
-				currentBuild.description = GITHUB_RELEASE_NAME + " not published"
 			}
 
 			archiveArtifacts fingerprint: false, artifacts:"**/*.log, **/*logs/**, **/dist/**/*.tar.gz, **/dist/*.json, **/dist/linux-x64, **/dist/win32-x64, **/dist/darwin-x64"
@@ -238,6 +233,20 @@ rsync -Pzrlt --rsh=ssh --protocol=28 \
   ${WORKSPACE}/${mnt}-ssh/CRW-''' + CRW_VERSION + '''/CRWCTL/
 ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw/CRW-''' + CRW_VERSION + '''/ && tree"
 '''
+			}
+
+			if (!PUBLISH_ARTIFACTS_TO_GITHUB.equals("true") && !PUBLISH_ARTIFACTS_TO_RCM.equals("true")) {
+				echo 'PUBLISH_ARTIFACTS_TO_GITHUB != true, so nothing published to github.'
+				echo 'PUBLISH_ARTIFACTS_TO_RCM != true, so nothing published to RCM_GUEST.'
+				currentBuild.description = GITHUB_RELEASE_NAME + " not published"
+			} else if (!PUBLISH_ARTIFACTS_TO_GITHUB.equals("true") && PUBLISH_ARTIFACTS_TO_RCM.equals("true")) {
+				currentBuild.description = "Published to RCM: " + GITHUB_RELEASE_NAME
+			} else if (PUBLISH_ARTIFACTS_TO_GITHUB.equals("true") && !PUBLISH_ARTIFACTS_TO_RCM.equals("true")) {
+				currentBuild.description = "<a href=https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME + ">" + GITHUB_RELEASE_NAME + "</a>"
+				// slackLink="https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME
+			} else if (PUBLISH_ARTIFACTS_TO_GITHUB.equals("true") && PUBLISH_ARTIFACTS_TO_RCM.equals("true")) {
+				currentBuild.description = "<a href=https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME + ">" + GITHUB_RELEASE_NAME + "</a>; published to RCM"
+				// slackLink="https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME
 			}
 		}
 	  } catch (e) {
