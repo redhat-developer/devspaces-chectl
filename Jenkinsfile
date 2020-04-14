@@ -225,12 +225,12 @@ for mnt in RCMG; do
 done
 
 # copy files to rcm-guest
-ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw && mkdir -p CRW-''' + CRW_VERSION + '''/CRWCTL/ && ls -la . "
+ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw && mkdir -p CRW-''' + CRW_VERSION + '''/ && ls -la . "
 rsync -Pzrlt --rsh=ssh --protocol=28 \
     ${WORKSPACE}/''' + TARBALL_PREFIX + '''-crwctl-sources.tar.gz \
     ${WORKSPACE}/''' + CTL_path + '''/dist/channels/redhat/*gz \
-    ${WORKSPACE}/${mnt}-ssh/CRW-''' + CRW_VERSION + '''/CRWCTL/
-ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw/CRW-''' + CRW_VERSION + '''/CRWCTL/ && tree"
+    ${WORKSPACE}/${mnt}-ssh/CRW-''' + CRW_VERSION + '''/
+ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw/CRW-''' + CRW_VERSION + '''/ && ls -la ''' + TARBALL_PREFIX + '''*"
 '''
 			}
 
