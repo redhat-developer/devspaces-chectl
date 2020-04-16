@@ -123,7 +123,7 @@ timeout(180) {
 				git branch master-quay -f
 				git checkout master-quay
 				# change files
-				FILES="deploy/operator.yaml deploy/operator-local.yaml controller-manifests/v''' + CRW_VERSION + '''/codeready-workspaces.''' + CRW_VERSION + '''.clusterserviceversion.yaml"
+				FILES="deploy/operator.yaml deploy/operator-local.yaml controller-manifests/v''' + CRW_VERSION + '''/codeready-workspaces.csv.yaml"
 				for d in ${FILES}; do sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/#quay.io/crw/#g"; done
 				# push to master-quay branch
 				git commit -s -m "[update] Push latest in master to master-quay branch" ${FILES}
