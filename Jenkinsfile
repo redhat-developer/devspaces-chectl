@@ -14,7 +14,7 @@
 
 def installNPM(){
 	def yarnVersion="1.17.3"
-	def nodeHome = tool 'nodejs-10.14.1'
+	def nodeHome = tool 'nodejs-10.19.0'
 	env.PATH="${nodeHome}/bin:${env.PATH}"
 	// remove windows 7z if installed
 	sh "rm -fr ${nodeHome}/lib/node_modules/7zip"
