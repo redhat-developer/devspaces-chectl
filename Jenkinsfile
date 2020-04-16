@@ -1,14 +1,16 @@
 #!/usr/bin/env groovy
 
 // PARAMETERS for this pipeline:
-// PUBLISH_ARTIFACTS_TO_GITHUB = default false; check box to publish to GH releases
-// PUBLISH_ARTIFACTS_TO_RCM    = default false; check box to upload sources + binaries to RCM for a GA release ONLY
 // branchCHECTL      = branch or tag of https://github.com/che-incubator/chectl
 // branchCRWCTL      = branch or tag of https://redhat-developer/codeready-workspaces-chectl
 // CRW_VERSION       = Full version (x.y.z), used in CSV and crwctl version
+// CRW_SERVER_TAG    = default to 2.1, but can override and set 2.1-20
+// CRW_OPERATOR_TAG  = default to 2.1, but can override and set 2.1-19
 // versionSuffix     = if set, use as version suffix before commitSHA, eg., RC1 --> 2.1.0-RC1-commitSHA;
 //                     if unset, version is CRW_VERSION-YYYYmmdd-commitSHA
 //                  :: NOTE: yarn will fail for version = x.y.z.a but works with x.y.z-a
+// PUBLISH_ARTIFACTS_TO_GITHUB = default false; check box to publish to GH releases
+// PUBLISH_ARTIFACTS_TO_RCM    = default false; check box to upload sources + binaries to RCM for a GA release ONLY
 
 def installNPM(){
 	def yarnVersion="1.17.3"
@@ -75,8 +77,9 @@ timeout(180) {
 				git checkout ''' + branchCHECTL + '''
 			popd >/dev/null
 			git checkout ''' + branchCRWCTL + '''
-			CRW_TAG="''' + CRW_VERSION + '''"; CRW_TAG=${CRW_TAG%.*} # for 2.1.0 -> 2.1
-			./sync-chectl-to-crwctl.sh ${WORKSPACE}/chectl ${WORKSPACE}/crwctl_generated ${CRW_TAG}
+			# OLD WAY: CRW_TAG="''' + CRW_VERSION + '''"; CRW_TAG=${CRW_TAG%.*} # for 2.1.0 -> 2.1
+			# ./sync-chectl-to-crwctl.sh ${WORKSPACE}/chectl ${WORKSPACE}/crwctl_generated ${CRW_TAG} ${CRW_TAG}
+			./sync-chectl-to-crwctl.sh ${WORKSPACE}/chectl ${WORKSPACE}/crwctl_generated ${CRW_SERVER_TAG} ${CRW_OPERATOR_TAG}
 			# check for differences
 			set +x
 			for d in $(cd ${WORKSPACE}/crwctl_generated/; find src test -type f); do diff -u ${d} ${WORKSPACE}/crwctl_generated/${d} || true; done
