@@ -234,6 +234,7 @@ rsync -Pzrlt --rsh=ssh --protocol=28 \
     ${WORKSPACE}/''' + CTL_path + '''/dist/channels/redhat/*gz \
     ${WORKSPACE}/${mnt}-ssh/CRW-''' + CRW_VERSION + '''/
 ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw/CRW-''' + CRW_VERSION + '''/ && ls -la ''' + TARBALL_PREFIX + '''*"
+ssh "${DESTHOST}" "/mnt/redhat/scripts/rel-eng/utility/bus-clients/stage-mw-release CRW-''' + CRW_VERSION + '''
 '''
 			}
 
