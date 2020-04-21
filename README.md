@@ -115,7 +115,7 @@ OPTIONS
                              --selector="app.kubernetes.io/name=employee-manager"
 ```
 
-_See code: [src/commands/devfile/generate.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-RC1-redhat/src/commands/devfile/generate.ts)_
+_See code: [src/commands/devfile/generate.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/devfile/generate.ts)_
 
 ## `crwctl help [COMMAND]`
 
@@ -153,7 +153,7 @@ OPTIONS
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-RC1-redhat/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/server/debug.ts)_
 
 ## `crwctl server:delete`
 
@@ -174,7 +174,7 @@ OPTIONS
   --skip-deletion-check                    Skip user confirmation on deletion check
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-RC1-redhat/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/server/delete.ts)_
 
 ## `crwctl server:logs`
 
@@ -196,7 +196,7 @@ OPTIONS
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-RC1-redhat/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/server/logs.ts)_
 
 ## `crwctl server:start`
 
@@ -296,7 +296,7 @@ OPTIONS
       persistent volume(s) storage class name to use to store CodeReady Workspaces workspaces data
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-RC1-redhat/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/server/start.ts)_
 
 ## `crwctl server:stop`
 
@@ -322,7 +322,7 @@ OPTIONS
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-RC1-redhat/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/server/stop.ts)_
 
 ## `crwctl server:update`
 
@@ -356,7 +356,7 @@ OPTIONS
   --skip-version-check                     Skip user confirmation on version check
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-RC1-redhat/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/server/update.ts)_
 
 ## `crwctl update`
 
@@ -367,7 +367,7 @@ USAGE
   $ crwctl update
 ```
 
-_See code: [src/commands/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-RC1-redhat/src/commands/update.ts)_
+_See code: [src/commands/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/update.ts)_
 
 ## `crwctl workspace:inject`
 
@@ -395,7 +395,7 @@ OPTIONS
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
-_See code: [src/commands/workspace/inject.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-RC1-redhat/src/commands/workspace/inject.ts)_
+_See code: [src/commands/workspace/inject.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/workspace/inject.ts)_
 
 ## `crwctl workspace:list`
 
@@ -416,7 +416,7 @@ OPTIONS
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
-_See code: [src/commands/workspace/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-RC1-redhat/src/commands/workspace/list.ts)_
+_See code: [src/commands/workspace/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/workspace/list.ts)_
 
 ## `crwctl workspace:logs`
 
@@ -439,7 +439,7 @@ OPTIONS
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
-_See code: [src/commands/workspace/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-RC1-redhat/src/commands/workspace/logs.ts)_
+_See code: [src/commands/workspace/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/workspace/logs.ts)_
 
 ## `crwctl workspace:start`
 
@@ -466,7 +466,7 @@ OPTIONS
                                            defined in the devfile. Works only for devfile
 ```
 
-_See code: [src/commands/workspace/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-RC1-redhat/src/commands/workspace/start.ts)_
+_See code: [src/commands/workspace/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/workspace/start.ts)_
 
 ## `crwctl workspace:stop`
 
@@ -487,7 +487,7 @@ OPTIONS
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 ```
 
-_See code: [src/commands/workspace/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-RC1-redhat/src/commands/workspace/stop.ts)_
+_See code: [src/commands/workspace/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/workspace/stop.ts)_
 <!-- commandsstop -->
 
 # Contributing
