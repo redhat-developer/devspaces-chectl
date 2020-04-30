@@ -1,7 +1,11 @@
 crwctl
 ======
 
-[Red Hat CodeReady Workspaces](https://developers.redhat.com/products/codeready-workspaces/overview) CLI
+The [Red Hat CodeReady Workspaces](https://developers.redhat.com/products/codeready-workspaces/overview) CLI for OpenShift 3.11 is `crwctl`.
+
+For OpenShift 4, use the OperatorHub installation method:
+
+https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.1/html/installation_guide/installing-codeready-workspaces-on-ocp-4#installing-codeready-workspaces-on-openshift-4-from-operatorhub_installing-codeready-workspaces-on-openshift-container-platform-4
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 
