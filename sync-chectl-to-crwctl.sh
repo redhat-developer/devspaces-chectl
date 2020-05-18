@@ -55,13 +55,22 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|resource: Kubernetes/OpenShift/Helm|resource|g" \
 			-e "/import \{ HelmTasks \} from '..\/..\/tasks\/installers\/helm'/d" \
 			-e "/import \{ MinishiftAddonTasks \} from '..\/..\/tasks\/installers\/minishift-addon'/d" \
-			-e "/    const helmTasks = new HelmTasks\(\)/d" \
-			\
+			-e "/    const helmTasks = new HelmTasks\(flags\)/d" \
 			-e "/    const (minishiftAddonTasks|msAddonTasks) = new MinishiftAddonTasks\(\)/d" \
 			-e '/.+tasks.add\(helmTasks.+/d' \
 			-e '/.+tasks.add\((minishiftAddonTasks|msAddonTasks).+/d' \
 			-e "s|(const DEFAULT_CHE_IMAGE =).+|\1 'registry.redhat.io/codeready-workspaces/server-rhel8:${CRW_SERVER_TAG}'|g" \
 			-e "s|(const DEFAULT_CHE_OPERATOR_IMAGE =).+|\1 'registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:${CRW_OPERATOR_TAG}'|g" \
+			\
+			-e "s|(const CHE_CLUSTER_CR_NAME =).+|\1 'codeready-workspaces'|g" \
+			\
+			-e "s|(const DEFAULT_CHE_OLM_PACKAGE_NAME =).+|\1 'codeready-workspaces'|g" \
+			-e "s|(const OLM_STABLE_CHANNEL_NAME =).+|\1 'latest'|g" \
+			-e "s|(const CUSTOM_CATALOG_SOURCE_NAME =).+|\1 'codeready-custom-catalog-source'|g" \
+			-e "s|(const SUBSCRIPTION_NAME =).+|\1 'codeready-subscription'|g" \
+			-e "s|(const OPERATOR_GROUP_NAME =).+|\1 'codeready-operator-group'|g" \
+			-e "s|(const OPENSHIFT_OLM_CATALOG =).+|\1 'redhat-operators'|g" \
+			-e "s|(CVS_PREFIX =).+|\1 'crwoperator'|g" \
 			\
 			-e "s|\"CodeReady Workspaces will be deployed in Multi-User mode.+mode.\"|'CodeReady Workspaces can only be deployed in Multi-User mode.'|" \
 			-e "s|che-incubator/crwctl|redhat-developer/codeready-workspaces-chectl|g" \
@@ -89,7 +98,7 @@ platformString="    platform: string({\n\
 installerString="    installer: string({\n\
       char: 'a',\n\
       description: 'Installer type',\n\
-      options: ['operator'],\n\
+      options: ['operator', 'olm'],\n\
       default: 'operator'\n\
     }),"; # echo -e "$installerString"
 setPlaformDefaultsString="  static setPlaformDefaults(flags: any) {\n\
