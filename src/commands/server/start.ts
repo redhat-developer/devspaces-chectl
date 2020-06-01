@@ -101,7 +101,7 @@ export default class Start extends Command {
     installer: string({
       char: 'a',
       description: 'Installer type',
-      options: ['operator'],['olm'],
+      options: ['operator', 'olm'],
       default: 'operator'
     }),
     domain: string({
