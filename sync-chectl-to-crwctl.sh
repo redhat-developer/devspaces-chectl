@@ -55,9 +55,9 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|resource: Kubernetes/OpenShift/Helm|resource|g" \
 			-e "/import \{ HelmTasks \} from '..\/..\/tasks\/installers\/helm'/d" \
 			-e "/import \{ MinishiftAddonTasks \} from '..\/..\/tasks\/installers\/minishift-addon'/d" \
-			-e "/    const helmTasks = new HelmTasks\(\)/d" \
+			-e "/    const helmTasks = new HelmTasks\(.*\)/d" \
 			\
-			-e "/    const (minishiftAddonTasks|msAddonTasks) = new MinishiftAddonTasks\(\)/d" \
+			-e "/    const (minishiftAddonTasks|msAddonTasks) = new MinishiftAddonTasks\(.*\)/d" \
 			-e '/.+tasks.add\(helmTasks.+/d' \
 			-e '/.+tasks.add\((minishiftAddonTasks|msAddonTasks).+/d' \
 			-e "s|(const DEFAULT_CHE_IMAGE =).+|\1 'registry.redhat.io/codeready-workspaces/server-rhel8:${CRW_SERVER_TAG}'|g" \
