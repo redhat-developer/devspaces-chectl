@@ -30,6 +30,7 @@ node --version && npm --version; yarn --version
 
 def platforms = "linux-x64,darwin-x64,win32-x64"
 def CTL_path = "codeready-workspaces-chectl"
+def CTL_REPO = "redhat-developer/${CTL_path}"
 def SHA_CTL = "SHA_CTL"
 def GITHUB_RELEASE_NAME=""
 
@@ -49,7 +50,7 @@ timeout(180) {
 				poll: true,
 				extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CTL_path}"]], 
 				submoduleCfg: [], 
-				userRemoteConfigs: [[url: "git@github.com:redhat-developer/${CTL_path}.git"]]])
+				userRemoteConfigs: [[url: "git@github.com:${CTL_REPO}.git"]]])
 			installNPM()
 			def CURRENT_DAY=sh(returnStdout:true,script:"date +'%Y%m%d-%H%M'").trim()
 			def SHORT_SHA1=sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short HEAD").trim()
@@ -92,7 +93,7 @@ timeout(180) {
 			# SOLVED :: Fatal: Could not read Username for "https://github.com", No such device or address :: https://github.com/github/hub/issues/1644
 			git remote -v
 			git config --global hub.protocol https
-			git remote set-url origin https://\$GITHUB_TOKEN:x-oauth-basic@github.com/''' + CTL_path + '''.git
+			git remote set-url origin https://\$GITHUB_TOKEN:x-oauth-basic@github.com/''' + CTL_REPO + '''.git
 			git remote -v
 
 			set -x
@@ -123,7 +124,7 @@ timeout(180) {
 
 			# check out from master
 			pushd ${WORKSPACE} >/dev/null
-				git clone git@github.com:redhat-developer/codeready-workspaces-operator.git
+				git clone git@github.com:''' + CTL_REPO + '''.git
 				cd codeready-workspaces-operator/
 				git config user.email "nickboldt+devstudio-release@gmail.com"
 				git config user.name "Red Hat Devstudio Release Bot"
@@ -169,15 +170,15 @@ timeout(180) {
 			// Upload the artifacts and rename them on the fly to add ${TARBALL_PREFIX}-
 			if (PUBLISH_ARTIFACTS_TO_GITHUB.equals("true"))
 			{
-				sh "curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' --data '{\"tag_name\": \"${CUSTOM_TAG}\", \"target_commitish\": \"master\", \"name\": \"${GITHUB_RELEASE_NAME}\", \"body\": \"${RELEASE_DESCRIPTION}\", \"draft\": false, \"prerelease\": true}' https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}"
+				sh "curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' --data '{\"tag_name\": \"${CUSTOM_TAG}\", \"target_commitish\": \"master\", \"name\": \"${GITHUB_RELEASE_NAME}\", \"body\": \"${RELEASE_DESCRIPTION}\", \"draft\": false, \"prerelease\": true}' https://api.github.com/repos/${CTL_REPO}/releases > /tmp/${CUSTOM_TAG}"
 				// Extract the id of the release from the creation response
 				def RELEASE_ID=sh(returnStdout:true,script:"jq -r .id /tmp/${CUSTOM_TAG}").trim()
 
-				sh "cd ${CTL_path}/dist/channels/quay/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @${TARBALL_PREFIX}-crwctl-linux-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-linux-x64.tar.gz"
-				sh "cd ${CTL_path}/dist/channels/quay/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @${TARBALL_PREFIX}-crwctl-win32-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-win32-x64.tar.gz"
-				sh "cd ${CTL_path}/dist/channels/quay/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @${TARBALL_PREFIX}-crwctl-darwin-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-darwin-x64.tar.gz"
+				sh "cd ${CTL_path}/dist/channels/quay/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @${TARBALL_PREFIX}-crwctl-linux-x64.tar.gz https://uploads.github.com/repos/${CTL_REPO}/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-linux-x64.tar.gz"
+				sh "cd ${CTL_path}/dist/channels/quay/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @${TARBALL_PREFIX}-crwctl-win32-x64.tar.gz https://uploads.github.com/repos/${CTL_REPO}/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-win32-x64.tar.gz"
+				sh "cd ${CTL_path}/dist/channels/quay/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @${TARBALL_PREFIX}-crwctl-darwin-x64.tar.gz https://uploads.github.com/repos/${CTL_REPO}/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-darwin-x64.tar.gz"
 				// refresh github pages
-				sh "cd ${CTL_path}/ && git clone https://devstudio-release:${GITHUB_TOKEN}@github.com/redhat-developer/codeready-workspaces-chectl -b gh-pages --single-branch gh-pages"
+				sh "cd ${CTL_path}/ && git clone https://devstudio-release:${GITHUB_TOKEN}@github.com/${CTL_REPO} -b gh-pages --single-branch gh-pages"
 				sh "cd ${CTL_path}/ && echo \$(date +%s) > gh-pages/update"
 				sh "cd ${CTL_path}/gh-pages && git add update && git commit -m \"Update github pages\" && git push origin gh-pages"
 			}
@@ -253,9 +254,9 @@ ssh "${DESTHOST}" "/mnt/redhat/scripts/rel-eng/utility/bus-clients/stage-mw-rele
 			} else if (!PUBLISH_ARTIFACTS_TO_GITHUB.equals("true") && PUBLISH_ARTIFACTS_TO_RCM.equals("true")) {
 				currentBuild.description = "Published to RCM: " + GITHUB_RELEASE_NAME
 			} else if (PUBLISH_ARTIFACTS_TO_GITHUB.equals("true") && !PUBLISH_ARTIFACTS_TO_RCM.equals("true")) {
-				currentBuild.description = "<a href=https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME + ">" + GITHUB_RELEASE_NAME + "</a>"
+				currentBuild.description = "<a href=https://github.com/${CTL_REPO}/releases/tag/" + GITHUB_RELEASE_NAME + ">" + GITHUB_RELEASE_NAME + "</a>"
 			} else if (PUBLISH_ARTIFACTS_TO_GITHUB.equals("true") && PUBLISH_ARTIFACTS_TO_RCM.equals("true")) {
-				currentBuild.description = "<a href=https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME + ">" + GITHUB_RELEASE_NAME + "</a>; published to RCM"
+				currentBuild.description = "<a href=https://github.com/${CTL_REPO}/releases/tag/" + GITHUB_RELEASE_NAME + ">" + GITHUB_RELEASE_NAME + "</a>; published to RCM"
 			}
 		}
 	  } catch (e) {
