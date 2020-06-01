@@ -96,8 +96,8 @@ timeout(180) {
 			git remote -v
 
 			set -x
-			git add src/ test/
-			git commit -s -m "[sync] Push latest in chectl/''' + branchCHECTL + ''' to crwctl/'''+branchCRWCTL+'''" . || true
+			git add src/ test/ templatest/ docs/
+			git commit -s -m "[sync] Push latest in chectl @ ''' + branchCHECTL + ''' to codeready-workspaces-chectl @ '''+branchCRWCTL+'''" . || true
 			git push origin '''+branchCRWCTL+''' || true
 
 			#### 1. build using -redhat suffix and registry.redhat.io/codeready-workspaces/ URLs
