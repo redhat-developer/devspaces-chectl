@@ -51,6 +51,8 @@ USAGE
 # Commands
 <!-- commands -->
 * [`crwctl autocomplete [SHELL]`](#crwctl-autocomplete-shell)
+* [`crwctl cacert:export`](#crwctl-cacertexport)
+* [`crwctl dashboard:open`](#crwctl-dashboardopen)
 * [`crwctl devfile:generate`](#crwctl-devfilegenerate)
 * [`crwctl help [COMMAND]`](#crwctl-help-command)
 * [`crwctl server:debug`](#crwctl-serverdebug)
@@ -60,11 +62,13 @@ USAGE
 * [`crwctl server:stop`](#crwctl-serverstop)
 * [`crwctl server:update`](#crwctl-serverupdate)
 * [`crwctl update`](#crwctl-update)
+* [`crwctl workspace:create`](#crwctl-workspacecreate)
+* [`crwctl workspace:delete WORKSPACE`](#crwctl-workspacedelete-workspace)
 * [`crwctl workspace:inject`](#crwctl-workspaceinject)
 * [`crwctl workspace:list`](#crwctl-workspacelist)
 * [`crwctl workspace:logs`](#crwctl-workspacelogs)
-* [`crwctl workspace:start`](#crwctl-workspacestart)
-* [`crwctl workspace:stop`](#crwctl-workspacestop)
+* [`crwctl workspace:start WORKSPACE`](#crwctl-workspacestart-workspace)
+* [`crwctl workspace:stop WORKSPACE`](#crwctl-workspacestop-workspace)
 
 ## `crwctl autocomplete [SHELL]`
 
@@ -88,6 +92,53 @@ EXAMPLES
 ```
 
 _See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.5/src/commands/autocomplete/index.ts)_
+
+## `crwctl cacert:export`
+
+Retrieves CodeReady Workspaces self-signed certificate
+
+```
+USAGE
+  $ crwctl cacert:export
+
+OPTIONS
+  -d, --destination=destination
+      Destination where to store Che self-signed CA certificate.
+                           If the destination is a file (might not exist), then the certificate will be saved there in PEM 
+      format.
+                           If the destination is a directory, then cheCA.crt file will be created there with Che 
+      certificate in PEM format.
+                           If this option is ommited, then Che certificate will be stored in user's home directory as 
+      cheCA.crt
+
+  -h, --help
+      show CLI help
+
+  -n, --chenamespace=chenamespace
+      [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is supposed to be deployed
+
+  --skip-kubernetes-health-check
+      Skip Kubernetes health check
+```
+
+_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-RC0-redhat/src/commands/cacert/export.ts)_
+
+## `crwctl dashboard:open`
+
+Open CodeReady Workspaces dashboard
+
+```
+USAGE
+  $ crwctl dashboard:open
+
+OPTIONS
+  -h, --help                       show CLI help
+
+  -n, --chenamespace=chenamespace  [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is
+                                   supposed to be deployed
+```
+
+_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-RC0-redhat/src/commands/dashboard/open.ts)_
 
 ## `crwctl devfile:generate`
 
@@ -119,7 +170,7 @@ OPTIONS
                              --selector="app.kubernetes.io/name=employee-manager"
 ```
 
-_See code: [src/commands/devfile/generate.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/devfile/generate.ts)_
+_See code: [src/commands/devfile/generate.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-RC0-redhat/src/commands/devfile/generate.ts)_
 
 ## `crwctl help [COMMAND]`
 
@@ -155,9 +206,11 @@ OPTIONS
   --debug-port=debug-port                  [default: 8000] CodeReady Workspaces server debug port
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+
+  --skip-kubernetes-health-check           Skip Kubernetes health check
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-RC0-redhat/src/commands/server/debug.ts)_
 
 ## `crwctl server:delete`
 
@@ -173,12 +226,16 @@ OPTIONS
   -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
                                            is supposed to be deployed
 
+  --deployment-name=deployment-name        [default: codeready] CodeReady Workspaces deployment name
+
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 
   --skip-deletion-check                    Skip user confirmation on deletion check
+
+  --skip-kubernetes-health-check           Skip Kubernetes health check
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-RC0-redhat/src/commands/server/delete.ts)_
 
 ## `crwctl server:logs`
 
@@ -198,9 +255,11 @@ OPTIONS
   --deployment-name=deployment-name        [default: codeready] CodeReady Workspaces deployment name
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+
+  --skip-kubernetes-health-check           Skip Kubernetes health check
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-RC0-redhat/src/commands/server/logs.ts)_
 
 ## `crwctl server:start`
 
@@ -216,6 +275,12 @@ OPTIONS
 
   -b, --domain=domain
       Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
+                           This flag makes sense only for Kubernetes family infrastructures and will be autodetected for 
+      Minikube and MicroK8s in most cases.
+                           However, for Kubernetes cluster it is required to specify.
+                           Please note, that just setting this flag will not likely work out of the box.
+                           According changes should be done in Kubernetes cluster configuration as well.
+                           In case of Openshift, domain adjustment should be done on the cluster configuration level.
 
   -d, --directory=directory
       Directory to store logs into
@@ -224,7 +289,7 @@ OPTIONS
       show CLI help
 
   -i, --cheimage=cheimage
-      [default: registry.redhat.io/codeready-workspaces/server-rhel8:2.1-22] CodeReady Workspaces server container image
+      [default: registry.redhat.io/codeready-workspaces/server-rhel8:2.2] CodeReady Workspaces server container image
 
   -m, --multiuser
       Starts CodeReady Workspaces in multi-user mode
@@ -240,12 +305,33 @@ OPTIONS
 
   -s, --tls
       Enable TLS encryption.
-                           Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured 
-      namespace.
+                           Note, this option is turned on by default.
+                           For Kubernetes infrastructure, it is required to provide own certificate: 'che-tls' secret with 
+      TLS certificate must be pre-created in the configured namespace.
+                           The only exception is Helm installer. In that case the secret will be generated automatically.
                            For OpenShift, router will use default cluster certificates.
+                           If the certificate is self-signed, '--self-signed-cert' option should be provided, otherwise 
+      Che won't be able to start.
+                           Please see docs for more details: 
+      https://www.eclipse.org/che/docs/che-7/installing-che-in-tls-mode-with-self-signed-certificates/
 
   -t, --templates=templates
-      [default: templates] Path to the templates folder
+      Path to the templates folder
+
+  --auto-update
+      Auto update approval strategy for installation CodeReady Workspaces.
+                           With this strategy will be provided auto-update CodeReady Workspaces without any human 
+      interaction.
+                           By default strategy this flag is false. It requires approval from user.
+                           To approve installation newer version CodeReady Workspaces user should execute 'crwctl 
+      server:update' command.
+                           This parameter is used only when the installer is 'olm'.
+
+  --catalog-source-yaml=catalog-source-yaml
+      Path to a yaml file that describes custom catalog source for installation CodeReady Workspaces operator.
+                           Catalog source will be applied to the namespace with Che operator.
+                           Also you need define 'olm-channel' name and 'package-manifest-name'.
+                           This parameter is used only when the installer is the 'olm'.
 
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
       Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used 
@@ -256,7 +342,7 @@ OPTIONS
       is the operator.
 
   --che-operator-image=che-operator-image
-      [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.1-21] Container image of the operator. This 
+      [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.2] Container image of the operator. This 
       parameter is used only when the installer is the operator
 
   --debug
@@ -278,8 +364,17 @@ OPTIONS
   --listr-renderer=default|silent|verbose
       [default: default] Listr renderer
 
+  --olm-channel=olm-channel
+      Olm channel to install CodeReady Workspaces, f.e. stable.
+                           If options was not set, will be used default version for package manifest.
+                           This parameter is used only when the installer is the 'olm'.
+
   --os-oauth
       Enable use of OpenShift credentials to log into CodeReady Workspaces
+
+  --package-manifest-name=package-manifest-name
+      Package manifest name to subscribe to CodeReady Workspaces OLM package manifest.
+                           This parameter is used only when the installer is the 'olm'.
 
   --plugin-registry-url=plugin-registry-url
       The URL of the external plugin registry.
@@ -293,14 +388,29 @@ OPTIONS
       will trust it.
                            Note that `che-tls` secret with CA certificate must be created in the configured namespace.
 
+  --skip-cluster-availability-check
+      Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.
+
+  --skip-kubernetes-health-check
+      Skip Kubernetes health check
+
   --skip-version-check
       Skip minimal versions check.
+
+  --starting-csv=starting-csv
+      Starting cluster service version(CSV) for installation CodeReady Workspaces.
+                           Flags uses to set up start installation version Che.
+                           For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
+                           Then OLM will install CodeReady Workspaces with version 7.10.0.
+                           Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs 
+      the latest known version.
+                           This parameter is used only when the installer is 'olm'.
 
   --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
       persistent volume(s) storage class name to use to store CodeReady Workspaces workspaces data
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-RC0-redhat/src/commands/server/start.ts)_
 
 ## `crwctl server:stop`
 
@@ -324,9 +434,11 @@ OPTIONS
   --deployment-name=deployment-name        [default: codeready] CodeReady Workspaces deployment name
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+
+  --skip-kubernetes-health-check           Skip Kubernetes health check
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-RC0-redhat/src/commands/server/stop.ts)_
 
 ## `crwctl server:update`
 
@@ -348,8 +460,7 @@ OPTIONS
 
   -t, --templates=templates                [default: templates] Path to the templates folder
 
-  --che-operator-image=che-operator-image  [default:
-                                           registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.1-21]
+  --che-operator-image=che-operator-image  [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.2]
                                            Container image of the operator. This parameter is used only when the
                                            installer is the operator
 
@@ -357,10 +468,12 @@ OPTIONS
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
 
+  --skip-kubernetes-health-check           Skip Kubernetes health check
+
   --skip-version-check                     Skip user confirmation on version check
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-RC0-redhat/src/commands/server/update.ts)_
 
 ## `crwctl update`
 
@@ -371,7 +484,65 @@ USAGE
   $ crwctl update
 ```
 
-_See code: [src/commands/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/update.ts)_
+_See code: [src/commands/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-RC0-redhat/src/commands/update.ts)_
+
+## `crwctl workspace:create`
+
+Creates a workspace from a devfile
+
+```
+USAGE
+  $ crwctl workspace:create
+
+OPTIONS
+  -d, --debug                      Debug workspace start. It is useful when workspace start fails and it is needed to
+                                   print more logs on startup. This flag is used in conjunction with --start flag.
+
+  -f, --devfile=devfile            Path or URL to a valid devfile
+
+  -h, --help                       show CLI help
+
+  -n, --chenamespace=chenamespace  [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is
+                                   supposed to be deployed
+
+  -s, --start                      Starts the workspace after creation
+
+  --access-token=access-token      CodeReady Workspaces OIDC Access Token
+
+  --name=name                      Workspace name: overrides the workspace name to use instead of the one defined in the
+                                   devfile.
+
+  --skip-kubernetes-health-check   Skip Kubernetes health check
+```
+
+_See code: [src/commands/workspace/create.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-RC0-redhat/src/commands/workspace/create.ts)_
+
+## `crwctl workspace:delete WORKSPACE`
+
+delete a user's workspace
+
+```
+USAGE
+  $ crwctl workspace:delete WORKSPACE
+
+ARGUMENTS
+  WORKSPACE  The workspace id to delete
+
+OPTIONS
+  -h, --help                       show CLI help
+
+  -n, --chenamespace=chenamespace  [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is
+                                   supposed to be deployed
+
+  --access-token=access-token      CodeReady Workspaces OIDC Access Token
+
+  --delete-namespace               Indicates that a Kubernetes namespace where workspace was created will be deleted as
+                                   well
+
+  --skip-kubernetes-health-check   Skip Kubernetes health check
+```
+
+_See code: [src/commands/workspace/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-RC0-redhat/src/commands/workspace/delete.ts)_
 
 ## `crwctl workspace:inject`
 
@@ -382,24 +553,29 @@ USAGE
   $ crwctl workspace:inject
 
 OPTIONS
-  -c, --container=container                Target container. If not specified, configuration files will be injected in
-                                           all containers of a workspace pod
+  -c, --container=container        The container name. If not specified, configuration files will be injected in all
+                                   containers of the workspace pod
 
-  -h, --help                               show CLI help
+  -h, --help                       show CLI help
 
-  -k, --kubeconfig                         Inject the local Kubernetes configuration
+  -k, --kubeconfig                 (required) Inject the local Kubernetes configuration
 
-  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
-                                           is supposed to be deployed
+  -n, --chenamespace=chenamespace  [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is
+                                   supposed to be deployed
 
-  -w, --workspace=workspace                Target workspace. Can be omitted if only one workspace is running
+  -w, --workspace=workspace        The workspace id to inject configuration into. It can be omitted if the only one
+                                   running workspace exists.
+                                   Use workspace:list command to get all workspaces and their
+                                   statuses.
 
-  --kube-context=kube-context              Kubeconfig context to inject
+  --access-token=access-token      CodeReady Workspaces OIDC Access Token
 
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+  --kube-context=kube-context      Kubeconfig context to inject
+
+  --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
 
-_See code: [src/commands/workspace/inject.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/workspace/inject.ts)_
+_See code: [src/commands/workspace/inject.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-RC0-redhat/src/commands/workspace/inject.ts)_
 
 ## `crwctl workspace:list`
 
@@ -410,17 +586,17 @@ USAGE
   $ crwctl workspace:list
 
 OPTIONS
-  -h, --help                               show CLI help
+  -h, --help                       show CLI help
 
-  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
-                                           is supposed to be deployed
+  -n, --chenamespace=chenamespace  [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is
+                                   supposed to be deployed
 
-  --access-token=access-token              CodeReady Workspaces OIDC Access Token
+  --access-token=access-token      CodeReady Workspaces OIDC Access Token
 
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+  --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
 
-_See code: [src/commands/workspace/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/workspace/list.ts)_
+_See code: [src/commands/workspace/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-RC0-redhat/src/commands/workspace/list.ts)_
 
 ## `crwctl workspace:logs`
 
@@ -441,57 +617,62 @@ OPTIONS
                                            field.
 
   --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+
+  --skip-kubernetes-health-check           Skip Kubernetes health check
 ```
 
-_See code: [src/commands/workspace/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/workspace/logs.ts)_
+_See code: [src/commands/workspace/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-RC0-redhat/src/commands/workspace/logs.ts)_
 
-## `crwctl workspace:start`
+## `crwctl workspace:start WORKSPACE`
 
-create and start a workspace
-
-```
-USAGE
-  $ crwctl workspace:start
-
-OPTIONS
-  -f, --devfile=devfile                    path or URL to a valid devfile
-  -h, --help                               show CLI help
-
-  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
-                                           is supposed to be deployed
-
-  -w, --workspaceconfig=workspaceconfig    path to a valid workspace configuration json file
-
-  --access-token=access-token              CodeReady Workspaces OIDC Access Token
-
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
-
-  --name=name                              workspace name: overrides the workspace name to use instead of the one
-                                           defined in the devfile. Works only for devfile
-```
-
-_See code: [src/commands/workspace/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/workspace/start.ts)_
-
-## `crwctl workspace:stop`
-
-stop a running workspace
+Starts a workspace
 
 ```
 USAGE
-  $ crwctl workspace:stop
+  $ crwctl workspace:start WORKSPACE
+
+ARGUMENTS
+  WORKSPACE  The workspace id to start
 
 OPTIONS
-  -h, --help                               show CLI help
+  -d, --debug                      Debug workspace start. It is useful when workspace start fails and it is needed to
+                                   print more logs on startup.
 
-  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
-                                           is supposed to be deployed
+  -h, --help                       show CLI help
 
-  --access-token=access-token              CodeReady Workspaces OIDC Access Token
+  -n, --chenamespace=chenamespace  [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is
+                                   supposed to be deployed
 
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+  --access-token=access-token      CodeReady Workspaces OIDC Access Token
+
+  --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
 
-_See code: [src/commands/workspace/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.1.1-GA-redhat/src/commands/workspace/stop.ts)_
+_See code: [src/commands/workspace/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-RC0-redhat/src/commands/workspace/start.ts)_
+
+## `crwctl workspace:stop WORKSPACE`
+
+Stop a running workspace
+
+```
+USAGE
+  $ crwctl workspace:stop WORKSPACE
+
+ARGUMENTS
+  WORKSPACE  The workspace id to stop
+
+OPTIONS
+  -h, --help                       show CLI help
+
+  -n, --chenamespace=chenamespace  [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is
+                                   supposed to be deployed
+
+  --access-token=access-token      CodeReady Workspaces OIDC Access Token
+
+  --skip-kubernetes-health-check   Skip Kubernetes health check
+```
+
+_See code: [src/commands/workspace/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-RC0-redhat/src/commands/workspace/stop.ts)_
 <!-- commandsstop -->
 
 # Contributing
