@@ -96,8 +96,9 @@ timeout(180) {
 			git remote set-url origin https://\$GITHUB_TOKEN:x-oauth-basic@github.com/''' + CTL_REPO + '''.git
 			git remote -v
 
+			ls -la
 			set -x
-			git add src/ test/ templates/ docs/
+			git add src/ test/ 
 			git commit -s -m "[sync] Push latest in chectl @ ''' + branchCHECTL + ''' to codeready-workspaces-chectl @ '''+branchCRWCTL+'''" . || true
 			git push origin '''+branchCRWCTL+''' || true
 
