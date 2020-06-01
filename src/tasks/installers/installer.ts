@@ -95,6 +95,13 @@ export class InstallerTasks {
 
         return operatorTasks.startTasks(flags, command)
       }
+    } else if (flags.installer === 'olm') {
+      title = '🏃‍  Running Olm installaion CodeReady Workspaces'
+      // The olm installs CodeReady Workspaces in multiuser mode by default
+      if (!flags.multiuser) {
+        flags.multiuser = true
+      }
+      task = () => olmTasks.startTasks(flags, command)
     } else {
       title = '🏃‍  Installer preflight check'
       task = () => { command.error(`Installer ${flags.installer} is not supported ¯\\_(ツ)_/¯`) }

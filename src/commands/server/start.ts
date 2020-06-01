@@ -27,7 +27,7 @@ import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { isOpenshiftPlatformFamily } from '../../util'
+import { isOpenshiftPlatformFamily, isStableVersion } from '../../util'
 
 export default class Start extends Command {
   static description = 'start CodeReady Workspaces server'
@@ -286,8 +286,8 @@ export default class Start extends Command {
         if (flags.platform !== 'openshift' && flags.platform !== 'minishift' && flags.platform !== 'crc') {
           this.error(`You requested to enable OpenShift OAuth but the platform doesn\'t seem to be OpenShift. Platform is ${flags.platform}.`)
         }
-        if (flags.installer !== 'operator') {
-          this.error(`You requested to enable OpenShift OAuth but that's only possible when using the operator as installer. The current installer is ${flags.installer}. To use the operator add parameter "--installer operator".`)
+        if (flags.installer !== 'operator' && flags.installer !== 'olm') {
+          this.error(`You requested to enable OpenShift OAuth but that's only possible when using the 'operator' or 'olm' as installer. The current installer is ${flags.installer}.`)
         }
       }
 
@@ -416,9 +416,8 @@ export default class Start extends Command {
    * and `operator` for other cases.
    */
   async setDefaultInstaller(flags: any): Promise<void> {
-    const cheVersion = DEFAULT_CHE_OPERATOR_IMAGE.split(':')[1]
     const kubeHelper = new KubeHelper(flags)
-    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && cheVersion !== 'nightly' && cheVersion !== 'latest') {
+    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isStableVersion(flags)) {
       flags.installer = 'olm'
     } else {
       flags.installer = 'operator'

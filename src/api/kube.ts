@@ -20,7 +20,7 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { DEFAULT_CHE_IMAGE } from '../constants'
+import { CHE_CLUSTER_CRD, DEFAULT_CHE_IMAGE, OLM_STABLE_CHANNEL_NAME } from '../constants'
 import { getClusterClientCommand } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
@@ -558,7 +558,7 @@ export class KubeHelper {
     return res.body.items[0].status.phase
   }
 
-  async getPodReadyConditionStatus(selector: string, namespace = ''): Promise<string> {
+  async getPodReadyConditionStatus(selector: string, namespace = ''): Promise<string | undefined> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     let res
     try {
@@ -568,7 +568,7 @@ export class KubeHelper {
     }
 
     if (!res || !res.body || !res.body.items) {
-      throw new Error(`Get pods by selector "${selector}" returned an invalid response`)
+      throw new Error(`Get pods by selector "${selector}" returned an invalid response.`)
     }
 
     if (res.body.items.length < 1) {
@@ -577,15 +577,11 @@ export class KubeHelper {
     }
 
     if (res.body.items.length > 1) {
-      throw new Error(`Get pods by selector "${selector}" returned ${res.body.items.length} pods (1 was expected)`)
+      throw new Error(`Get pods by selector "${selector}" returned ${res.body.items.length} pods (1 was expected).`)
     }
 
-    if (!res.body.items[0].status) {
-      throw new Error(`Get pods by selector "${selector}" returned a pod with an invalid state`)
-    }
-
-    if (!res.body.items[0].status.conditions || !(res.body.items[0].status.conditions.length > 0)) {
-      throw new Error(`Get pods by selector "${selector}" returned a pod with an invalid status.conditions`)
+    if (!res.body.items[0].status || !res.body.items[0].status.conditions || !(res.body.items[0].status.conditions.length > 0)) {
+      return
     }
 
     const conditions = res.body.items[0].status.conditions
@@ -594,8 +590,6 @@ export class KubeHelper {
         return condition.status
       }
     }
-
-    throw new Error(`Get pods by selector "${selector}" returned a pod without a status.condition of type "Ready"`)
   }
 
   async waitForPodPhase(selector: string, targetPhase: string, namespace = '', intervalMs = 500, timeoutMs = this.podWaitTimeout) {
@@ -636,9 +630,6 @@ export class KubeHelper {
       if (readyStatus === 'True') {
         return
       }
-      if (readyStatus !== 'False') {
-        throw new Error(`ERR_BAD_READY_STATUS: ${readyStatus} (True or False expected) `)
-      }
       await cli.wait(intervalMs)
     }
     throw new Error(`ERR_TIMEOUT: Timeout set to pod ready timeout ${this.podReadyTimeout}`)
@@ -647,16 +638,13 @@ export class KubeHelper {
   async waitUntilPodIsDeleted(selector: string, namespace = '', intervalMs = 500, timeoutMs = this.podReadyTimeout) {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
-      let readyStatus = await this.getPodReadyConditionStatus(selector, namespace)
-      if (readyStatus === 'False') {
+      const pods = await this.listNamespacedPod(namespace, undefined, selector)
+      if (!pods.items.length) {
         return
-      }
-      if (readyStatus !== 'True') {
-        throw new Error(`ERR_BAD_READY_STATUS: ${readyStatus} (True or False expected) `)
       }
       await cli.wait(intervalMs)
     }
-    throw new Error(`ERR_TIMEOUT: Timeout set to pod ready timeout ${this.podReadyTimeout}`)
+    throw new Error('ERR_TIMEOUT: Waiting until pod is deleted took too long.')
   }
 
   async deletePod(name: string, namespace = '') {
@@ -1139,7 +1127,7 @@ export class KubeHelper {
       const imageAndTag = cheImage.split(':', 2)
       yamlCr.spec.server.cheImage = imageAndTag[0]
       yamlCr.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
-      if ((flags.installer === 'olm' && !flags['catalog-source-yaml']) || (flags['catalog-source-yaml'] && flags['olm-channel'] === 'stable')) {
+      if ((flags.installer === 'olm' && !flags['catalog-source-yaml']) || (flags['catalog-source-yaml'] && flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME)) {
         // use default image tag for `olm` to install stable Che, because we don't have nightly channel for OLM catalog.
         yamlCr.spec.server.cheImageTag = ''
       }
@@ -1149,6 +1137,9 @@ export class KubeHelper {
       if (!yamlCr.spec.auth.openShiftoAuth && flags.multiuser) {
         yamlCr.spec.auth.updateAdminPassword = true
       }
+      if (!yamlCr.spec.k8s) {
+        yamlCr.spec.k8s = {}
+      }
       if (flags.tls) {
         yamlCr.spec.server.tlsSupport = flags.tls
         if (!yamlCr.spec.k8s.tlsSecretName) {
@@ -1156,7 +1147,9 @@ export class KubeHelper {
         }
       }
       yamlCr.spec.server.selfSignedCert = flags['self-signed-cert']
-      yamlCr.spec.k8s.ingressDomain = flags.domain
+      if (flags.domain) {
+        yamlCr.spec.k8s.ingressDomain = flags.domain
+      }
       const pluginRegistryUrl = flags['plugin-registry-url']
       if (pluginRegistryUrl) {
         yamlCr.spec.server.pluginRegistryUrl = pluginRegistryUrl
@@ -1205,21 +1198,46 @@ export class KubeHelper {
     }
   }
 
-  async getCheCluster(name: string, namespace: string): Promise<any | undefined> {
+  /**
+   * Returns `checlusters.org.eclipse.che' in the given namespace.
+   */
+  async getCheCluster(namespace: string): Promise<any | undefined> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.getNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name)
-      return body
-    } catch {
-      return
+      const { body } = await customObjectsApi.listNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters')
+      if (!body.items) {
+        return
+      }
+
+      const crs = body.items as any[]
+      if (crs.length === 0) {
+        return
+      } else if (crs.length !== 1) {
+        throw new Error(`Too many resources '${CHE_CLUSTER_CRD}' found in the namespace '${namespace}'`)
+      }
+
+      return crs[0]
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
     }
   }
 
-  async deleteCheCluster(name = '', namespace = '') {
+  /**
+   * Deletes `checlusters.org.eclipse.che' resources in the given namespace.
+   */
+  async deleteCheCluster(namespace: string) {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const options = new V1DeleteOptions()
-      await customObjectsApi.deleteNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name, options)
+      const { body } = await customObjectsApi.listNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters')
+      if (!body.items) {
+        return
+      }
+
+      const crs = body.items as any[]
+      for (const cr of crs) {
+        const options = new V1DeleteOptions()
+        await customObjectsApi.deleteNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', cr.metadata.name, options)
+      }
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
