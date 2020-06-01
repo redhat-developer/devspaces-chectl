@@ -34,7 +34,7 @@ export default class Update extends Command {
     installer: string({
       char: 'a',
       description: 'Installer type',
-      options: ['operator'],
+      options: ['operator'],['olm'],
       default: 'operator'
     }),
     platform: string({
