@@ -13,6 +13,7 @@ import * as Listr from 'listr'
 import { CheHelper } from '../api/che'
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
+import { DOCS_LINK_AUTH_TO_CHE_SERVER_VIA_OPENID } from '../constants'
 
 import { KubeTasks } from './kube'
 
@@ -67,11 +68,13 @@ export class CheTasks {
     return [
       {
         title: 'PostgreSQL pod bootstrap',
+        skip: () => !flags.multiuser,
         enabled: ctx => ctx.isPostgresDeployed && !ctx.isPostgresReady,
         task: () => this.kubeTasks.podStartTasks(command, this.postgresSelector, this.cheNamespace)
       },
       {
         title: 'Keycloak pod bootstrap',
+        skip: () => !flags.multiuser,
         enabled: ctx => ctx.isKeycloakDeployed && !ctx.isKeycloakReady,
         task: () => this.kubeTasks.podStartTasks(command, this.keycloakSelector, this.cheNamespace)
       },
@@ -90,17 +93,8 @@ export class CheTasks {
         enabled: ctx => !ctx.isCheReady,
         task: () => this.kubeTasks.podStartTasks(command, this.cheSelector, this.cheNamespace)
       },
-      {
-        title: 'Retrieving CodeReady Workspaces server URL',
-        task: async (ctx: any, task: any) => {
-          ctx.cheURL = await this.che.cheURL(flags.chenamespace)
-          task.title = await `${task.title}...${ctx.cheURL}`
-        }
-      },
-      {
-        title: 'CodeReady Workspaces status check',
-        task: async ctx => this.che.isCheServerReady(ctx.cheURL)
-      }
+      ...this.retrieveEclipseCheUrl(flags),
+      ...this.checkEclipseCheStatus()
     ]
   }
 
@@ -262,7 +256,8 @@ export class CheTasks {
       enabled: (ctx: any) => !ctx.isCheStopped,
       task: async (ctx: any, task: any) => {
         if (ctx.isAuthEnabled && !this.cheAccessToken) {
-          command.error('E_AUTH_REQUIRED - CodeReady Workspaces authentication is enabled and an access token need to be provided (flag --access-token).\nFor instructions to retrieve a valid access token refer to https://www.eclipse.org/che/docs/che-6/authentication.html')
+          command.error('E_AUTH_REQUIRED - CodeReady Workspaces authentication is enabled and an access token need to be provided (flag --access-token). ' +
+                        `For instructions to retrieve a valid access token refer to ${DOCS_LINK_AUTH_TO_CHE_SERVER_VIA_OPENID}`)
         }
         try {
           const cheURL = await this.che.cheURL(this.cheNamespace)
@@ -469,7 +464,7 @@ export class CheTasks {
 
   verifyCheNamespaceExistsTask(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     return [{
-      title: `Verify if namespace ${flags.chenamespace} exists`,
+      title: `Verify if namespace '${flags.chenamespace}' exists`,
       task: async () => {
         if (!await this.che.cheNamespaceExist(flags.chenamespace)) {
           command.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist. The configuration cannot be injected.\nFix with: verify the namespace where workspace is running (kubectl get --all-namespaces deployment | grep workspace)`, { code: 'EBADNS' })
@@ -485,7 +480,7 @@ export class CheTasks {
     return [{
       title: 'Verify if the workspaces is running',
       task: async (ctx: any) => {
-        ctx.pod = await this.che.getWorkspacePod(flags.chenamespace!, flags.workspace).catch(e => command.error(e.message))
+        ctx.pod = await this.che.getWorkspacePodName(flags.chenamespace!, flags.workspace).catch(e => command.error(e.message))
       }
     }]
   }
@@ -497,7 +492,7 @@ export class CheTasks {
     return [
       {
         title: `${follow ? 'Start following' : 'Read'} Operator logs`,
-        skip: () => flags.installer && flags.installer !== 'operator',
+        skip: () => flags.installer !== 'operator' && flags.installer !== 'olm',
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.cheOperatorSelector, ctx.directory, follow)
           task.title = `${task.title}...done`
@@ -594,6 +589,42 @@ export class CheTasks {
         task: async (ctx: any, task: any) => {
           await this.kube.portForward(ctx.podName, flags.chenamespace, flags['debug-port'])
           task.title = `${task.title}...done`
+        }
+      }
+    ]
+  }
+
+  retrieveEclipseCheUrl(flags: any): ReadonlyArray<Listr.ListrTask> {
+    return [
+      {
+        title: 'Retrieving CodeReady Workspaces server URL',
+        task: async (ctx: any, task: any) => {
+          ctx.cheURL = await this.che.cheURL(flags.chenamespace)
+          task.title = `${task.title}... ${ctx.cheURL}`
+        }
+      }
+    ]
+  }
+
+  checkEclipseCheStatus(): ReadonlyArray<Listr.ListrTask> {
+    return [
+      {
+        title: 'CodeReady Workspaces status check',
+        task: async ctx => this.che.isCheServerReady(ctx.cheURL)
+      }
+    ]
+  }
+
+  checkIsAuthenticationEnabled(): ReadonlyArray<Listr.ListrTask> {
+    return [
+      {
+        title: 'Checking authentication',
+        task: async (ctx: any, task: any) => {
+          ctx.isAuthEnabled = await this.che.isAuthenticationEnabled(ctx.cheURL)
+          if (ctx.isAuthEnabled && !this.cheAccessToken) {
+            throw new Error('E_AUTH_REQUIRED - CodeReady Workspaces authentication is enabled but access token is missed. Use --access-token to provide access token.')
+          }
+          task.title = `${task.title}... ${ctx.isAuthEnabled ? '(auth enabled)' : '(auth disabled)'}`
         }
       }
     ]

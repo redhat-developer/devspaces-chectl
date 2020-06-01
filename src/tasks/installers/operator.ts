@@ -10,15 +10,14 @@
 import { V1Deployment } from '@kubernetes/client-node'
 import { Command } from '@oclif/command'
 import { cli } from 'cli-ux'
-import * as execa from 'execa'
-import { readFileSync } from 'fs'
-import { copy, mkdirp, remove } from 'fs-extra'
+import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
-import * as path from 'path'
 
-import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
+import { CHE_CLUSTER_CR_NAME } from '../../constants'
+
+import { checkTlsCertificate, copyOperatorResources, createEclipseCheCluster, createNamespaceTask } from './common-tasks'
 
 export class OperatorTasks {
   operatorServiceAccount = 'codeready-operator'
@@ -28,46 +27,25 @@ export class OperatorTasks {
   operatorClusterRoleBinding = 'codeready-operator'
   cheClusterCrd = 'checlusters.org.eclipse.che'
   operatorName = 'codeready-operator'
-  operatorCheCluster = 'codeready-workspaces'
-  resourcesPath = ''
 
   /**
    * Returns tasks list which perform preflight platform checks.
    */
   startTasks(flags: any, command: Command): Listr {
-    const che = new CheHelper(flags)
     const kube = new KubeHelper(flags)
+    command.warn('You can also use features rich \'OLM\' installer to deploy CodeReady Workspaces.')
     return new Listr([
-      {
-        title: 'Copying operator resources',
-        task: async (_ctx: any, task: any) => {
-          this.resourcesPath = await this.copyCheOperatorResources(flags.templates, command.config.cacheDir)
-          task.title = `${task.title}...done.`
-        }
-      },
-      {
-        title: `Create Namespace (${flags.chenamespace})`,
-        task: async (_ctx: any, task: any) => {
-          const exist = await che.cheNamespaceExist(flags.chenamespace)
-          if (exist) {
-            task.title = `${task.title}...It already exists.`
-          } else if (flags.platform === 'minikube' || flags.platform === 'k8s' || flags.platform === 'microk8s') {
-            await execa(`kubectl create namespace ${flags.chenamespace}`, { shell: true })
-            task.title = `${task.title}...done.`
-          } else if (flags.platform === 'minishift' || flags.platform === 'openshift' || flags.platform === 'crc') {
-            await execa(`oc new-project ${flags.chenamespace}`, { shell: true })
-            task.title = `${task.title}...done.`
-          }
-        }
-      },
+      copyOperatorResources(flags, command.config.cacheDir),
+      createNamespaceTask(flags),
+      checkTlsCertificate(flags),
       {
         title: `Create ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.serviceAccountExist(this.operatorServiceAccount, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            const yamlFilePath = this.resourcesPath + 'service_account.yaml'
+            const yamlFilePath = ctx.resourcesPath + 'service_account.yaml'
             await kube.createServiceAccountFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...done.`
           }
@@ -75,12 +53,12 @@ export class OperatorTasks {
       },
       {
         title: `Create Role ${this.operatorRole} in namespace ${flags.chenamespace}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.roleExist(this.operatorRole, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            const yamlFilePath = this.resourcesPath + 'role.yaml'
+            const yamlFilePath = ctx.resourcesPath + 'role.yaml'
             const statusCode = await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
             if (statusCode === 403) {
               command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
@@ -91,12 +69,12 @@ export class OperatorTasks {
       },
       {
         title: `Create ClusterRole ${this.operatorClusterRole}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.clusterRoleExist(this.operatorClusterRole)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            const yamlFilePath = this.resourcesPath + 'cluster_role.yaml'
+            const yamlFilePath = ctx.resourcesPath + 'cluster_role.yaml'
             const statusCode = await kube.createClusterRoleFromFile(yamlFilePath)
             if (statusCode === 403) {
               command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
@@ -107,12 +85,12 @@ export class OperatorTasks {
       },
       {
         title: `Create RoleBinding ${this.operatorRoleBinding} in namespace ${flags.chenamespace}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.roleBindingExist(this.operatorRoleBinding, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            const yamlFilePath = this.resourcesPath + 'role_binding.yaml'
+            const yamlFilePath = ctx.resourcesPath + 'role_binding.yaml'
             await kube.createRoleBindingFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...done.`
           }
@@ -132,12 +110,12 @@ export class OperatorTasks {
       },
       {
         title: `Create CRD ${this.cheClusterCrd}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.crdExist(this.cheClusterCrd)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            const yamlFilePath = this.resourcesPath + 'crds/org_v1_che_crd.yaml'
+            const yamlFilePath = ctx.resourcesPath + 'crds/org_v1_che_crd.yaml'
             await kube.createCrdFromFile(yamlFilePath)
             task.title = `${task.title}...done.`
           }
@@ -152,43 +130,17 @@ export class OperatorTasks {
       },
       {
         title: `Create deployment ${this.operatorName} in namespace ${flags.chenamespace}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.deploymentExist(this.operatorName, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
-            await kube.createDeploymentFromFile(this.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
+            await kube.createDeploymentFromFile(ctx.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
             task.title = `${task.title}...done.`
           }
         }
       },
-      {
-        title: `Create CodeReady Workspaces cluster ${this.operatorCheCluster} in namespace ${flags.chenamespace}`,
-        task: async (ctx: any, task: any) => {
-          const exist = await kube.cheClusterExist(this.operatorCheCluster, flags.chenamespace)
-          if (exist) {
-            task.title = `${task.title}...It already exists.`
-          } else {
-            // CodeReady Workspaces operator supports only Multi-User Che
-            ctx.isCheDeployed = true
-            ctx.isPostgresDeployed = true
-            ctx.isKeycloakDeployed = true
-
-            // plugin and devfile registry will be deployed only when external ones are not configured
-            ctx.isPluginRegistryDeployed = !(flags['plugin-registry-url'] as boolean)
-            ctx.isDevfileRegistryDeployed = !(flags['devfile-registry-url'] as boolean)
-
-            const yamlFilePath = flags['che-operator-cr-yaml'] === '' ? this.resourcesPath + 'crds/org_v1_che_cr.yaml' : flags['che-operator-cr-yaml']
-            const cr = await kube.createCheClusterFromFile(yamlFilePath, flags, flags['che-operator-cr-yaml'] === '')
-            ctx.isKeycloakReady = ctx.isKeycloakReady || cr.spec.auth.externalIdentityProvider
-            ctx.isPostgresReady = ctx.isPostgresReady || cr.spec.database.externalDb
-            ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || cr.spec.server.externalDevfileRegistry
-            ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || cr.spec.server.externalPluginRegistry
-
-            task.title = `${task.title}...done.`
-          }
-        }
-      }
+      createEclipseCheCluster(flags, kube)
     ], { renderer: flags['listr-renderer'] as any })
   }
 
@@ -218,18 +170,12 @@ export class OperatorTasks {
   updateTasks(flags: any, command: Command): Listr {
     const kube = new KubeHelper(flags)
     return new Listr([
-      {
-        title: 'Copying operator resources',
-        task: async (_ctx: any, task: any) => {
-          this.resourcesPath = await this.copyCheOperatorResources(flags.templates, command.config.cacheDir)
-          task.title = `${task.title}...done.`
-        }
-      },
+      copyOperatorResources(flags, command.config.cacheDir),
       {
         title: `Updating ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.serviceAccountExist(this.operatorServiceAccount, flags.chenamespace)
-          const yamlFilePath = this.resourcesPath + 'service_account.yaml'
+          const yamlFilePath = ctx.resourcesPath + 'service_account.yaml'
           if (exist) {
             await kube.replaceServiceAccountFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...updated.`
@@ -241,9 +187,9 @@ export class OperatorTasks {
       },
       {
         title: `Updating Role ${this.operatorRole} in namespace ${flags.chenamespace}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.roleExist(this.operatorRole, flags.chenamespace)
-          const yamlFilePath = this.resourcesPath + 'role.yaml'
+          const yamlFilePath = ctx.resourcesPath + 'role.yaml'
           if (exist) {
             const statusCode = await kube.replaceRoleFromFile(yamlFilePath, flags.chenamespace)
             if (statusCode === 403) {
@@ -261,9 +207,9 @@ export class OperatorTasks {
       },
       {
         title: `Updating ClusterRole ${this.operatorClusterRole}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.clusterRoleExist(this.operatorClusterRole)
-          const yamlFilePath = this.resourcesPath + 'cluster_role.yaml'
+          const yamlFilePath = ctx.resourcesPath + 'cluster_role.yaml'
           if (exist) {
             const statusCode = await kube.replaceClusterRoleFromFile(yamlFilePath)
             if (statusCode === 403) {
@@ -281,9 +227,9 @@ export class OperatorTasks {
       },
       {
         title: `Updating RoleBinding ${this.operatorRoleBinding} in namespace ${flags.chenamespace}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.roleBindingExist(this.operatorRoleBinding, flags.chenamespace)
-          const yamlFilePath = this.resourcesPath + 'role_binding.yaml'
+          const yamlFilePath = ctx.resourcesPath + 'role_binding.yaml'
           if (exist) {
             await kube.replaceRoleBindingFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...updated.`
@@ -308,9 +254,9 @@ export class OperatorTasks {
       },
       {
         title: `Updating CodeReady Workspaces cluster CRD ${this.cheClusterCrd}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const crd = await kube.getCrd(this.cheClusterCrd)
-          const yamlFilePath = this.resourcesPath + 'crds/org_v1_che_crd.yaml'
+          const yamlFilePath = ctx.resourcesPath + 'crds/org_v1_che_crd.yaml'
           if (crd) {
             if (!crd.metadata || !crd.metadata.resourceVersion) {
               throw new Error(`Fetched CRD ${this.cheClusterCrd} without resource version`)
@@ -333,13 +279,13 @@ export class OperatorTasks {
       },
       {
         title: `Updating deployment ${this.operatorName} in namespace ${flags.chenamespace}`,
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           const exist = await kube.deploymentExist(this.operatorName, flags.chenamespace)
           if (exist) {
-            await kube.replaceDeploymentFromFile(this.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
+            await kube.replaceDeploymentFromFile(ctx.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
             task.title = `${task.title}...updated.`
           } else {
-            await kube.createDeploymentFromFile(this.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
+            await kube.createDeploymentFromFile(ctx.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
             task.title = `${task.title}...created new one.`
           }
         }
@@ -360,25 +306,16 @@ export class OperatorTasks {
   deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     let kh = new KubeHelper(flags)
     return [{
-      title: `Delete the CR ${this.operatorCheCluster} of type ${this.cheClusterCrd}`,
+      title: `Delete the CR ${CHE_CLUSTER_CR_NAME} of type ${this.cheClusterCrd}`,
       task: async (_ctx: any, task: any) => {
         if (await kh.crdExist(this.cheClusterCrd) &&
-          await kh.cheClusterExist(this.operatorCheCluster, flags.chenamespace)) {
-          await kh.deleteCheCluster(this.operatorCheCluster, flags.chenamespace)
+          await kh.getCheCluster(CHE_CLUSTER_CR_NAME, flags.chenamespace)) {
+          await kh.deleteCheCluster(CHE_CLUSTER_CR_NAME, flags.chenamespace)
           await cli.wait(2000) //wait a couple of secs for the finalizers to be executed
           task.title = await `${task.title}...OK`
         } else {
           task.title = await `${task.title}...CR not found`
         }
-      }
-    },
-    {
-      title: `Delete CRD ${this.cheClusterCrd}`,
-      task: async (_ctx: any, task: any) => {
-        if (await kh.crdExist(this.cheClusterCrd)) {
-          await kh.deleteCrd(this.cheClusterCrd)
-        }
-        task.title = await `${task.title}...OK`
       }
     },
     {
@@ -453,21 +390,12 @@ export class OperatorTasks {
     ]
   }
 
-  async copyCheOperatorResources(templatesDir: string, cacheDir: string): Promise<string> {
-    const srcDir = path.join(templatesDir, '/codeready-workspaces-operator/')
-    const destDir = path.join(cacheDir, '/templates/codeready-workspaces-operator/')
-    await remove(destDir)
-    await mkdirp(destDir)
-    await copy(srcDir, destDir)
-    return destDir
-  }
-
   async evaluateTemplateOperatorImage(flags: any): Promise<string> {
     if (flags['che-operator-image']) {
       return flags['che-operator-image']
     } else {
       const filePath = flags.templates + '/codeready-workspaces-operator/operator.yaml'
-      const yamlFile = readFileSync(filePath)
+      const yamlFile = fs.readFileSync(filePath)
       const yamlDeployment = yaml.safeLoad(yamlFile.toString()) as V1Deployment
       return yamlDeployment.spec!.template.spec!.containers[0].image!
     }

@@ -9,8 +9,13 @@
  **********************************************************************/
 
 import { Command, flags } from '@oclif/command'
+import { cli } from 'cli-ux'
+import * as Listrq from 'listr'
 
-import { accessToken, cheNamespace, listrRenderer } from '../../common-flags'
+import { CheHelper } from '../../api/che'
+import { accessToken, cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
+import { CheTasks } from '../../tasks/che'
+import { ApiTasks } from '../../tasks/platforms/api'
 
 export default class List extends Command {
   static description = 'list workspaces'
@@ -19,30 +24,51 @@ export default class List extends Command {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'access-token': accessToken,
-    'listr-renderer': listrRenderer
+    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
   async run() {
     const { flags } = this.parse(List)
-    const Listr = require('listr')
-    const notifier = require('node-notifier')
-    const tasks = new Listr([
-      { title: 'Verify if we can access Kubernetes API', skip: this.warn('Not implemented yet') },
-      { title: 'Verify if CodeReady Workspaces is running', skip: this.warn('Not implemented yet') },
-      { title: 'Get Workspaces', skip: this.warn('Not implemented yet') },
-    ], { renderer: flags['listr-renderer'] as any })
+    const ctx: any = {}
+    ctx.workspaces = []
 
-    // Use https://github.com/oclif/cli-ux/tree/supertable#clitable to dispalay:
-    //  - workspace id
-    //  - workspace state
-    //  - workspace creation date ?
-    //  - workspace stack ?
+    const apiTasks = new ApiTasks()
+    const cheTasks = new CheTasks(flags)
+    const tasks = new Listrq(undefined, { renderer: 'silent' })
 
-    await tasks.run()
-
-    notifier.notify({
-      title: 'crwctl',
-      message: 'Command workspace:list has completed.'
+    tasks.add(apiTasks.testApiTasks(flags, this))
+    tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
+    tasks.add(cheTasks.retrieveEclipseCheUrl(flags))
+    tasks.add(cheTasks.checkEclipseCheStatus())
+    tasks.add({
+      title: 'Get workspaces',
+      task: async (ctx, task) => {
+        const cheHelper = new CheHelper(flags)
+        ctx.workspaces = await cheHelper.getAllWorkspaces(ctx.cheURL, flags['access-token'])
+        task.title = `${task.title}... done`
+      }
     })
+
+    try {
+      await tasks.run(ctx)
+      this.printWorkspaces(ctx.workspaces)
+    } catch (error) {
+      this.error(error.message)
+    }
+  }
+
+  private printWorkspaces(workspaces: [any]): void {
+    const data: any[] = []
+    workspaces.forEach((workspace: any) => {
+      data.push({
+        id: workspace.id,
+        name: workspace.devfile.metadata.name,
+        namespace: workspace.attributes.infrastructureNamespace,
+        status: workspace.status,
+        created: new Date(parseInt(workspace.attributes.created, 10)).toISOString(),
+        updated: workspace.attributes.updated ? new Date(parseInt(workspace.attributes.updated, 10)).toISOString() : ''
+      })
+    })
+    cli.table(data, { id: {}, name: {}, namespace: {}, status: {}, created: {}, updated: {} })
   }
 }

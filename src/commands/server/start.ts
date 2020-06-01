@@ -10,18 +10,24 @@
 
 import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
+import { cli } from 'cli-ux'
 import * as fs from 'fs-extra'
+import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
 import * as os from 'os'
 import * as path from 'path'
 
-import { cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
-import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE } from '../../constants'
+import { KubeHelper } from '../../api/kube'
+import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
+import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE, DOCS_LINK_INSTALL_TLS_WITH_SELF_SIGNED_CERT } from '../../constants'
 import { CheTasks } from '../../tasks/che'
+import { getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
+import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
+import { isOpenshiftPlatformFamily } from '../../util'
 
 export default class Start extends Command {
   static description = 'start CodeReady Workspaces server'
@@ -40,7 +46,6 @@ export default class Start extends Command {
     templates: string({
       char: 't',
       description: 'Path to the templates folder',
-      default: Start.getTemplatesDir(),
       env: 'CHE_TEMPLATES_FOLDER'
     }),
     'devfile-registry-url': string({
@@ -74,8 +79,12 @@ export default class Start extends Command {
     tls: flags.boolean({
       char: 's',
       description: `Enable TLS encryption.
-                    Note that for kubernetes 'che-tls' with TLS certificate must be created in the configured namespace.
-                    For OpenShift, router will use default cluster certificates.`
+                    Note, this option is turned on by default.
+                    For Kubernetes infrastructure, it is required to provide own certificate: 'che-tls' secret with TLS certificate must be pre-created in the configured namespace.
+                    The only exception is Helm installer. In that case the secret will be generated automatically.
+                    For OpenShift, router will use default cluster certificates.
+                    If the certificate is self-signed, '--self-signed-cert' option should be provided, otherwise Che won't be able to start.
+                    Please see docs for more details: ${DOCS_LINK_INSTALL_TLS_WITH_SELF_SIGNED_CERT}`
     }),
     'self-signed-cert': flags.boolean({
       description: `Authorize usage of self signed certificates for encryption.
@@ -97,7 +106,12 @@ export default class Start extends Command {
     }),
     domain: string({
       char: 'b',
-      description: 'Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)',
+      description: `Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
+                    This flag makes sense only for Kubernetes family infrastructures and will be autodetected for Minikube and MicroK8s in most cases.
+                    However, for Kubernetes cluster it is required to specify.
+                    Please note, that just setting this flag will not likely work out of the box.
+                    According changes should be done in Kubernetes cluster configuration as well.
+                    In case of Openshift, domain adjustment should be done on the cluster configuration level.`,
       default: ''
     }),
     debug: boolean({
@@ -137,27 +151,104 @@ export default class Start extends Command {
     'skip-version-check': flags.boolean({
       description: 'Skip minimal versions check.',
       default: false
-    })
+    }),
+    'skip-cluster-availability-check': flags.boolean({
+      description: 'Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.',
+      default: false
+    }),
+    'auto-update': flags.boolean({
+      description: `Auto update approval strategy for installation CodeReady Workspaces.
+                    With this strategy will be provided auto-update CodeReady Workspaces without any human interaction.
+                    By default strategy this flag is false. It requires approval from user.
+                    To approve installation newer version CodeReady Workspaces user should execute 'crwctl server:update' command.
+                    This parameter is used only when the installer is 'olm'.`,
+      default: false,
+      exclusive: ['starting-csv']
+    }),
+    'starting-csv': flags.string({
+      description: `Starting cluster service version(CSV) for installation CodeReady Workspaces.
+                    Flags uses to set up start installation version Che.
+                    For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
+                    Then OLM will install CodeReady Workspaces with version 7.10.0.
+                    Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known version.
+                    This parameter is used only when the installer is 'olm'.`
+    }),
+    'olm-channel': string({
+      description: `Olm channel to install CodeReady Workspaces, f.e. stable.
+                    If options was not set, will be used default version for package manifest.
+                    This parameter is used only when the installer is the 'olm'.`,
+      dependsOn: ['catalog-source-yaml']
+    }),
+    'package-manifest-name': string({
+      description: `Package manifest name to subscribe to CodeReady Workspaces OLM package manifest.
+                    This parameter is used only when the installer is the 'olm'.`,
+      dependsOn: ['catalog-source-yaml']
+    }),
+    'catalog-source-yaml': string({
+      description: `Path to a yaml file that describes custom catalog source for installation CodeReady Workspaces operator.
+                    Catalog source will be applied to the namespace with Che operator.
+                    Also you need define 'olm-channel' name and 'package-manifest-name'.
+                    This parameter is used only when the installer is the 'olm'.`,
+    }),
+    'skip-kubernetes-health-check': skipK8sHealthCheck
   }
 
-  static getTemplatesDir(): string {
-    // return local templates folder if present
-    const TEMPLATES = 'templates'
-    const templatesDir = path.resolve(TEMPLATES)
-    const exists = fs.pathExistsSync(templatesDir)
-    if (exists) {
-      return TEMPLATES
+  async setPlaformDefaults(flags: any): Promise<void> {
+    flags.tls = await this.checkTlsMode(flags)
+
+    if (!flags.installer) {
+      await this.setDefaultInstaller(flags)
     }
-    // else use the location from modules
-    return path.join(__dirname, '../../../templates')
+
+    if (!flags.templates) {
+      // use local templates folder if present
+      const templates = 'templates'
+      const templatesDir = path.resolve(templates)
+      if (flags.installer === 'operator') {
+        if (fs.pathExistsSync(`${templatesDir}/codeready-operator`)) {
+          flags.templates = templatesDir
+        }
+      } else if (flags.installer === 'minishift-addon') {
+        if (fs.pathExistsSync(`${templatesDir}/minishift-addon/`)) {
+          flags.templates = templatesDir
+        }
+      }
+
+      if (!flags.templates) {
+        flags.templates = path.join(__dirname, '../../../templates')
+      }
+    }
   }
 
-  static setPlaformDefaults(flags: any) {
-    flags.installer = 'operator'
+  /**
+   * Checks if TLS is disabled via operator custom resource.
+   * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
+   */
+  async checkTlsMode(flags: any): Promise<boolean> {
+    if (flags['che-operator-cr-patch-yaml']) {
+      const cheOperatorCrPatchYamlPath = flags['che-operator-cr-patch-yaml']
+      if (fs.existsSync(cheOperatorCrPatchYamlPath)) {
+        const crPatch = yaml.safeLoad(fs.readFileSync(cheOperatorCrPatchYamlPath).toString())
+        if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
+          return false
+        }
+      }
+    }
+
+    if (flags['che-operator-cr-yaml']) {
+      const cheOperatorCrYamlPath = flags['che-operator-cr-yaml']
+      if (fs.existsSync(cheOperatorCrYamlPath)) {
+        const cr = yaml.safeLoad(fs.readFileSync(cheOperatorCrYamlPath).toString())
+        if (cr && cr.spec && cr.spec.server && cr.spec.server.tlsSupport === false) {
+          return false
+        }
+      }
+    }
+
+    return true
   }
 
   checkPlatformCompatibility(flags: any) {
-    // matrix checks
     if (flags.installer === 'operator' && flags['che-operator-cr-yaml']) {
       const ignoredFlags = []
       flags['plugin-registry-url'] && ignoredFlags.push('--plugin-registry-urlomain')
@@ -170,10 +261,15 @@ export default class Start extends Command {
       flags.cheimage && ignoredFlags.push('--cheimage')
       flags.debug && ignoredFlags.push('--debug')
       flags.domain && ignoredFlags.push('--domain')
+      flags.multiuser && ignoredFlags.push('--multiuser')
 
       if (ignoredFlags.length) {
         this.warn(`--che-operator-cr-yaml is used. The following flag(s) will be ignored: ${ignoredFlags.join('\t')}`)
       }
+    }
+
+    if (flags.domain && !flags['che-operator-cr-yaml'] && isOpenshiftPlatformFamily(flags.platform)) {
+      this.warn('"--domain" flag is ignored for Openshift family infrastructures. It should be done on the cluster level.')
     }
 
     if (flags.installer) {
@@ -194,6 +290,33 @@ export default class Start extends Command {
           this.error(`You requested to enable OpenShift OAuth but that's only possible when using the operator as installer. The current installer is ${flags.installer}. To use the operator add parameter "--installer operator".`)
         }
       }
+
+      if (flags.installer === 'olm' && flags.platform === 'minishift') {
+        this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
+      }
+
+      if (flags.installer !== 'olm' && flags['auto-update']) {
+        this.error('"auto-update" flag should be used only with "olm" installer.')
+      }
+      if (flags.installer !== 'olm' && flags['starting-csv']) {
+        this.error('"starting-csv" flag should be used only with "olm" installer.')
+      }
+      if (flags.installer !== 'olm' && flags['catalog-source-yaml']) {
+        this.error('"catalog-source-yaml" flag should be used only with "olm" installer.')
+      }
+      if (flags.installer !== 'olm' && flags['olm-channel']) {
+        this.error('"olm-channel" flag should be used only with "olm" installer.')
+      }
+      if (flags.installer !== 'olm' && flags['package-manifest-name']) {
+        this.error('"package-manifest-name" flag should be used only with "olm" installer.')
+      }
+
+      if (!flags['package-manifest-name'] && flags['catalog-source-yaml']) {
+        this.error('you need define "package-manifest-name" flag to use "catalog-source-yaml".')
+      }
+      if (!flags['olm-channel'] && flags['catalog-source-yaml']) {
+        this.error('you need define "olm-channel" flag to use "catalog-source-yaml".')
+      }
     }
   }
 
@@ -202,6 +325,9 @@ export default class Start extends Command {
     const ctx: any = {}
     ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'crwctl-logs', Date.now().toString()))
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
+    ctx.listrOptions = listrOptions
+    // Holds messages which should be printed at the end of crwctl log
+    ctx.highlightedMessages = [] as string[]
 
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()
@@ -210,6 +336,7 @@ export default class Start extends Command {
 
     // Platform Checks
     let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), listrOptions)
+    platformCheckTasks.add(CommonPlatformTasks.oAuthProvidersExists(flags))
 
     // Checks if CodeReady Workspaces is already deployed
     let preInstallTasks = new Listr(undefined, listrOptions)
@@ -219,7 +346,7 @@ export default class Start extends Command {
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     })
 
-    Start.setPlaformDefaults(flags)
+    await this.setPlaformDefaults(flags)
     let installTasks = new Listr(installerTasks.installTasks(flags, this), listrOptions)
 
     const startDeployedCheTasks = new Listr([{
@@ -228,10 +355,15 @@ export default class Start extends Command {
     }], listrOptions)
 
     // Post Install Checks
-    const postInstallTasks = new Listr([{
-      title: '✅  Post installation checklist',
-      task: () => new Listr(cheTasks.waitDeployedChe(flags, this))
-    }], listrOptions)
+    const postInstallTasks = new Listr([
+      {
+        title: '✅  Post installation checklist',
+        task: () => new Listr(cheTasks.waitDeployedChe(flags, this))
+      },
+      getRetrieveKeycloakCredentialsTask(flags),
+      retrieveCheCaCertificateTask(flags),
+      getPrintHighlightedMessagesTask(),
+    ], listrOptions)
 
     const logsTasks = new Listr([{
       title: 'Start following logs',
@@ -277,5 +409,20 @@ export default class Start extends Command {
     })
 
     this.exit(0)
+  }
+
+  /**
+   * Sets default installer which is `olm` for OpenShift 4 with stable version of crwctl
+   * and `operator` for other cases.
+   */
+  async setDefaultInstaller(flags: any): Promise<void> {
+    const cheVersion = DEFAULT_CHE_OPERATOR_IMAGE.split(':')[1]
+    const kubeHelper = new KubeHelper(flags)
+    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && cheVersion !== 'nightly' && cheVersion !== 'latest') {
+      flags.installer = 'olm'
+    } else {
+      flags.installer = 'operator'
+      cli.info(`› Installer type is set to: '${flags.installer}'`)
+    }
   }
 }

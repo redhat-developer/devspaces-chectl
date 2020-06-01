@@ -1,5 +1,5 @@
 /*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
+ * Copyright (c) 2019-2020 Red Hat, Inc.
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -8,94 +8,61 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { Command, flags } from '@oclif/command'
-import { string } from '@oclif/parser/lib/flags'
+import Command, { flags } from '@oclif/command'
 import { cli } from 'cli-ux'
+import Listr = require('listr')
+import * as notifier from 'node-notifier'
 
-import { CheHelper } from '../../api/che'
-import { accessToken, cheNamespace, listrRenderer } from '../../common-flags'
+import { accessToken, cheNamespace, skipKubeHealthzCheck } from '../../common-flags'
+import { CheTasks } from '../../tasks/che'
+import { ApiTasks } from '../../tasks/platforms/api'
+import { WorkspaceTasks } from '../../tasks/workspace-tasks'
+
 export default class Start extends Command {
-  static description = 'create and start a workspace'
+  static description = 'Starts a workspace'
 
   static flags = {
     help: flags.help({ char: 'h' }),
-    chenamespace: cheNamespace,
-    devfile: string({
-      char: 'f',
-      description: 'path or URL to a valid devfile',
-      env: 'DEVFILE_PATH',
-      required: false,
-    }),
-    workspaceconfig: string({
-      char: 'w',
-      description: 'path to a valid workspace configuration json file',
-      env: 'WORKSPACE_CONFIG_JSON_PATH',
-      required: false,
-    }),
-    name: string({
-      description: 'workspace name: overrides the workspace name to use instead of the one defined in the devfile. Works only for devfile',
-      required: false,
+    debug: flags.boolean({
+      char: 'd',
+      description: 'Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup.',
+      default: false
     }),
     'access-token': accessToken,
-    'listr-renderer': listrRenderer
+    chenamespace: cheNamespace,
+    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
-  async checkToken(flags: any, ctx: any) {
-    if (ctx.isAuthEnabled && !flags['access-token']) {
-      this.error('E_AUTH_REQUIRED - CodeReady Workspaces authentication is enabled and an access token need to be provided (flag --access-token).')
+  static args = [
+    {
+      name: 'workspace',
+      description: 'The workspace id to start',
+      required: true
     }
-  }
+  ]
 
   async run() {
     const { flags } = this.parse(Start)
+    const { args } = this.parse(Start)
+    const ctx: any = {}
 
-    const Listr = require('listr')
-    const notifier = require('node-notifier')
-    const che = new CheHelper(flags)
-    if (!flags.devfile && !flags.workspaceconfig) {
-      this.error('workspace:start command is expecting a devfile or workspace configuration parameter.')
-    }
-    const tasks = new Listr([
-      {
-        title: 'Retrieving CodeReady Workspaces server URL',
-        task: async (ctx: any, task: any) => {
-          ctx.cheURL = await che.cheURL(flags.chenamespace)
-          task.title = await `${task.title}...${ctx.cheURL}`
-        }
-      },
-      {
-        title: 'Verify if CodeReady Workspaces server is running',
-        task: async (ctx: any, task: any) => {
-          if (!await che.isCheServerReady(ctx.cheURL)) {
-            this.error(`E_SRV_NOT_RUNNING - CodeReady Workspaces server is not available by ${ctx.cheURL}`, { code: 'E_SRV_NOT_RUNNNG' })
-          }
-          const status = await che.getCheServerStatus(ctx.cheURL)
-          ctx.isAuthEnabled = await che.isAuthenticationEnabled(ctx.cheURL)
-          const auth = ctx.isAuthEnabled ? '(auth enabled)' : '(auth disabled)'
-          task.title = await `${task.title}...${status} ${auth}`
-        }
-      },
-      {
-        title: `Create workspace from Devfile ${flags.devfile}`,
-        enabled: () => flags.devfile !== undefined,
-        task: async (ctx: any) => {
-          await this.checkToken(flags, ctx)
-          ctx.workspaceIdeURL = await che.createWorkspaceFromDevfile(flags.chenamespace, flags.devfile, flags.name, flags['access-token'])
-        }
-      },
-      {
-        title: `Create workspace from Workspace Config ${flags.workspaceconfig}`,
-        enabled: () => flags.workspaceconfig !== undefined,
-        task: async (ctx: any) => {
-          await this.checkToken(flags, ctx)
-          ctx.workspaceIdeURL = await che.createWorkspaceFromWorkspaceConfig(flags.chenamespace, flags.workspaceconfig, flags['access-token'])
-        }
-      },
-    ], { renderer: flags['listr-renderer'] as any })
+    const tasks = new Listr([], { renderer: 'silent' })
+
+    const apiTasks = new ApiTasks()
+    const cheTasks = new CheTasks(flags)
+    const workspaceTasks = new WorkspaceTasks(flags)
+
+    ctx.workspaceId = args.workspace
+    tasks.add(apiTasks.testApiTasks(flags, this))
+    tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
+    tasks.add(cheTasks.retrieveEclipseCheUrl(flags))
+    tasks.add(cheTasks.checkEclipseCheStatus())
+    tasks.add(workspaceTasks.getWorkspaceStartTask(flags.debug))
+    tasks.add(workspaceTasks.getWorkspaceIdeUrlTask())
 
     try {
-      let ctx = await tasks.run()
-      this.log('\nWorkspace IDE URL:')
+      await tasks.run(ctx)
+      this.log('Workspace start request has been sent, workspace will be available shortly:')
       cli.url(ctx.workspaceIdeURL, ctx.workspaceIdeURL)
     } catch (err) {
       this.error(err)

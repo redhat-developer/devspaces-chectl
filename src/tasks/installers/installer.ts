@@ -11,6 +11,7 @@
 import Command from '@oclif/command'
 import * as Listr from 'listr'
 
+import { OLMTasks } from './olm'
 import { OperatorTasks } from './operator'
 
 /**
@@ -19,15 +20,21 @@ import { OperatorTasks } from './operator'
 export class InstallerTasks {
   updateTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     const operatorTasks = new OperatorTasks()
+    const olmTasks = new OLMTasks()
 
     let title: string
     let task: any
 
     // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
-      title = '🏃‍  Running the CodeReady Workspaces operator update'
+      title = '🏃‍  Running the CodeReady Workspaces operator Update'
       task = () => {
         return operatorTasks.updateTasks(flags, command)
+      }
+    } else if (flags.installer === 'olm') {
+      title = '🏃‍  Running the CodeReady Workspaces operator Update using OLM'
+      task = () => {
+        return olmTasks.updateTasks(flags, command)
       }
     } else {
       title = '🏃‍  Installer preflight check'
@@ -42,15 +49,21 @@ export class InstallerTasks {
 
   preUpdateTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     const operatorTasks = new OperatorTasks()
+    const olmTasks = new OLMTasks()
 
     let title: string
     let task: any
 
     // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
-      title = '🏃‍  Running the CodeReady Workspaces operator update'
+      title = '🏃‍  Running the CodeReady Workspaces operator Update'
       task = () => {
         return operatorTasks.preUpdateTasks(flags, command)
+      }
+    } else if (flags.installer === 'olm') {
+      title = '🏃‍  Running the CodeReady Workspaces operator Update using OLM'
+      task = () => {
+        return olmTasks.preUpdateTasks(flags, command)
       }
     } else {
       title = '🏃‍  Installer preflight check'
@@ -65,17 +78,18 @@ export class InstallerTasks {
 
   installTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     const operatorTasks = new OperatorTasks()
+    const olmTasks = new OLMTasks()
 
     let title: string
     let task: any
 
     // let task: Listr.ListrTask
+
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the CodeReady Workspaces operator'
       task = () => {
-        // The operator installs CodeReady Workspaces in multiuser mode only
+        // The operator installs CodeReady Workspaces in multiuser mode by default
         if (!flags.multiuser) {
-          command.warn('CodeReady Workspaces can only be deployed in Multi-User mode.')
           flags.multiuser = true
         }
 

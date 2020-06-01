@@ -8,14 +8,15 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { KubeConfig } from '@kubernetes/client-node'
 import { Command, flags } from '@oclif/command'
 import { boolean } from '@oclif/command/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
 
-import { cheNamespace, listrRenderer } from '../../common-flags'
+import { KubeHelper } from '../../api/kube'
+import { cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
+import { OLMTasks } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { ApiTasks } from '../../tasks/platforms/api'
 
@@ -30,6 +31,7 @@ export default class Delete extends Command {
       description: 'Skip user confirmation on deletion check',
       default: false
     }),
+    'skip-kubernetes-health-check': skipKubeHealthzCheck
   }
 
   async run() {
@@ -38,7 +40,9 @@ export default class Delete extends Command {
     const notifier = require('node-notifier')
 
     const apiTasks = new ApiTasks()
+    const helmTasks = new HelmTasks(flags)
     const operatorTasks = new OperatorTasks()
+    const olmTasks = new OLMTasks()
     const cheTasks = new CheTasks(flags)
 
     let tasks = new Listrq(undefined,
@@ -47,12 +51,13 @@ export default class Delete extends Command {
 
     tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(operatorTasks.deleteTasks(flags))
+    tasks.add(olmTasks.deleteTasks(flags))
     tasks.add(cheTasks.deleteTasks(flags))
 
-    const kc = new KubeConfig()
-    kc.loadFromDefault()
-
-    const cluster = kc.getCurrentCluster()
+    const cluster = KubeHelper.KUBE_CONFIG.getCurrentCluster()
+    if (!cluster) {
+      throw new Error('Failed to get current Kubernetes cluster. Check if the current context is set via kubect/oc')
+    }
 
     if (!flags['skip-deletion-check']) {
       const confirmed = await cli.confirm(`You're going to remove CodeReady Workspaces server in namespace '${flags.chenamespace}' on server '${cluster ? cluster.server : ''}'. If you want to continue - press Y`)

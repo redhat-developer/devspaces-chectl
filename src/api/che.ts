@@ -1,5 +1,5 @@
 /*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
+ * Copyright (c) 2019-2020 Red Hat, Inc.
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -7,29 +7,42 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
-import { CoreV1Api, KubeConfig, V1Pod, Watch } from '@kubernetes/client-node'
-import axios from 'axios'
+
+import { che as chetypes } from '@eclipse-che/api'
+import { CoreV1Api, V1Pod, Watch } from '@kubernetes/client-node'
+import axios, { AxiosInstance } from 'axios'
 import * as cp from 'child_process'
 import { cli } from 'cli-ux'
 import * as commandExists from 'command-exists'
 import * as fs from 'fs-extra'
+import * as https from 'https'
 import * as yaml from 'js-yaml'
+import * as os from 'os'
 import * as path from 'path'
 
 import { OpenShiftHelper } from '../api/openshift'
+import { CHE_CLUSTER_CR_NAME, CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../constants'
+import { base64Decode } from '../util'
 
 import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
 
 export class CheHelper {
   defaultCheResponseTimeoutMs = 3000
-  kc = new KubeConfig()
   kube: KubeHelper
   oc = new OpenShiftHelper()
 
+  private readonly axios: AxiosInstance
+
   constructor(flags: any) {
     this.kube = new KubeHelper(flags)
-    this.kc.loadFromDefault()
+
+    // Make axios ignore untrusted certificate error for self-signed certificate case.
+    const httpsAgent = new https.Agent({ rejectUnauthorized: false })
+
+    this.axios = axios.create({
+      httpsAgent
+    })
   }
 
   /**
@@ -37,8 +50,8 @@ export class CheHelper {
    * Rejects if no workspace is found for the given workspace ID
    * or if workspace ID wasn't specified but more than one workspace is found.
    */
-  async getWorkspacePod(namespace: string, cheWorkspaceId?: string): Promise<string> {
-    const k8sApi = this.kc.makeApiClient(CoreV1Api)
+  async getWorkspacePodName(namespace: string, cheWorkspaceId: string): Promise<string> {
+    const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
 
     const res = await k8sApi.listNamespacedPod(namespace)
     const pods = res.body.items
@@ -62,7 +75,7 @@ export class CheHelper {
   }
 
   async getWorkspacePodContainers(namespace: string, cheWorkspaceId?: string): Promise<string[]> {
-    const k8sApi = this.kc.makeApiClient(CoreV1Api)
+    const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
 
     const res = await k8sApi.listNamespacedPod(namespace)
     const pods = res.body.items
@@ -97,6 +110,64 @@ export class CheHelper {
     }
   }
 
+  /**
+   * Gets self-signed Che CA certificate from 'self-signed-certificate' secret. The secret should exist.
+   */
+  async retrieveCheCaCert(cheNamespace: string): Promise<string> {
+    const cheCaSecret = await this.kube.getSecret(CHE_ROOT_CA_SECRET_NAME, cheNamespace)
+    if (!cheCaSecret) {
+      throw new Error('Che CA self-signed certificate not found. Are you using self-signed certificate?')
+    }
+
+    if (cheCaSecret.data && cheCaSecret.data['ca.crt']) {
+      return base64Decode(cheCaSecret.data['ca.crt'])
+    }
+
+    throw new Error(`Secret "${CHE_ROOT_CA_SECRET_NAME}" has invalid format: "ca.crt" key not found in data.`)
+  }
+
+  async saveCheCaCert(cheCaCert: string, destinaton?: string): Promise<string> {
+    if (destinaton && fs.existsSync(destinaton)) {
+      if (fs.lstatSync(destinaton).isDirectory()) {
+        destinaton = path.join(destinaton, DEFAULT_CA_CERT_FILE_NAME)
+      }
+    } else {
+      // Fallback to default location
+      destinaton = path.join(os.homedir(), DEFAULT_CA_CERT_FILE_NAME)
+    }
+
+    fs.writeFileSync(destinaton, cheCaCert)
+    return destinaton
+  }
+
+  /**
+   * Retreives Keycloak admin user credentials.
+   * Works only with installers which use Che CR (operator, olm).
+   * Returns credentials as an array of two values: [login, password]
+   * In case of an error an array with undefined values will be returned.
+   */
+  async retrieveKeycloakAdminCredentials(cheNamespace: string): Promise<string[]> {
+    let adminUsername
+    let adminPassword
+
+    const cheCluster = await this.kube.getCheCluster(CHE_CLUSTER_CR_NAME, cheNamespace)
+    const keycloakCredentialsSecretName = cheCluster.spec.auth.identityProviderSecret
+    if (keycloakCredentialsSecretName) {
+      // Keycloak credentials are stored in secret
+      const keycloakCredentialsSecret = await this.kube.getSecret(keycloakCredentialsSecretName, cheNamespace)
+      if (keycloakCredentialsSecret && keycloakCredentialsSecret.data) {
+        adminUsername = base64Decode(keycloakCredentialsSecret.data.user)
+        adminPassword = base64Decode(keycloakCredentialsSecret.data.password)
+      }
+    } else {
+      // Keycloak credentials are stored in Che custom resource
+      adminUsername = cheCluster.spec.auth.identityProviderAdminUserName
+      adminPassword = cheCluster.spec.auth.identityProviderPassword
+    }
+
+    return [adminUsername, adminPassword]
+  }
+
   async cheK8sURL(namespace = ''): Promise<string> {
     const ingress_names = ['che', 'che-ingress']
     for (const ingress_name of ingress_names) {
@@ -122,26 +193,14 @@ export class CheHelper {
   }
 
   async cheNamespaceExist(namespace = '') {
-    const k8sApi = this.kc.makeApiClient(CoreV1Api)
-    try {
-      const res = await k8sApi.readNamespace(namespace)
-      if (res && res.body &&
-        res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === namespace) {
-        return true
-      } else {
-        return false
-      }
-    } catch {
-      return false
-    }
+    return this.kube.namespaceExist(namespace)
   }
 
   async getCheServerStatus(cheURL: string, responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<string> {
     const endpoint = `${cheURL}/api/system/state`
     let response = null
     try {
-      response = await axios.get(endpoint, { timeout: responseTimeoutMs })
+      response = await this.axios.get(endpoint, { timeout: responseTimeoutMs })
     } catch (error) {
       throw this.getCheApiError(error, endpoint)
     }
@@ -156,7 +215,7 @@ export class CheHelper {
     const headers = accessToken ? { Authorization: `${accessToken}` } : null
     let response = null
     try {
-      response = await axios.post(endpoint, null, { headers, timeout: responseTimeoutMs })
+      response = await this.axios.post(endpoint, null, { headers, timeout: responseTimeoutMs })
     } catch (error) {
       if (error.response && error.response.status === 409) {
         return
@@ -182,30 +241,80 @@ export class CheHelper {
   }
 
   async isCheServerReady(cheURL: string, responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
-    const id = await axios.interceptors.response.use(response => response, async (error: any) => {
+    const id = await this.axios.interceptors.response.use(response => response, async (error: any) => {
       if (error.config && error.response && (error.response.status === 404 || error.response.status === 503)) {
-        return axios.request(error.config)
+        return this.axios.request(error.config)
       }
       return Promise.reject(error)
     })
 
     try {
-      await axios.get(`${cheURL}/api/system/state`, { timeout: responseTimeoutMs })
-      await axios.interceptors.response.eject(id)
+      await this.axios.get(`${cheURL}/api/system/state`, { timeout: responseTimeoutMs })
+      await this.axios.interceptors.response.eject(id)
       return true
     } catch {
-      await axios.interceptors.response.eject(id)
+      await this.axios.interceptors.response.eject(id)
       return false
     }
   }
 
-  async createWorkspaceFromDevfile(namespace: string | undefined, devfilePath = '', workspaceName: string | undefined, accessToken = ''): Promise<string> {
+  async startWorkspace(cheNamespace: string, workspaceId: string, debug: boolean, accessToken: string | undefined): Promise<void> {
+    const cheUrl = await this.cheURL(cheNamespace)
+    let endpoint = `${cheUrl}/api/workspace/${workspaceId}/runtime`
+    if (debug) {
+      endpoint += '?debug-workspace-start=true'
+    }
+    let response
+
+    const headers: { [key: string]: string } = {}
+    if (accessToken) {
+      headers.Authorization = accessToken
+    }
+    try {
+      response = await this.axios.post(endpoint, undefined, { headers })
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        throw new Error(`E_WORKSPACE_NOT_EXIST - workspace with "${workspaceId}" id doesn't exist`)
+      } else {
+        throw this.getCheApiError(error, endpoint)
+      }
+    }
+
+    if (!response || response.status !== 200 || !response.data) {
+      throw new Error('E_BAD_RESP_CHE_API')
+    }
+  }
+
+  async stopWorkspace(cheUrl: string, workspaceId: string, accessToken?: string): Promise<void> {
+    let endpoint = `${cheUrl}/api/workspace/${workspaceId}/runtime`
+    let response
+
+    const headers: { [key: string]: string } = {}
+    if (accessToken) {
+      headers.Authorization = accessToken
+    }
+    try {
+      response = await this.axios.delete(endpoint, { headers })
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        throw new Error(`E_WORKSPACE_NOT_EXIST - workspace with "${workspaceId}" id doesn't exist`)
+      } else {
+        throw this.getCheApiError(error, endpoint)
+      }
+    }
+
+    if (!response || response.status !== 204) {
+      throw new Error('E_BAD_RESP_CHE_API')
+    }
+  }
+
+  async createWorkspaceFromDevfile(namespace: string | undefined, devfilePath = '', workspaceName: string | undefined, accessToken = ''): Promise<chetypes.workspace.Workspace> {
     if (!await this.cheNamespaceExist(namespace)) {
       throw new Error('E_BAD_NS')
     }
     let url = await this.cheURL(namespace)
     let endpoint = `${url}/api/workspace/devfile`
-    let devfile
+    let devfile: string | undefined
     let response
     const headers: any = { 'Content-Type': 'text/yaml' }
     if (accessToken && accessToken.length > 0) {
@@ -219,17 +328,31 @@ export class CheHelper {
         json.metadata.name = workspaceName
         devfile = yaml.dump(json)
       }
-      response = await axios.post(endpoint, devfile, { headers })
+
+      response = await this.axios.post(endpoint, devfile, { headers })
     } catch (error) {
-      if (!devfile) { throw new Error(`E_NOT_FOUND_DEVFILE - ${devfilePath} - ${error.message}`) }
-      if (error.response && error.response.status === 400) {
-        throw new Error(`E_BAD_DEVFILE_FORMAT - Message: ${error.response.data.message}`)
+      if (!devfile) {
+        throw new Error(`E_NOT_FOUND_DEVFILE - ${devfilePath} - ${error.message}`)
       }
+
+      if (error.response) {
+        if (error.response.status === 400) {
+          throw new Error(`E_BAD_DEVFILE_FORMAT - Message: ${error.response.data.message}`)
+        }
+        if (error.response.status === 409) {
+          let message = ''
+          if (error.response.data) {
+            message = error.response.data.message
+          }
+          throw new Error(`E_CONFLICT - Message: ${message}`)
+        }
+      }
+
       throw this.getCheApiError(error, endpoint)
     }
-    if (response && response.data && response.data.links && response.data.links.ide) {
-      let ideURL = response.data.links.ide
-      return this.buildDashboardURL(ideURL)
+
+    if (response && response.data) {
+      return response.data as chetypes.workspace.Workspace
     } else {
       throw new Error('E_BAD_RESP_CHE_SERVER')
     }
@@ -237,41 +360,10 @@ export class CheHelper {
 
   async parseDevfile(devfilePath = ''): Promise<string> {
     if (devfilePath.startsWith('http')) {
-      const response = await axios.get(devfilePath)
+      const response = await this.axios.get(devfilePath)
       return response.data
     } else {
       return fs.readFileSync(devfilePath, 'utf8')
-    }
-  }
-
-  async createWorkspaceFromWorkspaceConfig(namespace: string | undefined, workspaceConfigPath = '', accessToken = ''): Promise<string> {
-    if (!await this.cheNamespaceExist(namespace)) {
-      throw new Error('E_BAD_NS')
-    }
-    let url = await this.cheURL(namespace)
-    let endpoint = `${url}/api/workspace`
-    let workspaceConfig
-    let response
-    const headers: any = { 'Content-Type': 'application/json' }
-    if (accessToken && accessToken.length > 0) {
-      headers.Authorization = `${accessToken}`
-    }
-
-    try {
-      let workspaceConfig = fs.readFileSync(workspaceConfigPath, 'utf8')
-      response = await axios.post(endpoint, workspaceConfig, { headers })
-    } catch (error) {
-      if (!workspaceConfig) { throw new Error(`E_NOT_FOUND_WORKSPACE_CONFIG_FILE - ${workspaceConfigPath} - ${error.message}`) }
-      if (error.response && error.response.status === 400) {
-        throw new Error(`E_BAD_WORKSPACE_CONFIG_FORMAT - Message: ${error.response.data.message}`)
-      }
-      throw this.getCheApiError(error, endpoint)
-    }
-    if (response && response.data && response.data.links && response.data.links.ide) {
-      let ideURL = response.data.links.ide
-      return this.buildDashboardURL(ideURL)
-    } else {
-      throw new Error('E_BAD_RESP_CHE_SERVER')
     }
   }
 
@@ -279,7 +371,7 @@ export class CheHelper {
     const endpoint = `${cheURL}/api/keycloak/settings`
     let response = null
     try {
-      response = await axios.get(endpoint, { timeout: responseTimeoutMs })
+      response = await this.axios.get(endpoint, { timeout: responseTimeoutMs })
     } catch (error) {
       if (error.response && (error.response.status === 404 || error.response.status === 503)) {
         return false
@@ -375,11 +467,15 @@ export class CheHelper {
   async watchNamespacedPods(namespace: string, podLabelSelector: string | undefined, directory: string): Promise<void> {
     const processedContainers = new Map<string, Set<string>>()
 
-    const watcher = new Watch(this.kc)
+    const watcher = new Watch(KubeHelper.KUBE_CONFIG)
     watcher.watch(`/api/v1/namespaces/${namespace}/pods`, {},
       async (_phase: string, obj: any) => {
         const pod = obj as V1Pod
-        const podName = pod.metadata!.name!
+        if (!pod || !pod.metadata || !pod.metadata.name) {
+          return
+        }
+        const podName = pod.metadata.name!
+
         if (!processedContainers.has(podName)) {
           processedContainers.set(podName, new Set<string>())
         }
@@ -398,6 +494,80 @@ export class CheHelper {
       },
       // ignore errors
       () => { })
+  }
+
+  async getAllWorkspaces(cheURL: string, accessToken?: string): Promise<any[]> {
+    const all: any[] = []
+    const maxItems = 30
+    let skipCount = 0
+
+    do {
+      const workspaces = await this.doGetWorkspaces(cheURL, skipCount, maxItems, accessToken)
+      all.push(...workspaces)
+      skipCount += workspaces.length
+    } while (all.length === maxItems)
+
+    return all
+  }
+
+  /**
+   * Returns list of workspaces
+   */
+  async doGetWorkspaces(cheUrl: string, skipCount: number, maxItems: number, accessToken = ''): Promise<any[]> {
+    const endpoint = `${cheUrl}/api/workspace?skipCount=${skipCount}&maxItems=${maxItems}`
+    const headers: any = { 'Content-Type': 'text/yaml' }
+    if (accessToken && accessToken.length > 0) {
+      headers.Authorization = `${accessToken}`
+    }
+
+    try {
+      const response = await this.axios.get(endpoint, { headers })
+      if (response && response.data) {
+        return response.data
+      } else {
+        throw new Error('E_BAD_RESP_CHE_SERVER')
+      }
+    } catch (error) {
+      throw this.getCheApiError(error, endpoint)
+    }
+  }
+
+  /**
+   * Get workspace.
+   */
+  async getWorkspace(cheUrl: string, workspaceId: string, accessToken = ''): Promise<any> {
+    const endpoint = `${cheUrl}/api/workspace/${workspaceId}`
+    const headers: any = { 'Content-Type': 'text/yaml' }
+    if (accessToken && accessToken.length > 0) {
+      headers.Authorization = `${accessToken}`
+    }
+
+    try {
+      const response = await this.axios.get(endpoint, { headers })
+      return response.data
+    } catch (error) {
+      throw this.getCheApiError(error, endpoint)
+    }
+  }
+
+  /**
+   * Deletes workspace.
+   */
+  async deleteWorkspace(cheUrl: string, workspaceId: string, accessToken = ''): Promise<void> {
+    const endpoint = `${cheUrl}/api/workspace/${workspaceId}`
+    const headers: any = {}
+    if (accessToken) {
+      headers.Authorization = `${accessToken}`
+    }
+
+    try {
+      await this.axios.delete(endpoint, { headers })
+    } catch (error) {
+      if (error.response.status === 409) {
+        throw new Error(`Workspace '${workspaceId}' not found`)
+      }
+      throw this.getCheApiError(error, endpoint)
+    }
   }
 
   /**
@@ -451,16 +621,20 @@ export class CheHelper {
   }
 
   private getCheApiError(error: any, endpoint: string): Error {
-    if (error.response && error.response.status === 403) {
-      return new Error(`E_CHE_API_FORBIDDEN - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data.message)}`)
-    }
-    if (error.response && error.response.status === 401) {
-      return new Error(`E_CHE_API_UNAUTHORIZED - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
-    }
     if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
-      return new Error(`E_CHE_API_UNKNOWN_ERROR - Endpoint: ${endpoint} -Status: ${error.response.status}`)
+      const status = error.response.status
+      if (status === 403) {
+        return new Error(`E_CHE_API_FORBIDDEN - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data.message)}`)
+      } else if (status === 401) {
+        return new Error(`E_CHE_API_UNAUTHORIZED - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
+      } else if (status === 404) {
+        return new Error(`E_CHE_API_NOTFOUND - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
+      } else {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        return new Error(`E_CHE_API_UNKNOWN_ERROR - Endpoint: ${endpoint} -Status: ${error.response.status}`)
+      }
+
     } else if (error.request) {
       // The request was made but no response was received
       // `error.request` is an instance of XMLHttpRequest in the browser and an instance of

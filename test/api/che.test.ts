@@ -11,6 +11,7 @@ import { CoreV1Api } from '@kubernetes/client-node'
 import { expect, fancy } from 'fancy-test'
 
 import { CheHelper } from '../../src/api/che'
+import { KubeHelper } from '../../src/api/kube'
 
 const namespace = 'che'
 const workspace = 'workspace-0123'
@@ -18,7 +19,6 @@ const cheURL = 'https://che-che.192.168.64.34.nip.io'
 const devfileServerURL = 'https://devfile-server'
 const devfileEndpoint = '/api/workspace/devfile'
 let ch = new CheHelper({})
-let kc = ch.kc
 let kube = ch.kube
 let oc = ch.oc
 let k8sApi = new CoreV1Api()
@@ -119,14 +119,14 @@ describe('CodeReady Workspaces helper', () => {
   })
   describe('cheNamespaceExist', () => {
     fancy
-      .stub(kc, 'makeApiClient', () => k8sApi)
+      .stub(KubeHelper.KUBE_CONFIG, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'readNamespace', jest.fn().mockImplementation(() => { throw new Error() }))
       .it('founds out that a namespace doesn\'t exist', async () => {
         const res = await ch.cheNamespaceExist(namespace)
         expect(res).to.equal(false)
       })
     fancy
-      .stub(kc, 'makeApiClient', () => k8sApi)
+      .stub(KubeHelper.KUBE_CONFIG, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'readNamespace', () => ({ response: '', body: { metadata: { name: `${namespace}` } } }))
       .it('founds out that a namespace does exist', async () => {
         const res = await ch.cheNamespaceExist(namespace)
@@ -142,7 +142,7 @@ describe('CodeReady Workspaces helper', () => {
         .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
       .it('succeds creating a workspace from a valid devfile', async () => {
         const res = await ch.createWorkspaceFromDevfile(namespace, __dirname + '/requests/devfile.valid', undefined)
-        expect(res).to.equal('https://che-che.192.168.64.39.nip.io/dashboard/#/ide/che/crwctl')
+        expect(res.links!.ide).to.equal('https://che-che.192.168.64.39.nip.io/che/crwctl')
       })
     fancy
       .stub(ch, 'cheNamespaceExist', () => true)
@@ -172,7 +172,7 @@ describe('CodeReady Workspaces helper', () => {
         .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
       .it('succeeds creating a workspace from a remote devfile', async () => {
         const res = await ch.createWorkspaceFromDevfile(namespace, devfileServerURL + '/devfile.yaml', undefined)
-        expect(res).to.equal('https://che-che.192.168.64.39.nip.io/dashboard/#/ide/che/crwctl')
+        expect(res.links!.ide).to.equal('https://che-che.192.168.64.39.nip.io/che/crwctl')
       })
     fancy
       .stub(ch, 'cheNamespaceExist', () => true)
@@ -183,18 +183,6 @@ describe('CodeReady Workspaces helper', () => {
       .do(() => ch.createWorkspaceFromDevfile(namespace, devfileServerURL + '/devfile.yaml', undefined))
       .catch(/E_NOT_FOUND_DEVFILE/)
       .it('fails creating a workspace from a non-existing remote devfile')
-  })
-  describe('createWorkspaceFromWorkspaceConfig', () => {
-    fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(ch, 'cheURL', () => cheURL)
-      .nock(cheURL, api => api
-        .post('/api/workspace')
-        .replyWithFile(201, __dirname + '/replies/create-workspace-from-valid-devfile.json', { 'Content-Type': 'application/json' }))
-      .it('succeds creating a workspace from a valid workspaceconfig', async () => {
-        const res = await ch.createWorkspaceFromWorkspaceConfig(namespace, __dirname + '/requests/workspaceconfig.valid')
-        expect(res).to.equal('https://che-che.192.168.64.39.nip.io/dashboard/#/ide/che/crwctl')
-      })
   })
   describe('buildDashboardURL', () => {
     fancy
@@ -207,37 +195,18 @@ describe('CodeReady Workspaces helper', () => {
   })
   describe('getWorkspacePod', () => {
     fancy
-      .stub(kc, 'makeApiClient', () => k8sApi)
+      .stub(KubeHelper.KUBE_CONFIG, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: { name: 'pod-name', labels: { 'che.workspace_id': workspace } } }] } }))
       .it('should return pod name where workspace with the given ID is running', async () => {
-        const pod = await ch.getWorkspacePod(namespace, workspace)
+        const pod = await ch.getWorkspacePodName(namespace, workspace)
         expect(pod).to.equal('pod-name')
       })
     fancy
-      .stub(kc, 'makeApiClient', () => k8sApi)
-      .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: { name: 'pod-name', labels: { 'che.workspace_id': workspace } } }] } }))
-      .it('should detect a pod where single workspace is running', async () => {
-        const pod = await ch.getWorkspacePod(namespace)
-        expect(pod).to.equal('pod-name')
-      })
-    fancy
-      .stub(kc, 'makeApiClient', () => k8sApi)
-      .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [] } }))
-      .do(() => ch.getWorkspacePod(namespace))
-      .catch(/No workspace pod is found/)
-      .it('should fail if no workspace is running')
-    fancy
-      .stub(kc, 'makeApiClient', () => k8sApi)
+      .stub(KubeHelper.KUBE_CONFIG, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: { labels: { 'che.workspace_id': `${workspace}1` } } }] } }))
-      .do(() => ch.getWorkspacePod(namespace, workspace))
+      .do(() => ch.getWorkspacePodName(namespace, workspace))
       .catch(/Pod is not found for the given workspace ID/)
       .it('should fail if no workspace is found for the given ID')
-    fancy
-      .stub(kc, 'makeApiClient', () => k8sApi)
-      .stub(k8sApi, 'listNamespacedPod', () => ({ response: '', body: { items: [{ metadata: { labels: { 'che.workspace_id': workspace } } }, { metadata: { labels: { 'che.workspace_id': `${workspace}1` } } }] } }))
-      .do(() => ch.getWorkspacePod(namespace))
-      .catch(/More than one pod with running workspace is found. Please, specify Workspace ID./)
-      .it('should fail if no workspace ID was provided but several workspaces are found')
   })
   describe('isAuthenticationEnabled', () => {
     fancy

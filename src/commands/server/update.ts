@@ -16,12 +16,17 @@ import * as Listr from 'listr'
 import * as notifier from 'node-notifier'
 import * as path from 'path'
 
-import { cheDeployment, cheNamespace, listrRenderer } from '../../common-flags'
-import { DEFAULT_CHE_OPERATOR_IMAGE } from '../../constants'
+import { KubeHelper } from '../../api/kube'
+import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { CHE_CLUSTER_CR_NAME, DEFAULT_CHE_OPERATOR_IMAGE } from '../../constants'
 import { CheTasks } from '../../tasks/che'
+import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
+import { OLMTasks } from '../../tasks/installers/olm'
 import { ApiTasks } from '../../tasks/platforms/api'
+import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
+import { isKubernetesPlatformFamily } from '../../util'
 
 export default class Update extends Command {
   static description = 'update CodeReady Workspaces server'
@@ -56,6 +61,7 @@ export default class Update extends Command {
     }),
     'deployment-name': cheDeployment,
     'listr-renderer': listrRenderer,
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
     help: flags.help({ char: 'h' }),
   }
 
@@ -71,13 +77,13 @@ export default class Update extends Command {
     return path.join(__dirname, '../../../templates')
   }
 
-  checkIfInstallerSupportUpdating(flags: any) {
+  async checkIfInstallerSupportUpdating(flags: any) {
     // matrix checks
     if (!flags.installer) {
-      this.error('🛑 --installer parameter must be specified.')
+      await this.setDefaultInstaller(flags)
     }
 
-    if (flags.installer === 'operator') {
+    if (flags.installer === 'operator' || flags.installer === 'olm') {
       // operator already supports updating
       return
     }
@@ -85,13 +91,20 @@ export default class Update extends Command {
     if (flags.installer === 'minishift-addon' || flags.installer === 'helm') {
       this.error(`🛑 The specified installer ${flags.installer} does not support updating yet.`)
     }
+    if (flags.installer === 'olm' && flags.platform === 'minishift') {
+      this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
+    }
 
     this.error(`🛑 Unknown installer ${flags.installer} is specified.`)
   }
 
   async run() {
     const { flags } = this.parse(Update)
+    const ctx: any = {}
     const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
+    ctx.listrOptions = listrOptions
+    // Holds messages which should be printed at the end of crwctl log
+    ctx.highlightedMessages = [] as string[]
 
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()
@@ -99,9 +112,10 @@ export default class Update extends Command {
     const apiTasks = new ApiTasks()
 
     // Platform Checks
-    let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), listrOptions)
+    const platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), listrOptions)
+    platformCheckTasks.add(CommonPlatformTasks.oAuthProvidersExists(flags))
 
-    this.checkIfInstallerSupportUpdating(flags)
+    await this.checkIfInstallerSupportUpdating(flags)
 
     // Checks if CodeReady Workspaces is already deployed
     let preInstallTasks = new Listr(undefined, listrOptions)
@@ -111,26 +125,31 @@ export default class Update extends Command {
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     })
 
-    let preUpdateTasks = new Listr(installerTasks.preUpdateTasks(flags, this), listrOptions)
+    const preUpdateTasks = new Listr(installerTasks.preUpdateTasks(flags, this), listrOptions)
 
-    let updateTasks = new Listr(undefined, listrOptions)
+    const updateTasks = new Listr(undefined, listrOptions)
     updateTasks.add({
       title: '↺  Updating...',
       task: () => new Listr(installerTasks.updateTasks(flags, this))
     })
 
+    const postUpdateTasks = new Listr(undefined, listrOptions)
+    postUpdateTasks.add(getPrintHighlightedMessagesTask())
+
     try {
-      const ctx: any = {}
       await preInstallTasks.run(ctx)
 
       if (!ctx.isCheDeployed) {
         this.error('CodeReady Workspaces deployment is not found. Use `crwctl server:start` to initiate new deployment.')
       } else {
+        if (isKubernetesPlatformFamily(flags.platform!)) {
+          await this.setDomainFlag(flags)
+        }
         await platformCheckTasks.run(ctx)
 
         await preUpdateTasks.run(ctx)
 
-        if (!flags['skip-version-check']) {
+        if (!flags['skip-version-check'] && flags.installer !== 'olm') {
           await cli.anykey(`      Found deployed CodeReady Workspaces with operator [${ctx.deployedCheOperatorImage}]:${ctx.deployedCheOperatorTag}.
       You are going to update it to [${ctx.newCheOperatorImage}]:${ctx.newCheOperatorTag}.
       Note that CodeReady Workspaces operator will update component images (server, plugin registry) only if their values
@@ -139,6 +158,7 @@ export default class Update extends Command {
         }
 
         await updateTasks.run(ctx)
+        await postUpdateTasks.run(ctx)
       }
       this.log('Command server:update has completed successfully.')
     } catch (err) {
@@ -151,5 +171,24 @@ export default class Update extends Command {
     })
 
     this.exit(0)
+  }
+
+  async setDomainFlag(flags: any): Promise<void> {
+    const kubeHelper = new KubeHelper(flags)
+    const cheCluster = await kubeHelper.getCheCluster(CHE_CLUSTER_CR_NAME, flags.chenamespace)
+    if (cheCluster && cheCluster.spec.k8s && cheCluster.spec.k8s.ingressDomain) {
+      flags.domain = cheCluster.spec.k8s.ingressDomain
+    }
+  }
+
+  async setDefaultInstaller(flags: any): Promise<void> {
+    const kubeHelper = new KubeHelper(flags)
+    try {
+      await kubeHelper.getOperatorSubscription(OLMTasks.SUBSCRIPTION_NAME, flags.chenamespace)
+      flags.installer = 'olm'
+    } catch {
+      flags.installer = 'operator'
+    }
+    cli.info(`› Installer type is set to: '${flags.installer}'`)
   }
 }
