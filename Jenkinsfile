@@ -96,6 +96,7 @@ timeout(180) {
 			git remote -v
 
 			set -x
+			git add src/ test/
 			git commit -s -m "[sync] Push latest in chectl/''' + branchCHECTL + ''' to crwctl/'''+branchCRWCTL+'''" . || true
 			git push origin '''+branchCRWCTL+''' || true
 
