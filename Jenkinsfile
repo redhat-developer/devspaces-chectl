@@ -92,7 +92,7 @@ timeout(180) {
 			# SOLVED :: Fatal: Could not read Username for "https://github.com", No such device or address :: https://github.com/github/hub/issues/1644
 			git remote -v
 			git config --global hub.protocol https
-			git remote set-url origin https://\$GITHUB_TOKEN:x-oauth-basic@github.com/''' + CTL_path + '''.git
+			git remote set-url origin https://\$GITHUB_TOKEN:x-oauth-basic@github.com/redhat-developer/''' + CTL_path + '''.git
 			git remote -v
 
 			# ls -la
