@@ -15,17 +15,16 @@
 set -e
 
 if [[ $# -lt 3 ]]; then
-	echo "Usage:   $0 SOURCEDIR TARGETDIR CRW_SERVER_TAG CRW_OPERATOR_TAG"
-	echo "Example: $0 /path/to/chectl /path/to/crwctl 2.1-20 2.1-19"
+	echo "Usage:   $0 SOURCEDIR TARGETDIR CRW_TAG"
+	echo "Example: $0 /path/to/chectl /path/to/crwctl 2.1"
 	echo ""
-	echo "Note: CRW_*_TAG = default image tags (eg., server-rhel8:2.1-20 and crw-2-rhel8-operator:2.1-19)"
+	echo "Note: CRW_TAG = default image tags (eg., server-rhel8:2.1 and crw-2-rhel8-operator:2.1)"
 	exit 1
 fi
 
 SOURCEDIR=$1; SOURCEDIR=${SOURCEDIR%/}
 TARGETDIR=$2; TARGETDIR=${TARGETDIR%/}
-CRW_SERVER_TAG="$3"   # eg., 2.1-20 as in server-rhel8:2.1-20 to set as default
-CRW_OPERATOR_TAG="$4" # eg., 2.1-19 as in crw-2-rhel8-operator:2.1-19 to set as default
+CRW_TAG="$3" # eg., 2.1 as in server-rhel8:2.1 to set as default
 
 # global / generic changes
 pushd "${SOURCEDIR}" >/dev/null
@@ -55,13 +54,13 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|resource: Kubernetes/OpenShift/Helm|resource|g" \
 			-e "/import \{ HelmTasks \} from '..\/..\/tasks\/installers\/helm'/d" \
 			-e "/import \{ MinishiftAddonTasks \} from '..\/..\/tasks\/installers\/minishift-addon'/d" \
-			-e "/    const helmTasks = new HelmTasks\(.*\)/d" \
+			-e "/    const helmTasks = new HelmTasks\(\)/d" \
 			\
-			-e "/    const (minishiftAddonTasks|msAddonTasks) = new MinishiftAddonTasks\(.*\)/d" \
+			-e "/    const (minishiftAddonTasks|msAddonTasks) = new MinishiftAddonTasks\(\)/d" \
 			-e '/.+tasks.add\(helmTasks.+/d' \
 			-e '/.+tasks.add\((minishiftAddonTasks|msAddonTasks).+/d' \
-			-e "s|(const DEFAULT_CHE_IMAGE =).+|\1 'registry.redhat.io/codeready-workspaces/server-rhel8:${CRW_SERVER_TAG}'|g" \
-			-e "s|(const DEFAULT_CHE_OPERATOR_IMAGE =).+|\1 'registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:${CRW_OPERATOR_TAG}'|g" \
+			-e "s|(const DEFAULT_CHE_IMAGE =).+|\1 'registry.redhat.io/codeready-workspaces/server-rhel8:${CRW_TAG}'|g" \
+			-e "s|(const DEFAULT_CHE_OPERATOR_IMAGE =).+|\1 'registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:${CRW_TAG}'|g" \
 			\
 			-e "s|\"CodeReady Workspaces will be deployed in Multi-User mode.+mode.\"|'CodeReady Workspaces can only be deployed in Multi-User mode.'|" \
 			-e "s|che-incubator/crwctl|redhat-developer/codeready-workspaces-chectl|g" \
@@ -75,7 +74,7 @@ pushd "${TARGETDIR}" >/dev/null
 	while IFS= read -r -d '' d; do
 		echo "Delete ${d#./}"
 		rm -f "$d"
-		# 
+		#
 	done <   <(find . -regextype posix-extended -iregex '.+/(helm|minishift|minishift-addon|minikube|microk8s|k8s|docker-desktop)(.test|).ts' -print0)
 popd >/dev/null
 
@@ -89,7 +88,7 @@ platformString="    platform: string({\n\
 installerString="    installer: string({\n\
       char: 'a',\n\
       description: 'Installer type',\n\
-      options: ['operator', 'olm'],\n\
+      options: ['operator'],\n\
       default: 'operator'\n\
     }),"; # echo -e "$installerString"
 setPlaformDefaultsString="  static setPlaformDefaults(flags: any) {\n\
@@ -139,7 +138,7 @@ pushd "${TARGETDIR}" >/dev/null
 		`# replace line after specified one with new default` \
 		-e "/description: 'Kubernetes namespace/{n;s/.+/  default: 'workspaces',/}" \
 		-e "/description: .+ deployment name.+/{n;s/.+/  default: 'codeready',/}" \
-		-i "${TARGETDIR}/${d}" 
+		-i "${TARGETDIR}/${d}"
 popd >/dev/null
 
 operatorTasksString="export class OperatorTasks {\n\
@@ -176,5 +175,5 @@ popd >/dev/null
 # 	echo "Convert ${d}"
 # 	sed -r  \
 # 			-e "s|che-operator|codeready-workspaces-operator|g" \
-# 		-i "${TARGETDIR}/${d}" 
+# 		-i "${TARGETDIR}/${d}"
 # popd >/dev/null
