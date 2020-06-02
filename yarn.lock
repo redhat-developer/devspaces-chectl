@@ -746,6 +746,11 @@ ajv@^6.5.5:
     json-schema-traverse "^0.4.1"
     uri-js "^4.2.2"
 
+ansi-colors@4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/ansi-colors/-/ansi-colors-4.1.1.tgz#cbb9ae256bf750af1eab344f229aa27fe94ba348"
+  integrity sha512-JoX0apGbHaUJBNl6yF+p6JAFYZ666/hhCGKN5t9QFjbJQKUU/g8MNbFDbvfrgKXvI1QpZplPOnwIo99lX/AAmA==
+
 ansi-escapes@^3.0.0, ansi-escapes@^3.1.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/ansi-escapes/-/ansi-escapes-3.2.0.tgz#8780b98ff9dbf5638152d1f1fe5c1d7b4442976b"
@@ -1362,7 +1367,7 @@ code-point-at@^1.0.0:
 
 "codeready-workspaces-operator@git://github.com/redhat-developer/codeready-workspaces-operator#master":
   version "0.0.0"
-  resolved "git://github.com/redhat-developer/codeready-workspaces-operator#20b9bdbd70e8d06ea8a27868561d990e18d5d836"
+  resolved "git://github.com/redhat-developer/codeready-workspaces-operator#98ca9f102354bf8fd047a5a27517af0e19247136"
 
 collection-visit@^1.0.0:
   version "1.0.0"
