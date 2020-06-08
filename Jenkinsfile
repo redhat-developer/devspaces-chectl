@@ -70,7 +70,7 @@ timeout(180) {
 				poll: true,
 				extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CTL_path}"]], 
 				submoduleCfg: [], 
-				userRemoteConfigs: [[url: "git@github.com:redhat-developer/${CTL_path}.git"]]])
+				userRemoteConfigs: [[url: "https://github.com/redhat-developer/${CTL_path}.git"]]])
 			installNPM()
 			def CURRENT_DAY=sh(returnStdout:true,script:"date +'%Y%m%d-%H%M'").trim()
 			def SHORT_SHA1=sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short HEAD").trim()
@@ -146,7 +146,7 @@ timeout(180) {
 			# check out from master
 			pushd ${WORKSPACE} >/dev/null
 				if [[ ! -d codeready-workspaces-operator/ ]]; then 
-					git clone git@github.com:redhat-developer/codeready-workspaces-operator.git
+					git clone https://github.com/redhat-developer/codeready-workspaces-operator.git
 				fi
 				cd codeready-workspaces-operator/
 				git config user.email "nickboldt+devstudio-release@gmail.com"
