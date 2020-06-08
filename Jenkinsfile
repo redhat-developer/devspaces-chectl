@@ -36,21 +36,19 @@ def GITHUB_RELEASE_NAME=""
 def CRW_OPERATOR_DEPLOY_BRANCH="master"
 timeout(20) {
     node("${buildNode}"){
-      stage "Checkout crw-operator deploy"
-      wrap([$class: 'TimestamperBuildWrapper']) {
+        stage "Checkout crw-operator deploy"
         // check out crw-operator so we can use it as a poll trigger: will reuse sources later
         checkout([$class: 'GitSCM', 
           branches: [[name: "${CRW_OPERATOR_DEPLOY_BRANCH}"]], 
           doGenerateSubmoduleConfigurations: false, 
           poll: true,
           extensions: [
-            [$class: 'RelativeTargetDirectory', relativeTargetDir: "codeready-workspaces-operator"]
+            [$class: 'RelativeTargetDirectory', relativeTargetDir: "codeready-workspaces-operator"],
             [$class: 'PathRestriction', excludedRegions: '', includedRegions: 'controller-manifests/.*, deploy/.*, manifests/.*, metadata/.*'],
             [$class: 'DisableRemotePoll']
           ],
           submoduleCfg: [], 
           userRemoteConfigs: [[url: "https://github.com/redhat-developer/codeready-workspaces-operator.git"]]])
-      }
     }
 }
 
