@@ -66,7 +66,8 @@ timeout(20) {
 			checkout([$class: 'GitSCM', 
 				branches: [[name: "${branchCRWCTL}"]],
 				doGenerateSubmoduleConfigurations: false, 
-				poll: true,
+				// disable polling since every build pushes a commit, which triggers a new build ad infinitum
+				poll: false,
 				extensions: [
 					[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CTL_path}"],
 					[$class: 'PathRestriction', excludedRegions: 'README.md, package.json', includedRegions: 'src/.*, test/.*'],
