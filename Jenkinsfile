@@ -67,7 +67,11 @@ timeout(20) {
 				branches: [[name: "${branchCRWCTL}"]],
 				doGenerateSubmoduleConfigurations: false, 
 				poll: true,
-				extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CTL_path}"]], 
+				extensions: [
+					[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CTL_path}"],
+					[$class: 'PathRestriction', excludedRegions: 'README.md, package.json', includedRegions: ''],
+					[$class: 'DisableRemotePoll']
+				],
 				submoduleCfg: [], 
 				userRemoteConfigs: [[url: "https://github.com/redhat-developer/${CTL_path}.git"]]])
 			installNPM()
