@@ -1,7 +1,7 @@
 {
   "name": "crwctl",
   "description": "CodeReady Workspaces CLI",
-  "version": "2.2.0-20200608-1514-redhat",
+  "version": "2.2.0-20200608-1517-redhat",
   "author": "Mario Loriedo @l0rd",
   "bin": {
     "crwctl": "./bin/run"
