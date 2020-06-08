@@ -28,6 +28,7 @@ node --version && npm --version; yarn --version
 	// sh "whereis node" // /mnt/hudson_workspace/tools/jenkins.plugins.nodejs.tools.NodeJSInstallation/nodejs-10.15.3/
 }
 
+def buildNode = "rhel7-releng" // slave label
 def platforms = "linux-x64,darwin-x64,win32-x64"
 def CTL_path = "codeready-workspaces-chectl"
 def SHA_CTL = "SHA_CTL"
@@ -52,8 +53,8 @@ timeout(20) {
     }
 }
 
-timeout(180) {
-	node("rhel7-releng"){ 
+timeout(20) {
+	node("${buildNode}"){ 
 	  try {
 		currentBuild.description="Running..."
 		notifyBuild('STARTED', '')
