@@ -33,6 +33,27 @@ def CTL_path = "codeready-workspaces-chectl"
 def SHA_CTL = "SHA_CTL"
 def GITHUB_RELEASE_NAME=""
 
+def CRW_OPERATOR_DEPLOY_BRANCH="master"
+timeout(20) {
+    node("${buildNode}"){
+      stage "Checkout crw-operator deploy"
+      wrap([$class: 'TimestamperBuildWrapper']) {
+        // check out crw-operator so we can use it as a poll trigger: will reuse sources later
+        checkout([$class: 'GitSCM', 
+          branches: [[name: "${CRW_OPERATOR_DEPLOY_BRANCH}"]], 
+          doGenerateSubmoduleConfigurations: false, 
+          poll: true,
+          extensions: [
+            [$class: 'RelativeTargetDirectory', relativeTargetDir: "codeready-workspaces-operator"]
+            [$class: 'PathRestriction', excludedRegions: '', includedRegions: 'controller-manifests/.*, deploy/.*, manifests/.*, metadata/.*'],
+            [$class: 'DisableRemotePoll']
+          ],
+          submoduleCfg: [], 
+          userRemoteConfigs: [[url: "https://github.com/redhat-developer/codeready-workspaces-operator.git"]]])
+      }
+    }
+}
+
 timeout(180) {
 	node("rhel7-releng"){ 
 	  try {
@@ -124,7 +145,9 @@ timeout(180) {
 
 			# check out from master
 			pushd ${WORKSPACE} >/dev/null
-				git clone git@github.com:redhat-developer/codeready-workspaces-operator.git
+				if [[ ! -d codeready-workspaces-operator/ ]]; then 
+					git clone git@github.com:redhat-developer/codeready-workspaces-operator.git
+				fi
 				cd codeready-workspaces-operator/
 				git config user.email "nickboldt+devstudio-release@gmail.com"
 				git config user.name "Red Hat Devstudio Release Bot"
