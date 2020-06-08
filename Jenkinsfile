@@ -45,7 +45,7 @@ timeout(20) {
           poll: true,
           extensions: [
             [$class: 'RelativeTargetDirectory', relativeTargetDir: "codeready-workspaces-operator"],
-            [$class: 'PathRestriction', excludedRegions: '', includedRegions: 'controller-manifests/**/.*, deploy/**/.*, manifests/**/.*, metadata/**/.*'],
+            [$class: 'PathRestriction', excludedRegions: '', includedRegions: 'controller-manifests/.*, deploy/.*, manifests/.*, metadata/.*'],
             [$class: 'DisableRemotePoll']
           ],
           submoduleCfg: [], 
@@ -69,7 +69,7 @@ timeout(20) {
 				poll: true,
 				extensions: [
 					[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CTL_path}"],
-					[$class: 'PathRestriction', excludedRegions: '**/README.md, **/package.json', includedRegions: 'src/**/.*, test/**/.*'],
+					[$class: 'PathRestriction', excludedRegions: 'README.md, package.json', includedRegions: 'src/.*, test/.*'],
 					[$class: 'DisableRemotePoll']
 				],
 				submoduleCfg: [], 
