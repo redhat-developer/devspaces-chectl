@@ -20,7 +20,7 @@ import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
 import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE, DOCS_LINK_INSTALL_TLS_WITH_SELF_SIGNED_CERT } from '../../constants'
+import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE, DOCS_LINK_INSTALL_TLS_WITH_SELF_SIGNED_CERT, OLM_STABLE_CHANNEL_NAME, DEFAULT_CHE_OLM_PACKAGE_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
@@ -174,18 +174,26 @@ export default class Start extends Command {
       description: `Olm channel to install CodeReady Workspaces, f.e. stable.
                     If options was not set, will be used default version for package manifest.
                     This parameter is used only when the installer is the 'olm'.`,
-      dependsOn: ['catalog-source-yaml']
+      default: OLM_STABLE_CHANNEL_NAME
     }),
     'package-manifest-name': string({
       description: `Package manifest name to subscribe to CodeReady Workspaces OLM package manifest.
                     This parameter is used only when the installer is the 'olm'.`,
-      dependsOn: ['catalog-source-yaml']
+      default: DEFAULT_CHE_OLM_PACKAGE_NAME
     }),
     'catalog-source-yaml': string({
       description: `Path to a yaml file that describes custom catalog source for installation CodeReady Workspaces operator.
                     Catalog source will be applied to the namespace with Che operator.
                     Also you need define 'olm-channel' name and 'package-manifest-name'.
                     This parameter is used only when the installer is the 'olm'.`,
+    }),
+    'catalog-source-name': string({
+      description: `OLM catalog source to install CodeReady Workspaces operator.
+                    This parameter is used only when the installer is the 'olm'.`
+    }),
+    'catalog-source-namespace': string({
+      description: `Namespace for OLM catalog source to install CodeReady Workspaces operator.
+                    This parameter is used only when the installer is the 'olm'.`
     }),
     'skip-kubernetes-health-check': skipK8sHealthCheck
   }
@@ -300,18 +308,20 @@ export default class Start extends Command {
       if (flags.installer !== 'olm' && flags['catalog-source-yaml']) {
         this.error('"catalog-source-yaml" flag should be used only with "olm" installer.')
       }
+      if (flags.installer !== 'olm' && flags['catalog-source-name']) {
+        this.error('"catalog-source-name" flag should be used only with "olm" installer.')
+      }
+      if (flags['catalog-source-name'] && flags['catalog-source-yaml']) {
+        this.error('should be provided only one argument: "catalog-source-name" or "catalog-source-yaml"')
+      }
       if (flags.installer !== 'olm' && flags['olm-channel']) {
         this.error('"olm-channel" flag should be used only with "olm" installer.')
       }
       if (flags.installer !== 'olm' && flags['package-manifest-name']) {
         this.error('"package-manifest-name" flag should be used only with "olm" installer.')
       }
-
-      if (!flags['package-manifest-name'] && flags['catalog-source-yaml']) {
-        this.error('you need define "package-manifest-name" flag to use "catalog-source-yaml".')
-      }
-      if (!flags['olm-channel'] && flags['catalog-source-yaml']) {
-        this.error('you need define "olm-channel" flag to use "catalog-source-yaml".')
+      if (flags.installer !== 'olm' && flags['catalog-source-namespace']) {
+        this.error('"package-manifest-name" flag should be used only with "olm" installer.')
       }
     }
   }
