@@ -99,7 +99,7 @@ export default class Start extends Command {
       char: 'a',
       description: 'Installer type',
       options: ['operator', 'olm'],
-      default: 'operator'
+      default: 'olm'
     }),
     domain: string({
       char: 'b',
