@@ -99,7 +99,6 @@ installerString="    installer: string({\n\
       char: 'a',\n\
       description: 'Installer type',\n\
       options: ['operator', 'olm'],\n\
-      default: 'operator'\n\
     }),"; # echo -e "$installerString"
 setPlaformDefaultsString="  static setPlaformDefaults(flags: any) {\n\
     flags.installer = 'operator'\n\
