@@ -97,7 +97,7 @@ platformString="    platform: string({\n\
     }),"; # echo -e "$platformString"
 installerString="    installer: string({\n\
       char: 'a',\n\
-      description: 'Installer type',\n\
+      description: 'Installer type - will be automatically detected depending on your target platform',\n\
       options: ['operator', 'olm'],\n\
     }),"; # echo -e "$installerString"
 setPlaformDefaultsString="  static setPlaformDefaults(flags: any) {\n\
