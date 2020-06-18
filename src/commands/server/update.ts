@@ -34,7 +34,7 @@ export default class Update extends Command {
     installer: string({
       char: 'a',
       description: 'Installer type. If not set, default is olm for OpenShift >= 4.2, and operator for earlier versions.',
-      options: ['operator', 'olm'],
+      options: ['operator', 'olm']
     }),
     platform: string({
       char: 'p',
