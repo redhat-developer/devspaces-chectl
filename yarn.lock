@@ -138,6 +138,11 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
+"@eclipse-che/api@latest":
+  version "7.5.0-SNAPSHOT"
+  resolved "https://registry.yarnpkg.com/@eclipse-che/api/-/api-7.5.0-SNAPSHOT.tgz#bf0c5be60354e34c73bc52b2e18be8680ce8d900"
+  integrity sha512-4CgKEGCBOIOBGBNoH0dhN8TkP1Sj39fG4LGCXYw3JB7nQucVooJyq7AhIV+w7L4iZ+ln+y2KEfZugCmOIuzIeQ==
+
 "@fimbul/bifrost@^0.21.0":
   version "0.21.0"
   resolved "https://registry.yarnpkg.com/@fimbul/bifrost/-/bifrost-0.21.0.tgz#d0fafa25938fda475657a6a1e407a21bbe02c74e"
@@ -1367,7 +1372,7 @@ code-point-at@^1.0.0:
 
 "codeready-workspaces-operator@git://github.com/redhat-developer/codeready-workspaces-operator#master":
   version "0.0.0"
-  resolved "git://github.com/redhat-developer/codeready-workspaces-operator#98ca9f102354bf8fd047a5a27517af0e19247136"
+  resolved "git://github.com/redhat-developer/codeready-workspaces-operator#ed63df5f162ef60d93099bb55347a37f35b41c64"
 
 collection-visit@^1.0.0:
   version "1.0.0"
