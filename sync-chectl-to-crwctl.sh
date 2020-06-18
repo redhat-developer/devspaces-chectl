@@ -98,32 +98,8 @@ platformString="    platform: string({\n\
 installerString="    installer: string({\n\
       char: 'a',\n\
       description: 'Installer type. If not set, default is "olm" for OpenShift >= 4.2, and "operator" for earlier versions.',\n\
-      options: ['operator', 'olm']\n\
+      options: ['olm', 'operator']\n\
     }),"; # echo -e "$installerString"
-setPlaformDefaultsString="  static setPlaformDefaults(flags: any) {\n\
-    flags.installer = 'operator'\n\
-  }\n\
-\n\
-  checkPlatformCompatibility(flags: any) {\n\
-    // matrix checks\n\
-    if (flags.installer === 'operator' \&\& flags['che-operator-cr-yaml']) {\n\
-      const ignoredFlags = []\n\
-      flags['plugin-registry-url'] \&\& ignoredFlags.push('--plugin-registry-urlomain')\n\
-      flags['devfile-registry-url'] \&\& ignoredFlags.push('--devfile-registry-url')\n\
-      flags['postgres-pvc-storage-class-name'] \&\& ignoredFlags.push('--postgres-pvc-storage-class-name')\n\
-      flags['workspace-pvc-storage-class-name'] \&\& ignoredFlags.push('--workspace-pvc-storage-class-name')\n\
-      flags['self-signed-cert'] \&\& ignoredFlags.push('--self-signed-cert')\n\
-      flags['os-oauth'] \&\& ignoredFlags.push('--os-oauth')\n\
-      flags.tls \&\& ignoredFlags.push('--tls')\n\
-      flags.cheimage \&\& ignoredFlags.push('--cheimage')\n\
-      flags.debug \&\& ignoredFlags.push('--debug')\n\
-      flags.domain \&\& ignoredFlags.push('--domain')\n\
-\n\
-      if (ignoredFlags.length) {\n\
-        this.warn(\`--che-operator-cr-yaml is used. The following flag(s) will be ignored: \${ignoredFlags.join('\\\t')}\`)\n\
-      }\n\
-    }\n\
-"
 pushd "${TARGETDIR}" >/dev/null
 	for d in src/commands/server/update.ts src/commands/server/start.ts; do
 		echo "Convert ${d}"
@@ -133,9 +109,6 @@ pushd "${TARGETDIR}" >/dev/null
 
 		perl -0777 -p -i -e 's|(\ +installer: string\({.*?}\),)| ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
 		sed -r -e "s#INSERT-CONTENT-HERE#${installerString}#" -i "${TARGETDIR}/${d}"
-
-		perl -0777 -p -i -e 's|(\ +static setPlaformDefaults.+ \{.*?.+matrix checks)|  ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
-		sed -r -e "s#INSERT-CONTENT-HERE#${setPlaformDefaultsString}#" -i "${TARGETDIR}/${d}"
 	done
 popd >/dev/null
 
