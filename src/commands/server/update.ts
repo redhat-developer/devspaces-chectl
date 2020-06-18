@@ -33,9 +33,8 @@ export default class Update extends Command {
   static flags = {
     installer: string({
       char: 'a',
-      description: 'Installer type',
+      description: 'Installer type. If not set, default is olm for OpenShift >= 4.2, and operator for earlier versions.',
       options: ['operator', 'olm'],
-      default: 'operator'
     }),
     platform: string({
       char: 'p',

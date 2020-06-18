@@ -97,8 +97,8 @@ export default class Start extends Command {
     }),
     installer: string({
       char: 'a',
-      description: 'Installer type',
-      options: ['operator', 'olm']
+      description: 'Installer type. If not set, default is olm for OpenShift >= 4.2, and operator for earlier versions.',
+      options: ['operator', 'olm'],
     }),
     domain: string({
       char: 'b',
@@ -416,7 +416,7 @@ export default class Start extends Command {
    */
   async setDefaultInstaller(flags: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
-    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isStableVersion(flags)) {
+    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isStableVersion(flags) && kubeHelper.isPreInstalledOLM()) {
       flags.installer = 'olm'
     } else {
       flags.installer = 'operator'
