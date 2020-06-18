@@ -270,7 +270,7 @@ USAGE
   $ crwctl server:start
 
 OPTIONS
-  -a, --installer=operator|olm
+  -a, --installer=olm|operator
       Installer type. If not set, default is olm for OpenShift >= 4.2, and operator for earlier versions.
 
   -b, --domain=domain
@@ -445,7 +445,7 @@ USAGE
   $ crwctl server:update
 
 OPTIONS
-  -a, --installer=operator|olm             Installer type. If not set, default is olm for OpenShift >= 4.2, and operator
+  -a, --installer=olm|operator             Installer type. If not set, default is olm for OpenShift >= 4.2, and operator
                                            for earlier versions.
 
   -h, --help                               show CLI help
