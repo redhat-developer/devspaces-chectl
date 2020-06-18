@@ -97,7 +97,7 @@ platformString="    platform: string({\n\
     }),"; # echo -e "$platformString"
 installerString="    installer: string({\n\
       char: 'a',\n\
-      description: 'Installer type - if OLM installed in cluster, use olm install method; else use deprecated operator method',\n\
+      description: 'Installer type. If argument is not defined, then installer will be "olm" for OpenShift with version >= 4.2, otherwise "operator".',\n\
       options: ['operator', 'olm'],\n\
     }),"; # echo -e "$installerString"
 setPlaformDefaultsString="  static setPlaformDefaults(flags: any) {\n\
