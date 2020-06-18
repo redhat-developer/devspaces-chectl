@@ -98,7 +98,7 @@ platformString="    platform: string({\n\
 installerString="    installer: string({\n\
       char: 'a',\n\
       description: 'Installer type. If not set, default is "olm" for OpenShift >= 4.2, and "operator" for earlier versions.',\n\
-      options: ['operator', 'olm'],\n\
+      options: ['operator', 'olm']\n\
     }),"; # echo -e "$installerString"
 setPlaformDefaultsString="  static setPlaformDefaults(flags: any) {\n\
     flags.installer = 'operator'\n\
