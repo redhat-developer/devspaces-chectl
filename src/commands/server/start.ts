@@ -173,18 +173,24 @@ export default class Start extends Command {
       description: `Olm channel to install CodeReady Workspaces, f.e. stable.
                     If options was not set, will be used default version for package manifest.
                     This parameter is used only when the installer is the 'olm'.`,
-      dependsOn: ['catalog-source-yaml']
     }),
     'package-manifest-name': string({
       description: `Package manifest name to subscribe to CodeReady Workspaces OLM package manifest.
                     This parameter is used only when the installer is the 'olm'.`,
-      dependsOn: ['catalog-source-yaml']
     }),
     'catalog-source-yaml': string({
       description: `Path to a yaml file that describes custom catalog source for installation CodeReady Workspaces operator.
                     Catalog source will be applied to the namespace with Che operator.
                     Also you need define 'olm-channel' name and 'package-manifest-name'.
                     This parameter is used only when the installer is the 'olm'.`,
+    }),
+    'catalog-source-name': string({
+      description: `OLM catalog source to install CodeReady Workspaces operator.
+                    This parameter is used only when the installer is the 'olm'.`
+    }),
+    'catalog-source-namespace': string({
+      description: `Namespace for OLM catalog source to install CodeReady Workspaces operator.
+                    This parameter is used only when the installer is the 'olm'.`
     }),
     'skip-kubernetes-health-check': skipK8sHealthCheck
   }
@@ -305,6 +311,15 @@ export default class Start extends Command {
       if (flags.installer !== 'olm' && flags['package-manifest-name']) {
         this.error('"package-manifest-name" flag should be used only with "olm" installer.')
       }
+      if (flags.installer !== 'olm' && flags['catalog-source-name']) {
+        this.error('"catalog-source-name" flag should be used only with "olm" installer.')
+      }
+      if (flags.installer !== 'olm' && flags['catalog-source-namespace']) {
+        this.error('"package-manifest-name" flag should be used only with "olm" installer.')
+      }
+      if (flags['catalog-source-name'] && flags['catalog-source-yaml']) {
+        this.error('should be provided only one argument: "catalog-source-name" or "catalog-source-yaml"')
+      }
 
       if (!flags['package-manifest-name'] && flags['catalog-source-yaml']) {
         this.error('you need define "package-manifest-name" flag to use "catalog-source-yaml".')
@@ -416,7 +431,14 @@ export default class Start extends Command {
    */
   async setDefaultInstaller(flags: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
-    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isStableVersion(flags) && await kubeHelper.isPreInstalledOLM()) {
+
+    const olmIsPreinstalled = await kubeHelper.isPreInstalledOLM()
+    if ((flags['catalog-source-name'] || flags['catalog-source-yaml']) && olmIsPreinstalled) {
+      flags.installer = 'olm'
+      return
+    }
+
+    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && olmIsPreinstalled) {
       flags.installer = 'olm'
     } else {
       flags.installer = 'operator'
