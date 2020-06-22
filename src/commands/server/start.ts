@@ -27,7 +27,7 @@ import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { isOpenshiftPlatformFamily, isStableVersion } from '../../util'
+import { isOpenshiftPlatformFamily } from '../../util'
 
 export default class Start extends Command {
   static description = 'start CodeReady Workspaces server'
