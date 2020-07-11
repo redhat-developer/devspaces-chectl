@@ -121,7 +121,7 @@ OPTIONS
       Skip Kubernetes health check
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-GA-redhat/src/commands/cacert/export.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-CI-redhat/src/commands/cacert/export.ts)_
 
 ## `crwctl dashboard:open`
 
@@ -138,7 +138,7 @@ OPTIONS
                                    supposed to be deployed
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-GA-redhat/src/commands/dashboard/open.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-CI-redhat/src/commands/dashboard/open.ts)_
 
 ## `crwctl devfile:generate`
 
@@ -170,7 +170,7 @@ OPTIONS
                              --selector="app.kubernetes.io/name=employee-manager"
 ```
 
-_See code: [src/commands/devfile/generate.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-GA-redhat/src/commands/devfile/generate.ts)_
+_See code: [src/commands/devfile/generate.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-CI-redhat/src/commands/devfile/generate.ts)_
 
 ## `crwctl help [COMMAND]`
 
@@ -210,7 +210,7 @@ OPTIONS
   --skip-kubernetes-health-check           Skip Kubernetes health check
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-GA-redhat/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-CI-redhat/src/commands/server/debug.ts)_
 
 ## `crwctl server:delete`
 
@@ -235,7 +235,7 @@ OPTIONS
   --skip-kubernetes-health-check           Skip Kubernetes health check
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-GA-redhat/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-CI-redhat/src/commands/server/delete.ts)_
 
 ## `crwctl server:logs`
 
@@ -259,7 +259,7 @@ OPTIONS
   --skip-kubernetes-health-check           Skip Kubernetes health check
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-GA-redhat/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-CI-redhat/src/commands/server/logs.ts)_
 
 ## `crwctl server:start`
 
@@ -289,7 +289,7 @@ OPTIONS
       show CLI help
 
   -i, --cheimage=cheimage
-      [default: registry.redhat.io/codeready-workspaces/server-rhel8:2.2-13] CodeReady Workspaces server container image
+      [default: registry.redhat.io/codeready-workspaces/server-rhel8:2.2] CodeReady Workspaces server container image
 
   -m, --multiuser
       Starts CodeReady Workspaces in multi-user mode
@@ -349,7 +349,7 @@ OPTIONS
       is the operator.
 
   --che-operator-image=che-operator-image
-      [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.2-19] Container image of the operator. This 
+      [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.2] Container image of the operator. This 
       parameter is used only when the installer is the operator
 
   --debug
@@ -414,7 +414,7 @@ OPTIONS
       persistent volume(s) storage class name to use to store CodeReady Workspaces workspaces data
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-GA-redhat/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-CI-redhat/src/commands/server/start.ts)_
 
 ## `crwctl server:stop`
 
@@ -442,7 +442,7 @@ OPTIONS
   --skip-kubernetes-health-check           Skip Kubernetes health check
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-GA-redhat/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-CI-redhat/src/commands/server/stop.ts)_
 
 ## `crwctl server:update`
 
@@ -466,8 +466,7 @@ OPTIONS
 
   -t, --templates=templates                [default: templates] Path to the templates folder
 
-  --che-operator-image=che-operator-image  [default:
-                                           registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.2-19]
+  --che-operator-image=che-operator-image  [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.2]
                                            Container image of the operator. This parameter is used only when the
                                            installer is the operator
 
@@ -480,7 +479,7 @@ OPTIONS
   --skip-version-check                     Skip user confirmation on version check
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-GA-redhat/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-CI-redhat/src/commands/server/update.ts)_
 
 ## `crwctl update`
 
@@ -491,7 +490,7 @@ USAGE
   $ crwctl update
 ```
 
-_See code: [src/commands/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-GA-redhat/src/commands/update.ts)_
+_See code: [src/commands/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-CI-redhat/src/commands/update.ts)_
 
 ## `crwctl workspace:create`
 
@@ -522,7 +521,7 @@ OPTIONS
   --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
 
-_See code: [src/commands/workspace/create.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-GA-redhat/src/commands/workspace/create.ts)_
+_See code: [src/commands/workspace/create.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-CI-redhat/src/commands/workspace/create.ts)_
 
 ## `crwctl workspace:delete WORKSPACE`
 
@@ -549,7 +548,7 @@ OPTIONS
   --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
 
-_See code: [src/commands/workspace/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-GA-redhat/src/commands/workspace/delete.ts)_
+_See code: [src/commands/workspace/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-CI-redhat/src/commands/workspace/delete.ts)_
 
 ## `crwctl workspace:inject`
 
@@ -582,7 +581,7 @@ OPTIONS
   --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
 
-_See code: [src/commands/workspace/inject.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-GA-redhat/src/commands/workspace/inject.ts)_
+_See code: [src/commands/workspace/inject.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-CI-redhat/src/commands/workspace/inject.ts)_
 
 ## `crwctl workspace:list`
 
@@ -603,7 +602,7 @@ OPTIONS
   --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
 
-_See code: [src/commands/workspace/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-GA-redhat/src/commands/workspace/list.ts)_
+_See code: [src/commands/workspace/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-CI-redhat/src/commands/workspace/list.ts)_
 
 ## `crwctl workspace:logs`
 
@@ -628,7 +627,7 @@ OPTIONS
   --skip-kubernetes-health-check           Skip Kubernetes health check
 ```
 
-_See code: [src/commands/workspace/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-GA-redhat/src/commands/workspace/logs.ts)_
+_See code: [src/commands/workspace/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-CI-redhat/src/commands/workspace/logs.ts)_
 
 ## `crwctl workspace:start WORKSPACE`
 
@@ -655,7 +654,7 @@ OPTIONS
   --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
 
-_See code: [src/commands/workspace/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-GA-redhat/src/commands/workspace/start.ts)_
+_See code: [src/commands/workspace/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-CI-redhat/src/commands/workspace/start.ts)_
 
 ## `crwctl workspace:stop WORKSPACE`
 
@@ -679,7 +678,7 @@ OPTIONS
   --skip-kubernetes-health-check   Skip Kubernetes health check
 ```
 
-_See code: [src/commands/workspace/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-GA-redhat/src/commands/workspace/stop.ts)_
+_See code: [src/commands/workspace/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.2.0-CI-redhat/src/commands/workspace/stop.ts)_
 <!-- commandsstop -->
 
 # Contributing
