@@ -3,11 +3,11 @@
 // PARAMETERS for this pipeline:
 // branchCHECTL      = branch or tag of https://github.com/che-incubator/chectl
 // branchCRWCTL      = branch or tag of https://redhat-developer/codeready-workspaces-chectl
-// CRW_VERSION       = Full version (x.y.z), used in CSV and crwctl version
-// CRW_SERVER_TAG    = default to 2.1, but can override and set 2.1-20
-// CRW_OPERATOR_TAG  = default to 2.1, but can override and set 2.1-19
-// versionSuffix     = if set, use as version suffix before commitSHA, eg., RC1 --> 2.1.0-RC1-commitSHA;
-//                     if unset, version is CRW_VERSION-YYYYmmdd-commitSHA
+// CSV_VERSION       = Full version (x.y.z), used in CSV and crwctl version
+// CRW_SERVER_TAG    = default to 2.3, but can override and set 2.3-zz for GA release
+// CRW_OPERATOR_TAG  = default to 2.3, but can override and set 2.3-zz for GA release
+// versionSuffix     = if set, use as version suffix before commitSHA, eg., RC --> 2.3.0-RC-commitSHA;
+//                     if unset, version is CSV_VERSION-YYYYmmdd-commitSHA
 //                  :: NOTE: yarn will fail for version = x.y.z.a but works with x.y.z-a
 // PUBLISH_ARTIFACTS_TO_GITHUB = default false; check box to publish to GH releases
 // PUBLISH_ARTIFACTS_TO_RCM    = default false; check box to upload sources + binaries to RCM for a GA release ONLY
@@ -80,11 +80,11 @@ timeout(20) {
 			def SHORT_SHA1=sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short HEAD").trim()
 			def CHECTL_VERSION=""
 			if ("${versionSuffix}") {
-				CHECTL_VERSION="${CRW_VERSION}-${versionSuffix}"
-				GITHUB_RELEASE_NAME="${CRW_VERSION}-${versionSuffix}-${SHORT_SHA1}"
+				CHECTL_VERSION="${CSV_VERSION}-${versionSuffix}"
+				GITHUB_RELEASE_NAME="${CSV_VERSION}-${versionSuffix}-${SHORT_SHA1}"
 			} else {
-				CHECTL_VERSION="${CRW_VERSION}-$CURRENT_DAY"
-				GITHUB_RELEASE_NAME="${CRW_VERSION}-$CURRENT_DAY-${SHORT_SHA1}"
+				CHECTL_VERSION="${CSV_VERSION}-$CURRENT_DAY"
+				GITHUB_RELEASE_NAME="${CSV_VERSION}-$CURRENT_DAY-${SHORT_SHA1}"
 			}
 			def CUSTOM_TAG=GITHUB_RELEASE_NAME // OLD way: sh(returnStdout:true,script:"date +'%Y%m%d%H%M%S'").trim()
 
@@ -102,7 +102,7 @@ timeout(20) {
 				git checkout ''' + branchCHECTL + '''
 			popd >/dev/null
 			git checkout ''' + branchCRWCTL + '''
-			# OLD WAY: CRW_TAG="''' + CRW_VERSION + '''"; CRW_TAG=${CRW_TAG%.*} # for 2.1.0 -> 2.1
+			# OLD WAY: CRW_TAG="''' + CSV_VERSION + '''"; CRW_TAG=${CRW_TAG%.*} # for 2.1.0 -> 2.1
 			# ./sync-chectl-to-crwctl.sh ${WORKSPACE}/chectl ${WORKSPACE}/crwctl_generated ${CRW_TAG} ${CRW_TAG}
 			./sync-chectl-to-crwctl.sh ${WORKSPACE}/chectl ${WORKSPACE}/crwctl_generated ${CRW_SERVER_TAG} ${CRW_OPERATOR_TAG}
 			# check for differences
@@ -165,7 +165,7 @@ timeout(20) {
 				git checkout master-quay
 				# change files
 				# TODO when we move to OCP 4.6 bundle format, must switch to manifests/ folder & new path structure
-				FILES="deploy/operator.yaml deploy/operator-local.yaml controller-manifests/v''' + CRW_VERSION + '''/codeready-workspaces.csv.yaml"
+				FILES="deploy/operator.yaml deploy/operator-local.yaml controller-manifests/v''' + CSV_VERSION + '''/codeready-workspaces.csv.yaml"
 				for d in ${FILES}; do
 					# point to quay image, and use :latest instead of :2.x tag
 					sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/(.+):(.+)#quay.io/crw/\\1:latest#g"
@@ -273,13 +273,13 @@ for mnt in RCMG; do
 done
 
 # copy files to rcm-guest
-ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw && mkdir -p CRW-''' + CRW_VERSION + '''/ && ls -la . "
+ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw && mkdir -p CRW-''' + CSV_VERSION + '''/ && ls -la . "
 rsync -Pzrlt --rsh=ssh --protocol=28 \
     ${WORKSPACE}/''' + TARBALL_PREFIX + '''-crwctl-sources.tar.gz \
     ${WORKSPACE}/''' + CTL_path + '''/dist/channels/redhat/*gz \
-    ${WORKSPACE}/${mnt}-ssh/CRW-''' + CRW_VERSION + '''/
-ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw/CRW-''' + CRW_VERSION + '''/ && ls -la ''' + TARBALL_PREFIX + '''*"
-ssh "${DESTHOST}" "/mnt/redhat/scripts/rel-eng/utility/bus-clients/stage-mw-release CRW-''' + CRW_VERSION + '''"
+    ${WORKSPACE}/${mnt}-ssh/CRW-''' + CSV_VERSION + '''/
+ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw/CRW-''' + CSV_VERSION + '''/ && ls -la ''' + TARBALL_PREFIX + '''*"
+ssh "${DESTHOST}" "/mnt/redhat/scripts/rel-eng/utility/bus-clients/stage-mw-release CRW-''' + CSV_VERSION + '''"
 '''
 			}
 
