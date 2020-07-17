@@ -96,8 +96,8 @@ export class InstallerTasks {
         return operatorTasks.startTasks(flags, command)
       }
     } else if (flags.installer === 'olm') {
-      title = '🏃‍  Running OLM installation of CodeReady Workspaces'
-      // The OLM installs CodeReady Workspaces in multiuser mode by default
+      title = '🏃‍  Running Olm installaion CodeReady Workspaces'
+      // The olm installs CodeReady Workspaces in multiuser mode by default
       if (!flags.multiuser) {
         flags.multiuser = true
       }
