@@ -50,7 +50,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|codeready-operator-(cr.+yaml)|che-operator-\1|g" \
 			-e "s|codeready-operator-(cr.+yaml)|che-operator-\1|g" \
 			-e "s|codeready-operator-image|che-operator-image|g" \
-			-e "s|operatorCheCluster = 'eclipse-che'|operatorCheCluster = 'codeready-workspaces'|g" \
+			-e "s|CHE_CLUSTER_CR_NAME = 'eclipse-che'|CHE_CLUSTER_CR_NAME = 'codeready-workspaces'|g" \
 			-e "s|Eclipse Che|CodeReady Workspaces|g" \
 			\
 			-e "s| when both minishift and OpenShift are stopped||" \
