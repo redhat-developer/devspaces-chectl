@@ -204,7 +204,7 @@ timeout(20) {
 			}
 
 			def isRelease=""
-			if [ "${versionSuffix}" == "GA" ] {
+			if ( "${versionSuffix}" == "GA" ) {
 				isRelease="false"
 			} else {
 				isRelease="true"
