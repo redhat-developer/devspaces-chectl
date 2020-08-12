@@ -1,8 +1,8 @@
 #!/usr/bin/env groovy
 
 // PARAMETERS for this pipeline:
-// branchCHECTL      = branch or tag of https://github.com/che-incubator/chectl
-// branchCRWCTL      = branch or tag of https://redhat-developer/codeready-workspaces-chectl
+// branchCHECTL      = branch or tag of https://github.com/che-incubator/chectl - 7.17.x or master
+// branchCRWCTL      = branch or tag of https://redhat-developer/codeready-workspaces-chectl - crw-2.4-rhel-8
 // CSV_VERSION       = Full version (x.y.z), used in CSV and crwctl version
 // CRW_SERVER_TAG    = default to 2.3, but can override and set 2.3-zz for GA release
 // CRW_OPERATOR_TAG  = default to 2.3, but can override and set 2.3-zz for GA release
@@ -11,6 +11,8 @@
 //                  :: NOTE: yarn will fail for version = x.y.z.a but works with x.y.z-a
 // PUBLISH_ARTIFACTS_TO_GITHUB = default false; check box to publish to GH releases
 // PUBLISH_ARTIFACTS_TO_RCM    = default false; check box to upload sources + binaries to RCM for a GA release ONLY
+
+def CRW_OPERATOR_DEPLOY_BRANCH=branchCRWCTL // eg., "crw-2.4-rhel-8"
 
 def installNPM(){
 	def yarnVersion="1.17.3"
@@ -34,7 +36,6 @@ def CTL_path = "codeready-workspaces-chectl"
 def SHA_CTL = "SHA_CTL"
 def GITHUB_RELEASE_NAME=""
 
-def CRW_OPERATOR_DEPLOY_BRANCH="master"
 timeout(20) {
     node("${buildNode}"){
         stage "Checkout crw-operator deploy"
@@ -145,9 +146,9 @@ timeout(20) {
 			git commit -s -m "[update] commit latest package.json + README.md" package.json README.md || true
 			git push origin '''+branchCRWCTL+''' || true
 
-			#### 2. prepare master-quay branch of crw operator repo
+			#### 2. prepare branchCRWCTL-quay branch of crw operator repo
 
-			# check out from master
+			# check out from branchCRWCTL
 			pushd ${WORKSPACE} >/dev/null
 				if [[ ! -d codeready-workspaces-operator/ ]]; then 
 					git clone https://github.com/redhat-developer/codeready-workspaces-operator.git
@@ -161,8 +162,8 @@ timeout(20) {
 				git config --global hub.protocol https
 				git remote set-url origin https://\$GITHUB_TOKEN:x-oauth-basic@github.com/redhat-developer/codeready-workspaces-operator.git
 				git remote -v
-				git branch master-quay -f
-				git checkout master-quay
+				git branch '''+branchCRWCTL+'''-quay -f
+				git checkout '''+branchCRWCTL+'''-quay
 				# change files
 				# TODO when we move to OCP 4.6 bundle format, must switch to manifests/ folder & new path structure
 				FILES="deploy/operator.yaml deploy/operator-local.yaml controller-manifests/v''' + CSV_VERSION + '''/codeready-workspaces.csv.yaml"
@@ -170,14 +171,14 @@ timeout(20) {
 					# point to quay image, and use :latest instead of :2.x tag
 					sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/(.+):(.+)#quay.io/crw/\\1:latest#g"
 				done
-				# push to master-quay branch
-				git commit -s -m "[update] Push latest in master to master-quay branch" ${FILES}
-				git push origin master-quay -f
+				# push to '''+branchCRWCTL+'''-quay branch
+				git commit -s -m "[update] Push latest in '''+branchCRWCTL+''' to '''+branchCRWCTL+'''-quay branch" ${FILES}
+				git push origin '''+branchCRWCTL+'''-quay -f
 			popd >/dev/null
 			# cleanup
 			rm -fr ${WORKSPACE}/codeready-workspaces-operator/
  
-			#### 3. now build using master-quay branch, -quay suffix and quay.io/crw/ URLs
+			#### 3. now build using '''+branchCRWCTL+'''-quay branch, -quay suffix and quay.io/crw/ URLs
 
 			YAML_REPO="`cat package.json | jq -r '.dependencies["codeready-workspaces-operator"]'`-quay"
 			jq -M --arg YAML_REPO \"${YAML_REPO}\" '.dependencies["codeready-workspaces-operator"] = $YAML_REPO' package.json > package.json2
@@ -207,7 +208,7 @@ timeout(20) {
 			if (PUBLISH_ARTIFACTS_TO_GITHUB.equals("true"))
 			{
 				def isPreRelease="true"; if ( "${versionSuffix}" == "GA" ) { isPreRelease="false"; }
-				sh "curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' --data '{\"tag_name\": \"${CUSTOM_TAG}\", \"target_commitish\": \"master\", \"name\": \"${GITHUB_RELEASE_NAME}\", \"body\": \"${RELEASE_DESCRIPTION}\", \"draft\": false, \"prerelease\": ${isPreRelease}}' https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}"
+				sh "curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' --data '{\"tag_name\": \"${CUSTOM_TAG}\", \"target_commitish\": \"${branchCRWCTL}\", \"name\": \"${GITHUB_RELEASE_NAME}\", \"body\": \"${RELEASE_DESCRIPTION}\", \"draft\": false, \"prerelease\": ${isPreRelease}}' https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}"
 
 				// Extract the id of the release from the creation response
 				def RELEASE_ID=sh(returnStdout:true,script:"jq -r .id /tmp/${CUSTOM_TAG}").trim()
