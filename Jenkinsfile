@@ -166,7 +166,7 @@ timeout(20) {
 				git checkout '''+branchCRWCTL+'''-quay
 				# change files
 				# TODO when we move to OCP 4.6 bundle format, must switch to manifests/ folder & new path structure
-				FILES="deploy/operator.yaml deploy/operator-local.yaml controller-manifests/v''' + CSV_VERSION + '''/codeready-workspaces.csv.yaml"
+				FILES="deploy/operator.yaml deploy/operator-local.yaml manifests/codeready-workspaces.csv.yaml"
 				for d in ${FILES}; do
 					# point to quay image, and use :latest instead of :2.x tag
 					sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/(.+):(.+)#quay.io/crw/\\1:latest#g"
