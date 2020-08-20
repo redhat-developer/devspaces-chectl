@@ -33,8 +33,8 @@ export default class Update extends Command {
   static flags = {
     installer: string({
       char: 'a',
-      description: 'Installer type. If not set, default is olm for OpenShift >= 4.2, and operator for earlier versions.',
-      options: ['olm', 'operator']
+      description: 'Installer type. If not set, default is autodetected depending on previous installation.',
+      options: ['operator', 'olm'],
     }),
     platform: string({
       char: 'p',
@@ -76,9 +76,9 @@ export default class Update extends Command {
   }
 
   async checkIfInstallerSupportUpdating(flags: any) {
-    // matrix checks
     if (!flags.installer) {
       await this.setDefaultInstaller(flags)
+      cli.info(`› Installer type is set to: '${flags.installer}'`)
     }
 
     if (flags.installer === 'operator' || flags.installer === 'olm') {
@@ -86,14 +86,9 @@ export default class Update extends Command {
       return
     }
 
-    if (flags.installer === 'minishift-addon' || flags.installer === 'helm') {
-      this.error(`🛑 The specified installer ${flags.installer} does not support updating yet.`)
-    }
     if (flags.installer === 'olm' && flags.platform === 'minishift') {
       this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
     }
-
-    this.error(`🛑 Unknown installer ${flags.installer} is specified.`)
   }
 
   async run() {
@@ -187,6 +182,5 @@ export default class Update extends Command {
     } catch {
       flags.installer = 'operator'
     }
-    cli.info(`› Installer type is set to: '${flags.installer}'`)
   }
 }

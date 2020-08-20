@@ -200,6 +200,7 @@ export default class Start extends Command {
 
     if (!flags.installer) {
       await this.setDefaultInstaller(flags)
+      cli.info(`› Installer type is set to: '${flags.installer}'`)
     }
 
     if (!flags.templates) {
@@ -442,7 +443,6 @@ export default class Start extends Command {
       flags.installer = 'olm'
     } else {
       flags.installer = 'operator'
-      cli.info(`› Installer type is set to: '${flags.installer}'`)
     }
   }
 }
