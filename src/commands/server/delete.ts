@@ -50,7 +50,6 @@ export default class Delete extends Command {
     )
 
     tasks.add(apiTasks.testApiTasks(flags, this))
-    tasks.add(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     tasks.add(operatorTasks.deleteTasks(flags))
     tasks.add(olmTasks.deleteTasks(flags))
     tasks.add(cheTasks.deleteTasks(flags))
@@ -72,7 +71,7 @@ export default class Delete extends Command {
 
     notifier.notify({
       title: 'crwctl',
-      message: 'Command server:update has completed.'
+      message: 'Command server:delete has completed.'
     })
 
     this.exit(0)
