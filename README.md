@@ -376,9 +376,6 @@ OPTIONS
                            If options was not set, will be used default version for package manifest.
                            This parameter is used only when the installer is the 'olm'.
 
-  --os-oauth
-      Enable use of OpenShift credentials to log into CodeReady Workspaces
-
   --package-manifest-name=package-manifest-name
       Package manifest name to subscribe to CodeReady Workspaces OLM package manifest.
                            This parameter is used only when the installer is the 'olm'.
