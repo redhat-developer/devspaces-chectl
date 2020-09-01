@@ -30,283 +30,323 @@ node --version && npm --version; yarn --version
 	// sh "whereis node" // /mnt/hudson_workspace/tools/jenkins.plugins.nodejs.tools.NodeJSInstallation/nodejs-10.15.3/
 }
 
-def buildNode = "rhel7-releng" // slave label
+def List arches = ['rhel7-releng', 's390x-rhel7-beaker', 'ppc64le-rhel7-beaker']
+def Map tasks = [failFast: false]
 def platforms = "linux-x64,darwin-x64,win32-x64"
+def platform_p = "linux-ppc64le"
+def platform_z = "linux-s390x"
 def CTL_path = "codeready-workspaces-chectl"
 def SHA_CTL = "SHA_CTL"
 def GITHUB_RELEASE_NAME=""
 
-timeout(20) {
-    node("${buildNode}"){
-        stage "Checkout crw-operator deploy"
-        // check out crw-operator so we can use it as a poll trigger: will reuse sources later
-        checkout([$class: 'GitSCM', 
-          branches: [[name: "${CRW_OPERATOR_DEPLOY_BRANCH}"]], 
-          doGenerateSubmoduleConfigurations: false, 
-          poll: true,
-          extensions: [
-            [$class: 'RelativeTargetDirectory', relativeTargetDir: "codeready-workspaces-operator"],
-            [$class: 'PathRestriction', excludedRegions: '', includedRegions: 'controller-manifests/.*, deploy/.*, manifests/.*, metadata/.*'],
-            [$class: 'DisableRemotePoll']
-          ],
-          submoduleCfg: [], 
-          userRemoteConfigs: [[url: "https://github.com/redhat-developer/codeready-workspaces-operator.git"]]])
+for (int i=0; i < arches.size(); i++) {
+    def String nodeLabel = "${arches[i]}"
+    tasks[arches[i]] = { ->
+      	timeout(20) {
+        	node(nodeLabel){
+          	//stage "Checkout crw-operator deploy"
+			stage ("Build on ${nodeLabel}") {
+				// check out crw-operator so we can use it as a poll trigger: will reuse sources later
+				checkout([$class: 'GitSCM', 
+				  branches: [[name: "${CRW_OPERATOR_DEPLOY_BRANCH}"]], 
+				  doGenerateSubmoduleConfigurations: false, 
+				  poll: true,
+				  extensions: [
+					  [$class: 'RelativeTargetDirectory', relativeTargetDir: "codeready-workspaces-operator"],
+					  [$class: 'PathRestriction', excludedRegions: '', includedRegions: 'controller-manifests/.*, deploy/.*, manifests/.*, metadata/.*'],
+					  [$class: 'DisableRemotePoll']
+				  ],
+				  submoduleCfg: [], 
+				  userRemoteConfigs: [[url: "https://github.com/redhat-developer/codeready-workspaces-operator.git"]]])
+				}	
+			}
+        } 
     }
 }
 
-timeout(20) {
-	node("${buildNode}"){ 
-	  try {
-		currentBuild.description="Running..."
-		notifyBuild('STARTED', '')
+stage("${CTL_path} Builds") {
+    parallel(tasks)
+}
 
-	    withCredentials([string(credentialsId:'devstudio-release.token', variable: 'GITHUB_TOKEN'), 
-          file(credentialsId: 'crw-build.keytab', variable: 'CRW_KEYTAB')]) {
-			stage "Build ${CTL_path}"
-			cleanWs()
-			checkout([$class: 'GitSCM', 
-				branches: [[name: "${branchCRWCTL}"]],
-				doGenerateSubmoduleConfigurations: false, 
-				// disable polling since every build pushes a commit, which triggers a new build ad infinitum
-				poll: false,
-				extensions: [
-					[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CTL_path}"],
-					[$class: 'PathRestriction', excludedRegions: 'README.md, package.json', includedRegions: 'src/.*, test/.*'],
-					[$class: 'DisableRemotePoll']
-				],
-				submoduleCfg: [], 
-				userRemoteConfigs: [[url: "https://github.com/redhat-developer/${CTL_path}.git"]]])
-			installNPM()
-			def CURRENT_DAY=sh(returnStdout:true,script:"date +'%Y%m%d-%H%M'").trim()
-			def SHORT_SHA1=sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short HEAD").trim()
-			def CHECTL_VERSION=""
-			if ("${versionSuffix}") {
-				CHECTL_VERSION="${CSV_VERSION}-${versionSuffix}"
-				GITHUB_RELEASE_NAME="${CSV_VERSION}-${versionSuffix}-${SHORT_SHA1}"
-			} else {
-				CHECTL_VERSION="${CSV_VERSION}-$CURRENT_DAY"
-				GITHUB_RELEASE_NAME="${CSV_VERSION}-$CURRENT_DAY-${SHORT_SHA1}"
-			}
-			def CUSTOM_TAG=GITHUB_RELEASE_NAME // OLD way: sh(returnStdout:true,script:"date +'%Y%m%d%H%M%S'").trim()
+for (int i=0; i < arches.size(); i++) {
+    def String nodeLabel = "${arches[i]}"
+    tasks[arches[i]] = { ->
+		timeout(20) {
+			node(nodeLabel){
+				stage ("Build on ${nodeLabel}") {
+				  try {
+					currentBuild.description="Running..."
+					notifyBuild('STARTED', '')
 
-			// RENAME artifacts to include version in the tarball: codeready-workspaces-2.1.0-crwctl-*.tar.gz
-			def TARBALL_PREFIX="codeready-workspaces-${CHECTL_VERSION}"
+					withCredentials([string(credentialsId:'devstudio-release.token', variable: 'GITHUB_TOKEN'), 
+					  file(credentialsId: 'crw-build.keytab', variable: 'CRW_KEYTAB')]) {
+						//stage "Build ${CTL_path}"
+						cleanWs()
+						checkout([$class: 'GitSCM', 
+							branches: [[name: "${branchCRWCTL}"]],
+							doGenerateSubmoduleConfigurations: false, 
+							// disable polling since every build pushes a commit, which triggers a new build ad infinitum
+							poll: false,
+							extensions: [
+								[$class: 'RelativeTargetDirectory', relativeTargetDir: "${CTL_path}"],
+								[$class: 'PathRestriction', excludedRegions: 'README.md, package.json', includedRegions: 'src/.*, test/.*'],
+								[$class: 'DisableRemotePoll']
+							],
+							submoduleCfg: [], 
+							userRemoteConfigs: [[url: "https://github.com/redhat-developer/${CTL_path}.git"]]])
+						if ( "${nodeLabel}" == "rhel7-releng" ){
+							installNPM()
+						}
+						def CURRENT_DAY=sh(returnStdout:true,script:"date +'%Y%m%d-%H%M'").trim()
+						def SHORT_SHA1=sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short HEAD").trim()
+						def CHECTL_VERSION=""
+						if ("${versionSuffix}") {
+							CHECTL_VERSION="${CSV_VERSION}-${versionSuffix}"
+							GITHUB_RELEASE_NAME="${CSV_VERSION}-${versionSuffix}-${SHORT_SHA1}"
+						} else {
+							CHECTL_VERSION="${CSV_VERSION}-$CURRENT_DAY"
+							GITHUB_RELEASE_NAME="${CSV_VERSION}-$CURRENT_DAY-${SHORT_SHA1}"
+						}
+						def CUSTOM_TAG=GITHUB_RELEASE_NAME // OLD way: sh(returnStdout:true,script:"date +'%Y%m%d%H%M%S'").trim()
 
-			SHA_CTL = sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short=4 HEAD").trim()
-			sh '''#!/bin/bash -xe
-			cd ''' + CTL_path + '''
+						// RENAME artifacts to include version in the tarball: codeready-workspaces-2.1.0-crwctl-*.tar.gz
+						def TARBALL_PREFIX="codeready-workspaces-${CHECTL_VERSION}"
 
-			# 0. sync from upstream chectl
-			pushd ${WORKSPACE} >/dev/null
-				git clone https://github.com/che-incubator/chectl
-				cd chectl
-				git checkout ''' + branchCHECTL + '''
-			popd >/dev/null
-			git checkout ''' + branchCRWCTL + '''
-			# OLD WAY: CRW_TAG="''' + CSV_VERSION + '''"; CRW_TAG=${CRW_TAG%.*} # for 2.1.0 -> 2.1
-			# ./sync-chectl-to-crwctl.sh ${WORKSPACE}/chectl ${WORKSPACE}/crwctl_generated ${CRW_TAG} ${CRW_TAG}
-			./sync-chectl-to-crwctl.sh ${WORKSPACE}/chectl ${WORKSPACE}/crwctl_generated ${CRW_SERVER_TAG} ${CRW_OPERATOR_TAG}
-			# check for differences
-			set +x
-			for d in $(cd ${WORKSPACE}/crwctl_generated/; find src test -type f); do diff -u ${d} ${WORKSPACE}/crwctl_generated/${d} || true; done
-			# apply differences
-			rsync -aqrz ${WORKSPACE}/crwctl_generated/* .
-			git config user.email "nickboldt+devstudio-release@gmail.com"
-			git config user.name "Red Hat Devstudio Release Bot"
-			git config --global push.default matching
+						SHA_CTL = sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short=4 HEAD").trim()
+						sh '''#!/bin/bash -xe
+						cd ''' + CTL_path + '''
 
-			# SOLVED :: Fatal: Could not read Username for "https://github.com", No such device or address :: https://github.com/github/hub/issues/1644
-			git remote -v
-			git config --global hub.protocol https
-			git remote set-url origin https://\$GITHUB_TOKEN:x-oauth-basic@github.com/redhat-developer/''' + CTL_path + '''.git
-			git remote -v
+						# 0. sync from upstream chectl
+						pushd ${WORKSPACE} >/dev/null
+							git clone https://github.com/che-incubator/chectl
+							cd chectl
+							git checkout ''' + branchCHECTL + '''
+						popd >/dev/null
+						git checkout ''' + branchCRWCTL + '''
+						# OLD WAY: CRW_TAG="''' + CSV_VERSION + '''"; CRW_TAG=${CRW_TAG%.*} # for 2.1.0 -> 2.1
+						# ./sync-chectl-to-crwctl.sh ${WORKSPACE}/chectl ${WORKSPACE}/crwctl_generated ${CRW_TAG} ${CRW_TAG}
+						./sync-chectl-to-crwctl.sh ${WORKSPACE}/chectl ${WORKSPACE}/crwctl_generated ${CRW_SERVER_TAG} ${CRW_OPERATOR_TAG}
+						# check for differences
+						set +x
+						for d in $(cd ${WORKSPACE}/crwctl_generated/; find src test -type f); do diff -u ${d} ${WORKSPACE}/crwctl_generated/${d} || true; done
+						# apply differences
+						rsync -aqrz ${WORKSPACE}/crwctl_generated/* .
+						git config user.email "nickboldt+devstudio-release@gmail.com"
+						git config user.name "Red Hat Devstudio Release Bot"
+						git config --global push.default matching
 
-			# ls -la
-			set -x
-			git add src/ test/ docs/
-			git commit -s -m "[sync] Push latest in chectl @ ''' + branchCHECTL + ''' to codeready-workspaces-chectl @ '''+branchCRWCTL+'''" . || true
-			git push origin '''+branchCRWCTL+''' || true
+						# SOLVED :: Fatal: Could not read Username for "https://github.com", No such device or address :: https://github.com/github/hub/issues/1644
+						git remote -v
+						git config --global hub.protocol https
+						git remote set-url origin https://\$GITHUB_TOKEN:x-oauth-basic@github.com/redhat-developer/''' + CTL_path + '''.git
+						git remote -v
 
-			#### 1. build using -redhat suffix and registry.redhat.io/codeready-workspaces/ URLs
+						# ls -la
+						set -x
+						git add src/ test/ docs/
+						git commit -s -m "[sync] Push latest in chectl @ ''' + branchCHECTL + ''' to codeready-workspaces-chectl @ '''+branchCRWCTL+'''" . || true
+						git push origin '''+branchCRWCTL+''' || true
 
-			# clean up from previous build if applicable
-			jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''-redhat\" '.version = $CHECTL_VERSION' package.json > package.json2; mv -f package.json2 package.json
-			git diff -u package.json
-			git tag -f "''' + CUSTOM_TAG + '''-redhat"
-			rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/
-			yarn && npx oclif-dev pack -t ''' + platforms + '''
-			# move from *-redhat/ (specific folder, generic name) to redhat/ (generic folder, specific name)
-			mv dist/channels/*redhat dist/channels/redhat
-			while IFS= read -r -d '' d; do
-				e=${d/redhat\\/crwctl/redhat\\/'''+TARBALL_PREFIX+'''-crwctl}
- 				mv ${d} ${e}
-			done <   <(find dist/channels/redhat -type f -name "*gz" -print0)
-			pwd; du ./dist/channels/*/*gz
+						#### 1. build using -redhat suffix and registry.redhat.io/codeready-workspaces/ URLs
 
-			git commit -s -m "[update] commit latest package.json + README.md" package.json README.md || true
-			git push origin '''+branchCRWCTL+''' || true
+						# clean up from previous build if applicable
+						jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''-redhat\" '.version = $CHECTL_VERSION' package.json > package.json2; mv -f package.json2 package.json
+						git diff -u package.json
+						git tag -f "''' + CUSTOM_TAG + '''-redhat"
+						rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/
+						if [[ "$(uname -m)" == "x86_64" ]] ; then 
+							yarn && npx oclif-dev pack -t ''' + platforms + '''
+						elif [[ "$(uname -m)" == "ppc64le" ]] ; then 
+							yarn && npx oclif-dev pack -t ''' + platform_p + '''
+						else 
+							yarn && npx oclif-dev pack -t ''' + platform_z + '''
+						fi
+						# move from *-redhat/ (specific folder, generic name) to redhat/ (generic folder, specific name)
+						mv dist/channels/*redhat dist/channels/redhat
+						while IFS= read -r -d '' d; do
+							e=${d/redhat\\/crwctl/redhat\\/'''+TARBALL_PREFIX+'''-crwctl}
+							mv ${d} ${e}
+						done <   <(find dist/channels/redhat -type f -name "*gz" -print0)
+						pwd; du ./dist/channels/*/*gz
 
-			#### 2. prepare branchCRWCTL-quay branch of crw operator repo
+						git commit -s -m "[update] commit latest package.json + README.md" package.json README.md || true
+						git push origin '''+branchCRWCTL+''' || true
 
-			# check out from branchCRWCTL
-			pushd ${WORKSPACE} >/dev/null
-				if [[ ! -d codeready-workspaces-operator/ ]]; then 
-					git clone https://github.com/redhat-developer/codeready-workspaces-operator.git
-				fi
-				cd codeready-workspaces-operator/
-				git config user.email "nickboldt+devstudio-release@gmail.com"
-				git config user.name "Red Hat Devstudio Release Bot"
-				git config --global push.default matching
-				# SOLVED :: Fatal: Could not read Username for "https://github.com", No such device or address :: https://github.com/github/hub/issues/1644
-				git remote -v
-				git config --global hub.protocol https
-				git remote set-url origin https://\$GITHUB_TOKEN:x-oauth-basic@github.com/redhat-developer/codeready-workspaces-operator.git
-				git remote -v
-				git branch '''+branchCRWCTL+'''-quay -f
-				git checkout '''+branchCRWCTL+'''-quay
-				# change files
-				# TODO when we move to OCP 4.6 bundle format, must switch to manifests/ folder & new path structure
-				FILES="deploy/operator.yaml deploy/operator-local.yaml manifests/codeready-workspaces.csv.yaml"
-				for d in ${FILES}; do
-					# point to quay image, and use :latest instead of :2.x tag
-					sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/(.+):(.+)#quay.io/crw/\\1:latest#g"
-				done
-				# push to '''+branchCRWCTL+'''-quay branch
-				git commit -s -m "[update] Push latest in '''+branchCRWCTL+''' to '''+branchCRWCTL+'''-quay branch" ${FILES}
-				git push origin '''+branchCRWCTL+'''-quay -f
-			popd >/dev/null
-			# cleanup
-			rm -fr ${WORKSPACE}/codeready-workspaces-operator/
- 
-			#### 3. now build using '''+branchCRWCTL+'''-quay branch, -quay suffix and quay.io/crw/ URLs
+						#### 2. prepare branchCRWCTL-quay branch of crw operator repo
 
-			YAML_REPO="`cat package.json | jq -r '.dependencies["codeready-workspaces-operator"]'`-quay"
-			jq -M --arg YAML_REPO \"${YAML_REPO}\" '.dependencies["codeready-workspaces-operator"] = $YAML_REPO' package.json > package.json2
-			jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''-quay\" '.version = $CHECTL_VERSION' package.json2 > package.json
-			git diff -u package.json
-			git tag -f "''' + CUSTOM_TAG + '''-quay"
-			rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo
-			yarn && npx oclif-dev pack -t ''' + platforms + '''
-			mv dist/channels/*quay dist/channels/latest
-			rm -fr dist/channels/quay; mkdir -p dist/channels/quay
-			# copy from latest/ (generic folder, generic name) to quay/ (generic folder, specific name)
-			# need this so E2E/CI jobs can access tarballs from generic folder and filename (name doesn't change between builds)
-			while IFS= read -r -d '' d; do
-				e=${d/latest\\/crwctl/quay\\/'''+TARBALL_PREFIX+'''-crwctl}
- 				cp ${d} ${e}
-			done <   <(find dist/channels/latest -type f -name "*gz" -print0)
-			pwd; du ./dist/channels/*/*gz
+						# check out from branchCRWCTL
+						pushd ${WORKSPACE} >/dev/null
+							if [[ ! -d codeready-workspaces-operator/ ]]; then 
+								git clone https://github.com/redhat-developer/codeready-workspaces-operator.git
+							fi
+							cd codeready-workspaces-operator/
+							git config user.email "nickboldt+devstudio-release@gmail.com"
+							git config user.name "Red Hat Devstudio Release Bot"
+							git config --global push.default matching
+							# SOLVED :: Fatal: Could not read Username for "https://github.com", No such device or address :: https://github.com/github/hub/issues/1644
+							git remote -v
+							git config --global hub.protocol https
+							git remote set-url origin https://\$GITHUB_TOKEN:x-oauth-basic@github.com/redhat-developer/codeready-workspaces-operator.git
+							git remote -v
+							git branch '''+branchCRWCTL+'''-quay -f
+							git checkout '''+branchCRWCTL+'''-quay
+							# change files
+							# TODO when we move to OCP 4.6 bundle format, must switch to manifests/ folder & new path structure
+							FILES="deploy/operator.yaml deploy/operator-local.yaml manifests/codeready-workspaces.csv.yaml"
+							for d in ${FILES}; do
+								# point to quay image, and use :latest instead of :2.x tag
+								sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/(.+):(.+)#quay.io/crw/\\1:latest#g"
+							done
+							# push to '''+branchCRWCTL+'''-quay branch
+							git commit -s -m "[update] Push latest in '''+branchCRWCTL+''' to '''+branchCRWCTL+'''-quay branch" ${FILES}
+							git push origin '''+branchCRWCTL+'''-quay -f
+						popd >/dev/null
+						# cleanup
+						rm -fr ${WORKSPACE}/codeready-workspaces-operator/
+			 
+						#### 3. now build using '''+branchCRWCTL+'''-quay branch, -quay suffix and quay.io/crw/ URLs
+
+						YAML_REPO="`cat package.json | jq -r '.dependencies["codeready-workspaces-operator"]'`-quay"
+						jq -M --arg YAML_REPO \"${YAML_REPO}\" '.dependencies["codeready-workspaces-operator"] = $YAML_REPO' package.json > package.json2
+						jq -M --arg CHECTL_VERSION \"''' + CHECTL_VERSION + '''-quay\" '.version = $CHECTL_VERSION' package.json2 > package.json
+						git diff -u package.json
+						git tag -f "''' + CUSTOM_TAG + '''-quay"
+						rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo
+						if [[ "$(uname -m)" == "x86_64" ]] ; then 
+							yarn && npx oclif-dev pack -t ''' + platforms + '''
+						elif [[ "$(uname -m)" == "ppc64le" ]] ; then 
+							yarn && npx oclif-dev pack -t ''' + platform_p + '''
+						else 
+							yarn && npx oclif-dev pack -t ''' + platform_z + '''
+						fi
+						mv dist/channels/*quay dist/channels/latest
+						rm -fr dist/channels/quay; mkdir -p dist/channels/quay
+						# copy from latest/ (generic folder, generic name) to quay/ (generic folder, specific name)
+						# need this so E2E/CI jobs can access tarballs from generic folder and filename (name doesn't change between builds)
+						while IFS= read -r -d '' d; do
+							e=${d/latest\\/crwctl/quay\\/'''+TARBALL_PREFIX+'''-crwctl}
+							cp ${d} ${e}
+						done <   <(find dist/channels/latest -type f -name "*gz" -print0)
+						pwd; du ./dist/channels/*/*gz
+						'''
+						def RELEASE_DESCRIPTION=""
+						if ("${versionSuffix}") {
+							RELEASE_DESCRIPTION="Stable release ${GITHUB_RELEASE_NAME}"
+						} else {
+							RELEASE_DESCRIPTION="CI release ${GITHUB_RELEASE_NAME}"
+						}
+
+						// Upload the artifacts and rename them on the fly to add ${TARBALL_PREFIX}-
+						if (PUBLISH_ARTIFACTS_TO_GITHUB.equals("true"))
+						{
+							def isPreRelease="true"; if ( "${versionSuffix}" == "GA" ) { isPreRelease="false"; }
+							sh "curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' --data '{\"tag_name\": \"${CUSTOM_TAG}\", \"target_commitish\": \"${branchCRWCTL}\", \"name\": \"${GITHUB_RELEASE_NAME}\", \"body\": \"${RELEASE_DESCRIPTION}\", \"draft\": false, \"prerelease\": ${isPreRelease}}' https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}"
+
+							// Extract the id of the release from the creation response
+							def RELEASE_ID=sh(returnStdout:true,script:"jq -r .id /tmp/${CUSTOM_TAG}").trim()
+							sh "cd ${CTL_path}/dist/channels/quay/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @${TARBALL_PREFIX}-crwctl-linux-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-linux-x64.tar.gz"
+							sh "cd ${CTL_path}/dist/channels/quay/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @${TARBALL_PREFIX}-crwctl-win32-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-win32-x64.tar.gz"
+							sh "cd ${CTL_path}/dist/channels/quay/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @${TARBALL_PREFIX}-crwctl-darwin-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-darwin-x64.tar.gz"
+							sh "cd ${CTL_path}/dist/channels/quay/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @${TARBALL_PREFIX}-crwctl-linux-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-linux-ppc64le.tar.gz"
+							sh "cd ${CTL_path}/dist/channels/quay/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @${TARBALL_PREFIX}-crwctl-linux-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-linux-s390x.tar.gz"
+							// refresh github pages
+							sh "cd ${CTL_path}/ && git clone https://devstudio-release:${GITHUB_TOKEN}@github.com/redhat-developer/codeready-workspaces-chectl -b gh-pages --single-branch gh-pages"
+							sh "cd ${CTL_path}/ && echo \$(date +%s) > gh-pages/update"
+							sh "cd ${CTL_path}/gh-pages && git add update && git commit -m \"Update github pages\" && git push origin gh-pages"
+						}
+
+						archiveArtifacts fingerprint: false, artifacts:"**/*.log, **/*logs/**, **/dist/**/*.tar.gz, **/dist/*.json, **/dist/linux-x64, **/dist/win32-x64, **/dist/darwin-x64, **/dist/linux-ppc64le, **/dist/linux-s390x"
+
+						// Upload the artifacts and sources to RCM_GUEST server
+						if (PUBLISH_ARTIFACTS_TO_RCM.equals("true"))
+						{
+							sh '''#!/bin/bash -xe
+
+			# bootstrapping: if keytab is lost, upload to 
+			# https://codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com/credentials/store/system/domain/_/
+			# then set Use secret text above and set Bindings > Variable (path to the file) as ''' + CRW_KEYTAB + '''
+			chmod 700 ''' + CRW_KEYTAB + ''' && chown ''' + USER + ''' ''' + CRW_KEYTAB + '''
+			# create .k5login file
+			echo "crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM" > ~/.k5login
+			chmod 644 ~/.k5login && chown ''' + USER + ''' ~/.k5login
+			echo "pkgs.devel.redhat.com,10.19.208.80 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAplqWKs26qsoaTxvWn3DFcdbiBxqRLhFngGiMYhbudnAj4li9/VwAJqLm1M6YfjOoJrj9dlmuXhNzkSzvyoQODaRgsjCG5FaRjuN8CSM/y+glgCYsWX1HFZSnAasLDuW0ifNLPR2RBkmWx61QKq+TxFDjASBbBywtupJcCsA5ktkjLILS+1eWndPJeSUJiOtzhoN8KIigkYveHSetnxauxv1abqwQTk5PmxRgRt20kZEFSRqZOJUlcl85sZYzNC/G7mneptJtHlcNrPgImuOdus5CW+7W49Z/1xqqWI/iRjwipgEMGusPMlSzdxDX4JzIx6R53pDpAwSAQVGDz4F9eQ==
+			rcm-guest.app.eng.bos.redhat.com,10.16.101.129 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEApd6cnyFVRnS2EFf4qeNvav0o+xwd7g7AYeR9dxzJmCR3nSoVHA4Q/kV0qvWkyuslvdA41wziMgSpwq6H/DPLt41RPGDgJ5iGB5/EDo3HAKfnFmVAXzYUrJSrYd25A1eUDYHLeObtcL/sC/5bGPp/0deohUxLtgyLya4NjZoYPQY8vZE6fW56/CTyTdCEWohDRUqX76sgKlVBkYVbZ3uj92GZ9M88NgdlZk74lOsy5QiMJsFQ6cpNw+IPW3MBCd5NHVYFv/nbA3cTJHy25akvAwzk8Oi3o9Vo0Z4PSs2SsD9K9+UvCfP1TUTI4PXS8WpJV6cxknprk0PSIkDdNODzjw==
+			" >> ~/.ssh/known_hosts
+
+			ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+
+			# see https://mojo.redhat.com/docs/DOC-1071739
+			if [[ -f ~/.ssh/config ]]; then mv -f ~/.ssh/config{,.BAK}; fi
+			echo "
+			GSSAPIAuthentication yes
+			GSSAPIDelegateCredentials yes
+
+			Host pkgs.devel.redhat.com
+			User crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM
+			" > ~/.ssh/config
+			chmod 600 ~/.ssh/config
+
+			# initialize kerberos
+			export KRB5CCNAME=/var/tmp/crw-build_ccache
+			kinit "crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM" -kt ''' + CRW_KEYTAB + '''
+			klist # verify working
+
+			# generate source tarball
+			pushd ${WORKSPACE}/''' + CTL_path + ''' >/dev/null
+				# purge generated binaries and temp files
+				rm -fr coverage/ lib/ node_modules/ templates/ tmp/ 
+				tar czf ${WORKSPACE}/''' + TARBALL_PREFIX + '''-crwctl-sources.tar.gz --exclude=dist/ ./*
+			popd >/dev/null 
+
+			# set up sshfs mount
+			DESTHOST="crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@rcm-guest.app.eng.bos.redhat.com"
+			RCMG="${DESTHOST}:/mnt/rcm-guest/staging/crw"
+			sshfs --version
+			for mnt in RCMG; do 
+			  mkdir -p ${WORKSPACE}/${mnt}-ssh; 
+			  if [[ $(file ${WORKSPACE}/${mnt}-ssh 2>&1) == *"Transport endpoint is not connected"* ]]; then fusermount -uz ${WORKSPACE}/${mnt}-ssh; fi
+			  if [[ ! -d ${WORKSPACE}/${mnt}-ssh/crw ]]; then  sshfs ${!mnt} ${WORKSPACE}/${mnt}-ssh; fi
+			done
+
+			# copy files to rcm-guest
+			ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw && mkdir -p CRW-''' + CSV_VERSION + '''/ && ls -la . "
+			rsync -Pzrlt --rsh=ssh --protocol=28 \
+				${WORKSPACE}/''' + TARBALL_PREFIX + '''-crwctl-sources.tar.gz \
+				${WORKSPACE}/''' + CTL_path + '''/dist/channels/redhat/*gz \
+				${WORKSPACE}/${mnt}-ssh/CRW-''' + CSV_VERSION + '''/
+			ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw/CRW-''' + CSV_VERSION + '''/ && ls -la ''' + TARBALL_PREFIX + '''*"
+			ssh "${DESTHOST}" "/mnt/redhat/scripts/rel-eng/utility/bus-clients/stage-mw-release CRW-''' + CSV_VERSION + '''"
 			'''
-			def RELEASE_DESCRIPTION=""
-			if ("${versionSuffix}") {
-				RELEASE_DESCRIPTION="Stable release ${GITHUB_RELEASE_NAME}"
-			} else {
-				RELEASE_DESCRIPTION="CI release ${GITHUB_RELEASE_NAME}"
-			}
+						}
 
-			// Upload the artifacts and rename them on the fly to add ${TARBALL_PREFIX}-
-			if (PUBLISH_ARTIFACTS_TO_GITHUB.equals("true"))
-			{
-				def isPreRelease="true"; if ( "${versionSuffix}" == "GA" ) { isPreRelease="false"; }
-				sh "curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' --data '{\"tag_name\": \"${CUSTOM_TAG}\", \"target_commitish\": \"${branchCRWCTL}\", \"name\": \"${GITHUB_RELEASE_NAME}\", \"body\": \"${RELEASE_DESCRIPTION}\", \"draft\": false, \"prerelease\": ${isPreRelease}}' https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}"
-
-				// Extract the id of the release from the creation response
-				def RELEASE_ID=sh(returnStdout:true,script:"jq -r .id /tmp/${CUSTOM_TAG}").trim()
-
-				sh "cd ${CTL_path}/dist/channels/quay/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @${TARBALL_PREFIX}-crwctl-linux-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-linux-x64.tar.gz"
-				sh "cd ${CTL_path}/dist/channels/quay/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @${TARBALL_PREFIX}-crwctl-win32-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-win32-x64.tar.gz"
-				sh "cd ${CTL_path}/dist/channels/quay/ && curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' --data-binary @${TARBALL_PREFIX}-crwctl-darwin-x64.tar.gz https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-darwin-x64.tar.gz"
-				// refresh github pages
-				sh "cd ${CTL_path}/ && git clone https://devstudio-release:${GITHUB_TOKEN}@github.com/redhat-developer/codeready-workspaces-chectl -b gh-pages --single-branch gh-pages"
-				sh "cd ${CTL_path}/ && echo \$(date +%s) > gh-pages/update"
-				sh "cd ${CTL_path}/gh-pages && git add update && git commit -m \"Update github pages\" && git push origin gh-pages"
-			}
-
-			archiveArtifacts fingerprint: false, artifacts:"**/*.log, **/*logs/**, **/dist/**/*.tar.gz, **/dist/*.json, **/dist/linux-x64, **/dist/win32-x64, **/dist/darwin-x64"
-
-			// Upload the artifacts and sources to RCM_GUEST server
-			if (PUBLISH_ARTIFACTS_TO_RCM.equals("true"))
-			{
-            	sh '''#!/bin/bash -xe
-
-# bootstrapping: if keytab is lost, upload to 
-# https://codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com/credentials/store/system/domain/_/
-# then set Use secret text above and set Bindings > Variable (path to the file) as ''' + CRW_KEYTAB + '''
-chmod 700 ''' + CRW_KEYTAB + ''' && chown ''' + USER + ''' ''' + CRW_KEYTAB + '''
-# create .k5login file
-echo "crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM" > ~/.k5login
-chmod 644 ~/.k5login && chown ''' + USER + ''' ~/.k5login
-echo "pkgs.devel.redhat.com,10.19.208.80 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAplqWKs26qsoaTxvWn3DFcdbiBxqRLhFngGiMYhbudnAj4li9/VwAJqLm1M6YfjOoJrj9dlmuXhNzkSzvyoQODaRgsjCG5FaRjuN8CSM/y+glgCYsWX1HFZSnAasLDuW0ifNLPR2RBkmWx61QKq+TxFDjASBbBywtupJcCsA5ktkjLILS+1eWndPJeSUJiOtzhoN8KIigkYveHSetnxauxv1abqwQTk5PmxRgRt20kZEFSRqZOJUlcl85sZYzNC/G7mneptJtHlcNrPgImuOdus5CW+7W49Z/1xqqWI/iRjwipgEMGusPMlSzdxDX4JzIx6R53pDpAwSAQVGDz4F9eQ==
-rcm-guest.app.eng.bos.redhat.com,10.16.101.129 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEApd6cnyFVRnS2EFf4qeNvav0o+xwd7g7AYeR9dxzJmCR3nSoVHA4Q/kV0qvWkyuslvdA41wziMgSpwq6H/DPLt41RPGDgJ5iGB5/EDo3HAKfnFmVAXzYUrJSrYd25A1eUDYHLeObtcL/sC/5bGPp/0deohUxLtgyLya4NjZoYPQY8vZE6fW56/CTyTdCEWohDRUqX76sgKlVBkYVbZ3uj92GZ9M88NgdlZk74lOsy5QiMJsFQ6cpNw+IPW3MBCd5NHVYFv/nbA3cTJHy25akvAwzk8Oi3o9Vo0Z4PSs2SsD9K9+UvCfP1TUTI4PXS8WpJV6cxknprk0PSIkDdNODzjw==
-" >> ~/.ssh/known_hosts
-
-ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
-
-# see https://mojo.redhat.com/docs/DOC-1071739
-if [[ -f ~/.ssh/config ]]; then mv -f ~/.ssh/config{,.BAK}; fi
-echo "
-GSSAPIAuthentication yes
-GSSAPIDelegateCredentials yes
-
-Host pkgs.devel.redhat.com
-User crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM
-" > ~/.ssh/config
-chmod 600 ~/.ssh/config
-
-# initialize kerberos
-export KRB5CCNAME=/var/tmp/crw-build_ccache
-kinit "crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM" -kt ''' + CRW_KEYTAB + '''
-klist # verify working
-
-# generate source tarball
-pushd ${WORKSPACE}/''' + CTL_path + ''' >/dev/null
-	# purge generated binaries and temp files
-	rm -fr coverage/ lib/ node_modules/ templates/ tmp/ 
-	tar czf ${WORKSPACE}/''' + TARBALL_PREFIX + '''-crwctl-sources.tar.gz --exclude=dist/ ./*
-popd >/dev/null 
-
-# set up sshfs mount
-DESTHOST="crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@rcm-guest.app.eng.bos.redhat.com"
-RCMG="${DESTHOST}:/mnt/rcm-guest/staging/crw"
-sshfs --version
-for mnt in RCMG; do 
-  mkdir -p ${WORKSPACE}/${mnt}-ssh; 
-  if [[ $(file ${WORKSPACE}/${mnt}-ssh 2>&1) == *"Transport endpoint is not connected"* ]]; then fusermount -uz ${WORKSPACE}/${mnt}-ssh; fi
-  if [[ ! -d ${WORKSPACE}/${mnt}-ssh/crw ]]; then  sshfs ${!mnt} ${WORKSPACE}/${mnt}-ssh; fi
-done
-
-# copy files to rcm-guest
-ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw && mkdir -p CRW-''' + CSV_VERSION + '''/ && ls -la . "
-rsync -Pzrlt --rsh=ssh --protocol=28 \
-    ${WORKSPACE}/''' + TARBALL_PREFIX + '''-crwctl-sources.tar.gz \
-    ${WORKSPACE}/''' + CTL_path + '''/dist/channels/redhat/*gz \
-    ${WORKSPACE}/${mnt}-ssh/CRW-''' + CSV_VERSION + '''/
-ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw/CRW-''' + CSV_VERSION + '''/ && ls -la ''' + TARBALL_PREFIX + '''*"
-ssh "${DESTHOST}" "/mnt/redhat/scripts/rel-eng/utility/bus-clients/stage-mw-release CRW-''' + CSV_VERSION + '''"
-'''
-			}
-
-			if (!PUBLISH_ARTIFACTS_TO_GITHUB.equals("true") && !PUBLISH_ARTIFACTS_TO_RCM.equals("true")) {
-				echo 'PUBLISH_ARTIFACTS_TO_GITHUB != true, so nothing published to github.'
-				echo 'PUBLISH_ARTIFACTS_TO_RCM != true, so nothing published to RCM_GUEST.'
-				currentBuild.description = GITHUB_RELEASE_NAME + " not published"
-			} else if (!PUBLISH_ARTIFACTS_TO_GITHUB.equals("true") && PUBLISH_ARTIFACTS_TO_RCM.equals("true")) {
-				currentBuild.description = "Published to RCM: " + GITHUB_RELEASE_NAME
-			} else if (PUBLISH_ARTIFACTS_TO_GITHUB.equals("true") && !PUBLISH_ARTIFACTS_TO_RCM.equals("true")) {
-				currentBuild.description = "<a href=https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME + ">" + GITHUB_RELEASE_NAME + "</a>"
-			} else if (PUBLISH_ARTIFACTS_TO_GITHUB.equals("true") && PUBLISH_ARTIFACTS_TO_RCM.equals("true")) {
-				currentBuild.description = "<a href=https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME + ">" + GITHUB_RELEASE_NAME + "</a>; published to RCM"
+						if (!PUBLISH_ARTIFACTS_TO_GITHUB.equals("true") && !PUBLISH_ARTIFACTS_TO_RCM.equals("true")) {
+							echo 'PUBLISH_ARTIFACTS_TO_GITHUB != true, so nothing published to github.'
+							echo 'PUBLISH_ARTIFACTS_TO_RCM != true, so nothing published to RCM_GUEST.'
+							currentBuild.description = GITHUB_RELEASE_NAME + " not published"
+						} else if (!PUBLISH_ARTIFACTS_TO_GITHUB.equals("true") && PUBLISH_ARTIFACTS_TO_RCM.equals("true")) {
+							currentBuild.description = "Published to RCM: " + GITHUB_RELEASE_NAME
+						} else if (PUBLISH_ARTIFACTS_TO_GITHUB.equals("true") && !PUBLISH_ARTIFACTS_TO_RCM.equals("true")) {
+							currentBuild.description = "<a href=https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME + ">" + GITHUB_RELEASE_NAME + "</a>"
+						} else if (PUBLISH_ARTIFACTS_TO_GITHUB.equals("true") && PUBLISH_ARTIFACTS_TO_RCM.equals("true")) {
+							currentBuild.description = "<a href=https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/" + GITHUB_RELEASE_NAME + ">" + GITHUB_RELEASE_NAME + "</a>; published to RCM"
+						}
+					}
+				  } catch (e) {
+					// If there was an exception thrown, the build failed
+					currentBuild.result = "FAILED"
+					throw e
+				  } finally {
+					// If success or failure, send notifications
+					notifyBuild(currentBuild.result, " :: " + "${currentBuild.description}")
+				  }
+				}
 			}
 		}
-	  } catch (e) {
-		// If there was an exception thrown, the build failed
-		currentBuild.result = "FAILED"
-		throw e
-	  } finally {
-		// If success or failure, send notifications
-		notifyBuild(currentBuild.result, " :: " + "${currentBuild.description}")
-	  }
 	}
+}
+
+stage("${CTL_path} Builds") {
+    parallel(tasks)
 }
 
 def notifyBuild(String buildStatus = 'STARTED', String buildDesc = '') {
@@ -363,3 +403,4 @@ ${env.BUILD_URL}/flowGraphTable
 
   // NOTE: slackSend plugin is incompatible with Kerberos SSO plugin on our Jenkins
 }
+
