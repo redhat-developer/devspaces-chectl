@@ -113,6 +113,9 @@ pushd "${TARGETDIR}" >/dev/null
 		sed -r -e "s#INSERT-CONTENT-HERE#${installerString}#" -i "${TARGETDIR}/${d}"
 		# Remove --domain flag
 		sed -i '/domain: string({/,/}),/d' "${TARGETDIR}/${d}"
+		# Change multi-user flag description. Code Ready Workspaces support multi-user by default. https://issues.redhat.com/browse/CRW-1174
+		sed -i "s|'Starts CodeReady Workspaces in multi-user mode'|\`Starts CodeReady Workspaces in multi-user mode.\n\ \
+		                Note, this option is turned on by default.\`|g" "${TARGETDIR}/${d}"
 	done
 popd >/dev/null
 
