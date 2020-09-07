@@ -111,6 +111,11 @@ pushd "${TARGETDIR}" >/dev/null
 
 		perl -0777 -p -i -e 's|(\ +installer: string\({.*?}\),)| ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
 		sed -r -e "s#INSERT-CONTENT-HERE#${installerString}#" -i "${TARGETDIR}/${d}"
+		# Remove --domain flag
+		sed -i '/domain: string({/,/}),/d' "${TARGETDIR}/${d}"
+		# Change multi-user flag description. Code Ready Workspaces support multi-user by default. https://issues.redhat.com/browse/CRW-1174
+		sed -i "s|'Starts CodeReady Workspaces in multi-user mode'|\`Starts CodeReady Workspaces in multi-user mode.\n\ \
+		                Note, this option is turned on by default.\`|g" "${TARGETDIR}/${d}"
 	done
 popd >/dev/null
 
@@ -120,7 +125,8 @@ pushd "${TARGETDIR}" >/dev/null
 	mkdir -p "${TARGETDIR}/${d%/*}"
 	sed -r \
 		`# replace line after specified one with new default` \
-		-e "/description: 'Kubernetes namespace/{n;s/.+/  default: 'workspaces',/}" \
+		-e "s|Kubernetes namespace|Openshift Project|g" \
+		-e "/description: 'Openshift Project/{n;s/.+/  default: 'workspaces',/}" \
 		-e "/description: .+ deployment name.+/{n;s/.+/  default: 'codeready',/}" \
 		-i "${TARGETDIR}/${d}"
 popd >/dev/null
