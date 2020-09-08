@@ -73,7 +73,8 @@ export default class Start extends Command {
     }),
     multiuser: flags.boolean({
       char: 'm',
-      description: 'Starts CodeReady Workspaces in multi-user mode',
+      description: `Starts CodeReady Workspaces in multi-user mode.
+ 		                Note, this option is turned on by default.`,
       default: false
     }),
     tls: flags.boolean({
@@ -99,16 +100,6 @@ export default class Start extends Command {
       char: 'a',
       description: 'Installer type. If not set, default is olm for OpenShift >= 4.2, and operator for earlier versions.',
       options: ['olm', 'operator']
-    }),
-    domain: string({
-      char: 'b',
-      description: `Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
-                    This flag makes sense only for Kubernetes family infrastructures and will be autodetected for Minikube and MicroK8s in most cases.
-                    However, for Kubernetes cluster it is required to specify.
-                    Please note, that just setting this flag will not likely work out of the box.
-                    According changes should be done in Kubernetes cluster configuration as well.
-                    In case of Openshift, domain adjustment should be done on the cluster configuration level.`,
-      default: ''
     }),
     debug: boolean({
       description: 'Enables the debug mode for CodeReady Workspaces server. To debug CodeReady Workspaces server from localhost use \'server:debug\' command.',
