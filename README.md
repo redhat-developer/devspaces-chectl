@@ -115,7 +115,7 @@ OPTIONS
       show CLI help
 
   -n, --chenamespace=chenamespace
-      [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is supposed to be deployed
+      [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed to be deployed
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
@@ -134,8 +134,8 @@ USAGE
 OPTIONS
   -h, --help                       show CLI help
 
-  -n, --chenamespace=chenamespace  [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is
-                                   supposed to be deployed
+  -n, --chenamespace=chenamespace  [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed
+                                   to be deployed
 ```
 
 _See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.4.0-CI-redhat/src/commands/dashboard/open.ts)_
@@ -200,8 +200,8 @@ USAGE
 OPTIONS
   -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
-                                           is supposed to be deployed
+  -n, --chenamespace=chenamespace          [default: workspaces] Openshift Project where CodeReady Workspaces server is
+                                           supposed to be deployed
 
   --debug-port=debug-port                  [default: 8000] CodeReady Workspaces server debug port
 
@@ -223,8 +223,8 @@ USAGE
 OPTIONS
   -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
-                                           is supposed to be deployed
+  -n, --chenamespace=chenamespace          [default: workspaces] Openshift Project where CodeReady Workspaces server is
+                                           supposed to be deployed
 
   --deployment-name=deployment-name        [default: codeready] CodeReady Workspaces deployment name
 
@@ -249,8 +249,8 @@ OPTIONS
   -d, --directory=directory                Directory to store logs into
   -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
-                                           is supposed to be deployed
+  -n, --chenamespace=chenamespace          [default: workspaces] Openshift Project where CodeReady Workspaces server is
+                                           supposed to be deployed
 
   --deployment-name=deployment-name        [default: codeready] CodeReady Workspaces deployment name
 
@@ -273,15 +273,6 @@ OPTIONS
   -a, --installer=olm|operator
       Installer type. If not set, default is olm for OpenShift >= 4.2, and operator for earlier versions.
 
-  -b, --domain=domain
-      Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
-                           This flag makes sense only for Kubernetes family infrastructures and will be autodetected for 
-      Minikube and MicroK8s in most cases.
-                           However, for Kubernetes cluster it is required to specify.
-                           Please note, that just setting this flag will not likely work out of the box.
-                           According changes should be done in Kubernetes cluster configuration as well.
-                           In case of Openshift, domain adjustment should be done on the cluster configuration level.
-
   -d, --directory=directory
       Directory to store logs into
 
@@ -292,10 +283,11 @@ OPTIONS
       [default: registry.redhat.io/codeready-workspaces/server-rhel8:2.4] CodeReady Workspaces server container image
 
   -m, --multiuser
-      Starts CodeReady Workspaces in multi-user mode
+      Starts CodeReady Workspaces in multi-user mode.
+        		                Note, this option is turned on by default.
 
   -n, --chenamespace=chenamespace
-      [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is supposed to be deployed
+      [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed to be deployed
 
   -o, --cheboottimeout=cheboottimeout
       (required) [default: 40000] CodeReady Workspaces server bootstrap timeout (in milliseconds)
@@ -424,8 +416,8 @@ USAGE
 OPTIONS
   -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
-                                           is supposed to be deployed
+  -n, --chenamespace=chenamespace          [default: workspaces] Openshift Project where CodeReady Workspaces server is
+                                           supposed to be deployed
 
   --access-token=access-token              CodeReady Workspaces OIDC Access Token
 
@@ -455,8 +447,8 @@ OPTIONS
 
   -h, --help                               show CLI help
 
-  -n, --chenamespace=chenamespace          [default: workspaces] Kubernetes namespace where CodeReady Workspaces server
-                                           is supposed to be deployed
+  -n, --chenamespace=chenamespace          [default: workspaces] Openshift Project where CodeReady Workspaces server is
+                                           supposed to be deployed
 
   -p, --platform=openshift|crc             [default: openshift] Type of OpenShift platform. Valid values are
                                            "openshift", "crc (for CodeReady Containers)".
@@ -505,8 +497,8 @@ OPTIONS
 
   -h, --help                       show CLI help
 
-  -n, --chenamespace=chenamespace  [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is
-                                   supposed to be deployed
+  -n, --chenamespace=chenamespace  [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed
+                                   to be deployed
 
   -s, --start                      Starts the workspace after creation
 
@@ -534,8 +526,8 @@ ARGUMENTS
 OPTIONS
   -h, --help                       show CLI help
 
-  -n, --chenamespace=chenamespace  [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is
-                                   supposed to be deployed
+  -n, --chenamespace=chenamespace  [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed
+                                   to be deployed
 
   --access-token=access-token      CodeReady Workspaces OIDC Access Token
 
@@ -563,8 +555,8 @@ OPTIONS
 
   -k, --kubeconfig                 (required) Inject the local Kubernetes configuration
 
-  -n, --chenamespace=chenamespace  [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is
-                                   supposed to be deployed
+  -n, --chenamespace=chenamespace  [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed
+                                   to be deployed
 
   -w, --workspace=workspace        The workspace id to inject configuration into. It can be omitted if the only one
                                    running workspace exists.
@@ -591,8 +583,8 @@ USAGE
 OPTIONS
   -h, --help                       show CLI help
 
-  -n, --chenamespace=chenamespace  [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is
-                                   supposed to be deployed
+  -n, --chenamespace=chenamespace  [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed
+                                   to be deployed
 
   --access-token=access-token      CodeReady Workspaces OIDC Access Token
 
@@ -643,8 +635,8 @@ OPTIONS
 
   -h, --help                       show CLI help
 
-  -n, --chenamespace=chenamespace  [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is
-                                   supposed to be deployed
+  -n, --chenamespace=chenamespace  [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed
+                                   to be deployed
 
   --access-token=access-token      CodeReady Workspaces OIDC Access Token
 
@@ -667,8 +659,8 @@ ARGUMENTS
 OPTIONS
   -h, --help                       show CLI help
 
-  -n, --chenamespace=chenamespace  [default: workspaces] Kubernetes namespace where CodeReady Workspaces server is
-                                   supposed to be deployed
+  -n, --chenamespace=chenamespace  [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed
+                                   to be deployed
 
   --access-token=access-token      CodeReady Workspaces OIDC Access Token
 
