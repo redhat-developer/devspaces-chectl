@@ -8,8 +8,8 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-export const DEFAULT_CHE_IMAGE = 'registry.redhat.io/codeready-workspaces/server-rhel8:2.4'
-export const DEFAULT_CHE_OPERATOR_IMAGE = 'registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.4'
+export const DEFAULT_CHE_IMAGE = 'registry.redhat.io/codeready-workspaces/server-rhel8:2.5'
+export const DEFAULT_CHE_OPERATOR_IMAGE = 'registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.5'
 
 // This image should be updated manually when needed.
 // Repository location: https://github.com/che-dockerfiles/che-cert-manager-ca-cert-generator-image
