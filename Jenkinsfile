@@ -1,18 +1,20 @@
 #!/usr/bin/env groovy
 
+import groovy.transform.Field
+
 // PARAMETERS for this pipeline:
-// branchCHECTL      = branch or tag of https://github.com/che-incubator/chectl - 7.20.x or master
-// branchCRWCTL      = branch or tag of https://redhat-developer/codeready-workspaces-chectl - crw-2.5-rhel-8
+@Field String branchCHECTL = "7.19.x" // branch or tag of https://github.com/che-incubator/chectl
+@Field String branchCRWCTL = "crw-2.5-rhel-8" // branch or tag of https://redhat-developer/codeready-workspaces-chectl
 // CSV_VERSION       = Full version (x.y.z), used in CSV and crwctl version
-// CRW_SERVER_TAG    = default to 2.3, but can override and set 2.3-zz for GA release
-// CRW_OPERATOR_TAG  = default to 2.3, but can override and set 2.3-zz for GA release
-// versionSuffix     = if set, use as version suffix before commitSHA, eg., RC --> 2.3.0-RC-commitSHA;
+// CRW_SERVER_TAG    = default to 2.5, but can override and set 2.5-zz for GA release
+// CRW_OPERATOR_TAG  = default to 2.5, but can override and set 2.5-zz for GA release
+// versionSuffix     = if set, use as version suffix before commitSHA, eg., RC --> 2.5.0-RC-commitSHA;
 //                     if unset, version is CSV_VERSION-YYYYmmdd-commitSHA
 //                  :: NOTE: yarn will fail for version = x.y.z.a but works with x.y.z-a
 // PUBLISH_ARTIFACTS_TO_GITHUB = default false; check box to publish to GH releases
 // PUBLISH_ARTIFACTS_TO_RCM    = default false; check box to upload sources + binaries to RCM for a GA release ONLY
 
-def CRW_OPERATOR_DEPLOY_BRANCH=branchCRWCTL // eg., "crw-2.5-rhel-8"
+def CRW_OPERATOR_DEPLOY_BRANCH=branchCRWCTL 
 
 def installNPM(){
 	def yarnVersion="1.17.3"
