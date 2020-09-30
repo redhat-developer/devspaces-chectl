@@ -13,7 +13,7 @@ import * as Listr from 'listr'
 import { CheHelper } from '../api/che'
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
-import { DOCS_LINK_AUTH_TO_CHE_SERVER_VIA_OPENID } from '../constants'
+import { DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH } from '../constants'
 
 import { KubeTasks } from './kube'
 
@@ -45,6 +45,8 @@ export class CheTasks {
   pluginRegistrySelector = 'app=codeready,component=plugin-registry'
 
   cheOperatorSelector = 'app=codeready-operator'
+
+  cheConsoleLinkName = 'che'
 
   constructor(flags: any) {
     this.kube = new KubeHelper(flags)
@@ -254,11 +256,7 @@ export class CheTasks {
     return [{
       title: 'Stop CodeReady Workspaces server and wait until it\'s ready to shutdown',
       enabled: (ctx: any) => !ctx.isCheStopped,
-      task: async (ctx: any, task: any) => {
-        if (ctx.isAuthEnabled && !this.cheAccessToken) {
-          command.error('E_AUTH_REQUIRED - CodeReady Workspaces authentication is enabled and an access token need to be provided (flag --access-token). ' +
-            `For instructions to retrieve a valid access token refer to ${DOCS_LINK_AUTH_TO_CHE_SERVER_VIA_OPENID}`)
-        }
+      task: async (task: any) => {
         try {
           const cheURL = await this.che.cheURL(this.cheNamespace)
           await this.che.startShutdown(cheURL, this.cheAccessToken)
@@ -419,6 +417,18 @@ export class CheTasks {
           }
           task.title = await `${task.title}...OK`
         }
+      },
+      {
+        title: `Delete consoleLink ${this.cheConsoleLinkName}`,
+        task: async (_ctx: any, task: any) => {
+          const consoleLinkExists = await this.kube.consoleLinkExists(this.cheConsoleLinkName)
+          const checlusters = await this.kube.getAllCheCluster()
+          // Delete the consoleLink only in case if there no more checluster installed
+          if (checlusters.length === 0 && consoleLinkExists) {
+            await this.kube.deleteConsoleLink(this.cheConsoleLinkName)
+          }
+          task.title = `${task.title}...OK`
+        }
       }]
   }
 
@@ -465,12 +475,25 @@ export class CheTasks {
     ]
   }
 
+  deleteNamespace(flags: any): ReadonlyArray<Listr.ListrTask> {
+    return [{
+      title: `Delete namespace ${flags.chenamespace}`,
+      task: async (task: any) => {
+        const namespaceExist = await this.kube.namespaceExist(flags.chenamespace)
+        if (namespaceExist) {
+          await this.kube.deleteNamespace(flags.chenamespace)
+        }
+        task.title = `${task.title}...OK`
+      }
+    }]
+  }
+
   verifyCheNamespaceExistsTask(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     return [{
       title: `Verify if namespace '${flags.chenamespace}' exists`,
       task: async () => {
         if (!await this.che.cheNamespaceExist(flags.chenamespace)) {
-          command.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist. The configuration cannot be injected.\nFix with: verify the namespace where workspace is running (kubectl get --all-namespaces deployment | grep workspace)`, { code: 'EBADNS' })
+          command.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist.`, { code: 'EBADNS' })
         }
       }
     }]
@@ -534,18 +557,6 @@ export class CheTasks {
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.devfileRegistrySelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
-        }
-      }
-    ]
-  }
-
-  workspaceLogsTasks(namespace: string, workspaceId: string): ReadonlyArray<Listr.ListrTask> {
-    return [
-      {
-        title: 'Read workspace logs',
-        task: async (ctx: any, task: any) => {
-          ctx['workspace-run'] = await this.che.readWorkspacePodLog(namespace, workspaceId, ctx.directory)
-          task.title = `${task.title}...done`
         }
       }
     ]
@@ -625,7 +636,8 @@ export class CheTasks {
         task: async (ctx: any, task: any) => {
           ctx.isAuthEnabled = await this.che.isAuthenticationEnabled(ctx.cheURL)
           if (ctx.isAuthEnabled && !this.cheAccessToken) {
-            throw new Error('E_AUTH_REQUIRED - CodeReady Workspaces authentication is enabled but access token is missed. Use --access-token to provide access token.')
+            throw new Error('E_AUTH_REQUIRED - CodeReady Workspaces authentication is enabled and an access token is needed to be provided (flag --access-token). ' +
+              `See the documentation how to obtain token: ${DOC_LINK_OBTAIN_ACCESS_TOKEN} and ${DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH}.`)
           }
           task.title = `${task.title}... ${ctx.isAuthEnabled ? '(auth enabled)' : '(auth disabled)'}`
         }

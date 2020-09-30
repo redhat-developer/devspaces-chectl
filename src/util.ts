@@ -72,6 +72,26 @@ export function base64Decode(arg: string): string {
  */
 export function isStableVersion(flags: any): boolean {
   const operatorImage = flags['che-operator-image'] || DEFAULT_CHE_OPERATOR_IMAGE
-  const cheVersion = operatorImage.split(':')[1]
-  return cheVersion !== 'nightly' && cheVersion !== 'latest'
+  const cheVersion = getImageTag(operatorImage)
+  return cheVersion !== 'nightly' && cheVersion !== 'latest' && !flags['catalog-source-yaml'] && !flags['catalog-source-name']
+}
+
+/**
+ * Returns the tag of the image.
+ */
+export function getImageTag(image: string): string | undefined {
+  let entries = image.split('@')
+  if (entries.length === 2) {
+    // digest
+    return entries[1]
+  }
+
+  entries = image.split(':')
+  // tag
+  return entries[1]
+}
+
+export function sleep(ms: number): Promise<void> {
+  // tslint:disable-next-line no-string-based-set-timeout
+  return new Promise(resolve => setTimeout(resolve, ms))
 }

@@ -10,6 +10,7 @@
 
 export const DEFAULT_CHE_IMAGE = 'registry.redhat.io/codeready-workspaces/server-rhel8:2.5'
 export const DEFAULT_CHE_OPERATOR_IMAGE = 'registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.5'
+export const DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE = 'quay.io/devfile/devworkspace-controller:sha-8c503ad'
 
 // This image should be updated manually when needed.
 // Repository location: https://github.com/che-dockerfiles/che-cert-manager-ca-cert-generator-image
@@ -25,6 +26,7 @@ export const CHE_CLUSTER_CRD = 'checlusters.org.eclipse.che'
 // OLM
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'codeready-workspaces'
 export const OLM_STABLE_CHANNEL_NAME = 'latest'
+export const OLM_NIGHTLY_CHANNEL_NAME = 'nightly'
 export const DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE = 'openshift-marketplace'
 export const DEFAULT_OLM_KUBERNETES_NAMESPACE = 'olm'
 export const CUSTOM_CATALOG_SOURCE_NAME = 'codeready-custom-catalog-source'
@@ -33,10 +35,15 @@ export const OPERATOR_GROUP_NAME = 'codeready-operator-group'
 export const KUBERNETES_OLM_CATALOG = 'operatorhubio-catalog'
 export const OPENSHIFT_OLM_CATALOG = 'redhat-operators'
 export const CVS_PREFIX = 'crwoperator'
+export const NIGHTLY_CATALOG_SOURCE_NAME = 'eclipse-che-preview'
 
 // Documentation links
-export const DOCS_LINK_INSTALL_TLS_WITH_SELF_SIGNED_CERT = 'https://www.eclipse.org/che/docs/che-7/installing-che-in-tls-mode-with-self-signed-certificates/'
-export const DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER = 'https://www.eclipse.org/che/docs/che-7/installing-che-in-tls-mode-with-self-signed-certificates/#using-che-with-tls_installing-che-in-tls-mode-with-self-signed-certificates'
-export const DOCS_LINK_AUTH_TO_CHE_SERVER_VIA_OPENID = ' https://www.eclipse.org/che/docs/che-7/authenticating-users/#authenticating-to-the-che-server-using-openid_authenticating-to-the-che-server'
+export const DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY = 'https://www.eclipse.org/che/docs/che-7/overview/running-che-locally/'
+export const DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER = 'https://www.eclipse.org/che/docs/che-7/overview/importing-certificates-to-browsers/'
 export const DOCS_LINK_HOW_TO_ADD_IDENTITY_PROVIDER_OS4 = 'https://docs.openshift.com/container-platform/latest/authentication/understanding-identity-provider.html#identity-provider-overview_understanding-identity-provider'
 export const DOCS_LINK_HOW_TO_CREATE_USER_OS3 = 'https://docs.openshift.com/container-platform/3.11/install_config/configuring_authentication.html'
+export const DOC_LINK_OBTAIN_ACCESS_TOKEN = 'https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_authenticating-to-the-che-server'
+export const DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH = 'https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift-token-through-keycloak_authenticating-to-the-che-server'
+
+// DevWorkspace
+export const DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE = 'devworkspace-controller'

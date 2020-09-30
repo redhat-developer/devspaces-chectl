@@ -19,9 +19,10 @@ import * as os from 'os'
 import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
-import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE, DOCS_LINK_INSTALL_TLS_WITH_SELF_SIGNED_CERT } from '../../constants'
+import { cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
+import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
 import { CheTasks } from '../../tasks/che'
+import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
@@ -84,7 +85,7 @@ export default class Start extends Command {
                     To provide own certificate for Kubernetes infrastructure, 'che-tls' secret with TLS certificate must be pre-created in the configured namespace.
                     In case of providing own self-signed certificate 'self-signed-certificate' secret should be also created.
                     For OpenShift, router will use default cluster certificates.
-                    Please see docs for more details: ${DOCS_LINK_INSTALL_TLS_WITH_SELF_SIGNED_CERT}`
+                    Please see the docs how to deploy CodeReady Workspaces on different infrastructures: ${DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY}`
     }),
     'self-signed-cert': flags.boolean({
       description: 'Deprecated. The flag is ignored. Self signed certificates usage is autodetected now.',
@@ -179,7 +180,18 @@ export default class Start extends Command {
       description: `Namespace for OLM catalog source to install CodeReady Workspaces operator.
                     This parameter is used only when the installer is the 'olm'.`
     }),
-    'skip-kubernetes-health-check': skipK8sHealthCheck
+    'skip-kubernetes-health-check': skipK8sHealthCheck,
+    'workspace-engine': string({
+      description: 'Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.',
+      options: ['che-server', 'dev-workspace'],
+      default: 'che-server',
+    }),
+    'dev-workspace-controller-image': string({
+      description: 'Container image of the dev workspace controller. This parameter is used only when the workspace engine is the DevWorkspace',
+      default: DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE,
+      env: 'DEV_WORKSPACE_OPERATOR_IMAGE',
+    }),
+    'dev-workspace-controller-namespace': devWorkspaceControllerNamespace
   }
 
   async setPlaformDefaults(flags: any): Promise<void> {
@@ -211,6 +223,18 @@ export default class Start extends Command {
   }
 
   /**
+   * Determine if a directory is empty.
+   */
+  async isDirEmpty(dirname: string): Promise<boolean> {
+    try {
+      return fs.readdirSync(dirname).length === 0
+      // Fails in case if directory doesn't exist
+    } catch {
+      return true
+    }
+  }
+
+  /**
    * Checks if TLS is disabled via operator custom resource.
    * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
    */
@@ -218,7 +242,7 @@ export default class Start extends Command {
     if (flags['che-operator-cr-patch-yaml']) {
       const cheOperatorCrPatchYamlPath = flags['che-operator-cr-patch-yaml']
       if (fs.existsSync(cheOperatorCrPatchYamlPath)) {
-        const crPatch = yaml.safeLoad(fs.readFileSync(cheOperatorCrPatchYamlPath).toString())
+        const crPatch: any = yaml.safeLoad(fs.readFileSync(cheOperatorCrPatchYamlPath).toString())
         if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
           return false
         }
@@ -228,7 +252,7 @@ export default class Start extends Command {
     if (flags['che-operator-cr-yaml']) {
       const cheOperatorCrYamlPath = flags['che-operator-cr-yaml']
       if (fs.existsSync(cheOperatorCrYamlPath)) {
-        const cr = yaml.safeLoad(fs.readFileSync(cheOperatorCrYamlPath).toString())
+        const cr: any = yaml.safeLoad(fs.readFileSync(cheOperatorCrYamlPath).toString())
         if (cr && cr.spec && cr.spec.server && cr.spec.server.tlsSupport === false) {
           return false
         }
@@ -326,6 +350,7 @@ export default class Start extends Command {
     const platformTasks = new PlatformTasks()
     const installerTasks = new InstallerTasks()
     const apiTasks = new ApiTasks()
+    const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
     // Platform Checks
     let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), listrOptions)
@@ -353,6 +378,12 @@ export default class Start extends Command {
         title: '✅  Post installation checklist',
         task: () => new Listr(cheTasks.waitDeployedChe(flags, this))
       },
+      {
+        title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
+        enabled: () => flags['workspace-engine'] === 'dev-workspace',
+        task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags, this))
+
+      },
       getRetrieveKeycloakCredentialsTask(flags),
       retrieveCheCaCertificateTask(flags),
       getPrintHighlightedMessagesTask(),
@@ -374,7 +405,6 @@ export default class Start extends Command {
       if (!ctx.isCheDeployed) {
         this.checkPlatformCompatibility(flags)
         await platformCheckTasks.run(ctx)
-        this.log(`CodeReady Workspaces logs will be available in '${ctx.directory}'`)
         await logsTasks.run(ctx)
         await eventTasks.run(ctx)
         await installTasks.run(ctx)
@@ -393,6 +423,10 @@ export default class Start extends Command {
       await postInstallTasks.run(ctx)
       this.log('Command server:start has completed successfully.')
     } catch (err) {
+      const isDirEmpty = await this.isDirEmpty(ctx.directory)
+      if (isDirEmpty) {
+        this.error(`${err}\nInstallation failed. There are no available logs.`)
+      }
       this.error(`${err}\nInstallation failed, check logs in '${ctx.directory}'`)
     }
 
@@ -411,13 +445,13 @@ export default class Start extends Command {
   async setDefaultInstaller(flags: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
 
-    const olmIsPreinstalled = await kubeHelper.isPreInstalledOLM()
-    if ((flags['catalog-source-name'] || flags['catalog-source-yaml']) && olmIsPreinstalled) {
+    const isOlmPreinstalled = await kubeHelper.isPreInstalledOLM()
+    if ((flags['catalog-source-name'] || flags['catalog-source-yaml']) && isOlmPreinstalled) {
       flags.installer = 'olm'
       return
     }
 
-    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && olmIsPreinstalled) {
+    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isOlmPreinstalled) {
       flags.installer = 'olm'
     } else {
       flags.installer = 'operator'

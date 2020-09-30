@@ -14,8 +14,9 @@ import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
 
 import { KubeHelper } from '../../api/kube'
-import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
+import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { OLMTasks } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { ApiTasks } from '../../tasks/platforms/api'
@@ -26,6 +27,11 @@ export default class Delete extends Command {
   static flags = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
+    'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,
+    'delete-namespace': boolean({
+      description: 'Indicates that a CodeReady Workspaces namespace will be deleted as well',
+      default: false
+    }),
     'deployment-name': cheDeployment,
     'listr-renderer': listrRenderer,
     'skip-deletion-check': boolean({
@@ -44,6 +50,7 @@ export default class Delete extends Command {
     const operatorTasks = new OperatorTasks()
     const olmTasks = new OLMTasks()
     const cheTasks = new CheTasks(flags)
+    const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
     let tasks = new Listrq(undefined,
       { renderer: flags['listr-renderer'] as any }
@@ -53,7 +60,11 @@ export default class Delete extends Command {
     tasks.add(operatorTasks.deleteTasks(flags))
     tasks.add(olmTasks.deleteTasks(flags))
     tasks.add(cheTasks.deleteTasks(flags))
+    tasks.add(devWorkspaceTasks.getUninstallTasks())
     tasks.add(cheTasks.waitPodsDeletedTasks())
+    if (flags['delete-namespace']) {
+      tasks.add(cheTasks.deleteNamespace(flags))
+    }
 
     const cluster = KubeHelper.KUBE_CONFIG.getCurrentCluster()
     if (!cluster) {

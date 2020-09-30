@@ -25,10 +25,10 @@ import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { isKubernetesPlatformFamily } from '../../util'
+import { getImageTag, isKubernetesPlatformFamily } from '../../util'
 
 export default class Update extends Command {
-  static description = 'update CodeReady Workspaces server'
+  static description = 'Update CodeReady Workspaces server.'
 
   static flags = {
     installer: string({
@@ -100,6 +100,7 @@ export default class Update extends Command {
     ctx.highlightedMessages = [] as string[]
 
     const cheTasks = new CheTasks(flags)
+    const kubeHelper = new KubeHelper(flags)
     const platformTasks = new PlatformTasks()
     const installerTasks = new InstallerTasks()
     const apiTasks = new ApiTasks()
@@ -133,21 +134,44 @@ export default class Update extends Command {
       await preInstallTasks.run(ctx)
 
       if (!ctx.isCheDeployed) {
-        this.error('CodeReady Workspaces deployment is not found. Use `crwctl server:start` to initiate new deployment.')
+        this.error('CodeReady Workspaces deployment is not found. Use `crwctl server:start` to initiate a new deployment.')
       } else {
         if (isKubernetesPlatformFamily(flags.platform!)) {
           await this.setDomainFlag(flags)
         }
         await platformCheckTasks.run(ctx)
-
         await preUpdateTasks.run(ctx)
 
-        if (!flags['skip-version-check'] && flags.installer !== 'olm') {
-          await cli.anykey(`      Found deployed CodeReady Workspaces with operator [${ctx.deployedCheOperatorImage}]:${ctx.deployedCheOperatorTag}.
-      You are going to update it to [${ctx.newCheOperatorImage}]:${ctx.newCheOperatorTag}.
-      Note that CodeReady Workspaces operator will update component images (server, plugin registry) only if their values
-      are not overridden in eclipse-che Custom Resource. So, you may need to remove them manually.
-      Press q to quit or any key to continue`)
+        if (!flags['skip-version-check'] && flags.installer === 'operator') {
+          cli.info(`Existed CodeReady Workspaces operator: ${ctx.deployedCheOperatorImage}:${ctx.deployedCheOperatorTag}.`)
+          cli.info(`New CodeReady Workspaces operator    : ${ctx.newCheOperatorImage}:${ctx.newCheOperatorTag}.`)
+
+          if (flags['che-operator-image'] !== DEFAULT_CHE_OPERATOR_IMAGE) {
+            cli.warn(`This command updates CodeReady Workspaces to ${getImageTag(DEFAULT_CHE_OPERATOR_IMAGE)} version, but custom operator image is specified.`)
+            cli.warn('Make sure that the new version of the CodeReady Workspaces is corresponding to the version of the tool you use.')
+            cli.warn('Consider using \'crwctl update [stable|next]\' to update to the latest version of crwctl.')
+          }
+
+          const cheCluster = await kubeHelper.getCheCluster(flags.chenamespace)
+          if (cheCluster.spec.server.cheImage
+            || cheCluster.spec.server.devfileRegistryImage
+            || cheCluster.spec.database.postgresImage
+            || cheCluster.spec.server.pluginRegistryImage
+            || cheCluster.spec.auth.identityProviderImage) {
+            cli.warn(`CodeReady Workspaces operator won't update some components since their images are defined
+            in the '${cheCluster.metadata.name}' Custom Resource of the namespace '${flags.chenamespace}'
+            Please consider removing them from the Custom Resource when update is completed:`)
+            cheCluster.spec.server.cheImage && cli.warn(`CodeReady Workspaces server [${cheCluster.spec.server.cheImage}:${cheCluster.spec.server.cheImageTag}]`)
+            cheCluster.spec.database.postgresImage && cli.warn(`Database [${cheCluster.spec.database.postgresImage}]`)
+            cheCluster.spec.server.devfileRegistryImage && cli.warn(`Devfile registry [${cheCluster.spec.server.devfileRegistryImage}]`)
+            cheCluster.spec.server.pluginRegistryImage && cli.warn(`Plugin registry [${cheCluster.spec.server.pluginRegistryImage}]`)
+            cheCluster.spec.auth.identityProviderImage && cli.warn(`Identity provider [${cheCluster.spec.auth.identityProviderImage}]`)
+          }
+
+          const confirmed = await cli.confirm('If you want to continue - press Y')
+          if (!confirmed) {
+            this.exit(0)
+          }
         }
 
         await updateTasks.run(ctx)

@@ -12,11 +12,11 @@ import { che as chetypes } from '@eclipse-che/api'
 import { CoreV1Api, V1Pod, Watch } from '@kubernetes/client-node'
 import axios, { AxiosInstance } from 'axios'
 import * as cp from 'child_process'
-import { cli } from 'cli-ux'
 import * as commandExists from 'command-exists'
 import * as fs from 'fs-extra'
 import * as https from 'https'
 import * as yaml from 'js-yaml'
+import * as nodeforge from 'node-forge'
 import * as os from 'os'
 import * as path from 'path'
 
@@ -24,6 +24,7 @@ import { OpenShiftHelper } from '../api/openshift'
 import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../constants'
 import { base64Decode } from '../util'
 
+import { CheApiClient } from './che-api-client'
 import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
 
@@ -34,7 +35,7 @@ export class CheHelper {
 
   private readonly axios: AxiosInstance
 
-  constructor(flags: any) {
+  constructor(private readonly flags: any) {
     this.kube = new KubeHelper(flags)
 
     // Make axios ignore untrusted certificate error for self-signed certificate case.
@@ -110,6 +111,24 @@ export class CheHelper {
     }
   }
 
+  async chePluginRegistryURL(namespace = ''): Promise<string> {
+    // provided through command line ?
+    if (this.flags['plugin-registry-url']) {
+      return this.flags['plugin-registry-url']
+    }
+    // check
+    if (!await this.cheNamespaceExist(namespace)) {
+      throw new Error(`ERR_NAMESPACE_NO_EXIST - No namespace ${namespace} is found`)
+    }
+
+    // grab URL
+    if (await this.kube.isOpenShift()) {
+      return this.chePluginRegistryOpenShiftURL(namespace)
+    } else {
+      return this.chePluginRegistryK8sURL(namespace)
+    }
+  }
+
   async isSelfSignedCertificateSecretExist(namespace: string): Promise<boolean> {
     const selfSignedCertSecret = await this.kube.getSecret(CHE_ROOT_CA_SECRET_NAME, namespace)
     return !!selfSignedCertSecret
@@ -120,6 +139,35 @@ export class CheHelper {
    * If secret doesn't exist, undefined is returned.
    */
   async retrieveCheCaCert(cheNamespace: string): Promise<string | undefined> {
+    const cheCaSecretContent = await this.getCheSelfSignedSecretContent(cheNamespace)
+    if (!cheCaSecretContent) {
+      return
+    }
+
+    const pemBeginHeader = '-----BEGIN CERTIFICATE-----'
+    const pemEndHeader = '-----END CERTIFICATE-----'
+    const certRegExp = new RegExp(`(^${pemBeginHeader}$(?:(?!${pemBeginHeader}).)*^${pemEndHeader}$)`, 'mgs')
+    const certsPem = cheCaSecretContent.match(certRegExp)
+
+    const caCertsPem: string[] = []
+    if (certsPem) {
+      for (const certPem of certsPem) {
+        const cert = nodeforge.pki.certificateFromPem(certPem)
+        const basicConstraintsExt = cert.getExtension('basicConstraints')
+        if (basicConstraintsExt && (basicConstraintsExt as any).cA) {
+          caCertsPem.push(certPem)
+        }
+      }
+    }
+
+    return caCertsPem.join('\n')
+  }
+
+  /**
+   * Retrieves content of Che self-signed-certificate secret or undefined if the secret doesn't exist.
+   * Note, it contains certificate chain in pem format.
+   */
+  private async getCheSelfSignedSecretContent(cheNamespace: string): Promise<string | undefined> {
     const cheCaSecret = await this.kube.getSecret(CHE_ROOT_CA_SECRET_NAME, cheNamespace)
     if (!cheCaSecret) {
       return
@@ -177,6 +225,24 @@ export class CheHelper {
     return [adminUsername, adminPassword]
   }
 
+  async chePluginRegistryK8sURL(namespace = ''): Promise<string> {
+    if (await this.kube.ingressExist('plugin-registry', namespace)) {
+      const protocol = await this.kube.getIngressProtocol('plugin-registry', namespace)
+      const hostname = await this.kube.getIngressHost('plugin-registry', namespace)
+      return `${protocol}://${hostname}`
+    }
+    throw new Error(`ERR_INGRESS_NO_EXIST - No ingress 'plugin-registry' in namespace ${namespace}`)
+  }
+
+  async chePluginRegistryOpenShiftURL(namespace = ''): Promise<string> {
+    if (await this.oc.routeExist('plugin-registry', namespace)) {
+      const protocol = await this.oc.getRouteProtocol('plugin-registry', namespace)
+      const hostname = await this.oc.getRouteHost('plugin-registry', namespace)
+      return `${protocol}://${hostname}`
+    }
+    throw new Error(`ERR_ROUTE_NO_EXIST - No route 'plugin-registry' in namespace ${namespace}`)
+  }
+
   async cheK8sURL(namespace = ''): Promise<string> {
     const ingress_names = ['che', 'che-ingress']
     for (const ingress_name of ingress_names) {
@@ -205,131 +271,40 @@ export class CheHelper {
     return this.kube.namespaceExist(namespace)
   }
 
+  /**
+   * DEPRECATED. Use CheApiClient instead.
+   */
   async getCheServerStatus(cheURL: string, responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<string> {
-    const endpoint = `${cheURL}/api/system/state`
-    let response = null
-    try {
-      response = await this.axios.get(endpoint, { timeout: responseTimeoutMs })
-    } catch (error) {
-      throw this.getCheApiError(error, endpoint)
-    }
-    if (!response || response.status !== 200 || !response.data || !response.data.status) {
-      throw new Error('E_BAD_RESP_CHE_API')
-    }
-    return response.data.status
+    const cheApi = CheApiClient.getInstance(cheURL + '/api')
+    return cheApi.getCheServerStatus(responseTimeoutMs)
   }
 
+  /**
+   * DEPRECATED. Use startCheServerShutdown from CheApiClient instead.
+   */
   async startShutdown(cheURL: string, accessToken = '', responseTimeoutMs = this.defaultCheResponseTimeoutMs) {
-    const endpoint = `${cheURL}/api/system/stop?shutdown=true`
-    const headers = accessToken ? { Authorization: `${accessToken}` } : null
-    let response = null
-    try {
-      response = await this.axios.post(endpoint, null, { headers, timeout: responseTimeoutMs })
-    } catch (error) {
-      if (error.response && error.response.status === 409) {
-        return
-      } else {
-        throw this.getCheApiError(error, endpoint)
-      }
-    }
-    if (!response || response.status !== 204) {
-      throw new Error('E_BAD_RESP_CHE_API')
-    }
+    const cheApi = CheApiClient.getInstance(cheURL + '/api')
+    return cheApi.startCheServerShutdown(accessToken, responseTimeoutMs)
   }
 
+  /**
+   * DEPRECATED. Use waitUntilCheServerReadyToShutdown from CheApiClient instead.
+   */
   async waitUntilReadyToShutdown(cheURL: string, intervalMs = 500, timeoutMs = 60000) {
-    const iterations = timeoutMs / intervalMs
-    for (let index = 0; index < iterations; index++) {
-      let status = await this.getCheServerStatus(cheURL)
-      if (status === 'READY_TO_SHUTDOWN') {
-        return
-      }
-      await cli.wait(intervalMs)
-    }
-    throw new Error('ERR_TIMEOUT')
+    const cheApi = CheApiClient.getInstance(cheURL + '/api')
+    return cheApi.waitUntilCheServerReadyToShutdown(intervalMs, timeoutMs)
   }
 
+  /**
+   * DEPRECATED. Use CheApiClient instead.
+   */
   async isCheServerReady(cheURL: string, responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
-    const id = await this.axios.interceptors.response.use(response => response, async (error: any) => {
-      if (error.config && error.response && (error.response.status === 404 || error.response.status === 503)) {
-        return this.axios.request(error.config)
-      }
-      return Promise.reject(error)
-    })
-
-    try {
-      await this.axios.get(`${cheURL}/api/system/state`, { timeout: responseTimeoutMs })
-      await this.axios.interceptors.response.eject(id)
-      return true
-    } catch {
-      await this.axios.interceptors.response.eject(id)
-      return false
-    }
+    const cheApi = CheApiClient.getInstance(cheURL + '/api')
+    return cheApi.isCheServerReady(responseTimeoutMs)
   }
 
-  async startWorkspace(cheNamespace: string, workspaceId: string, debug: boolean, accessToken: string | undefined): Promise<void> {
-    const cheUrl = await this.cheURL(cheNamespace)
-    let endpoint = `${cheUrl}/api/workspace/${workspaceId}/runtime`
-    if (debug) {
-      endpoint += '?debug-workspace-start=true'
-    }
-    let response
-
-    const headers: { [key: string]: string } = {}
-    if (accessToken) {
-      headers.Authorization = accessToken
-    }
-    try {
-      response = await this.axios.post(endpoint, undefined, { headers })
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        throw new Error(`E_WORKSPACE_NOT_EXIST - workspace with "${workspaceId}" id doesn't exist`)
-      } else {
-        throw this.getCheApiError(error, endpoint)
-      }
-    }
-
-    if (!response || response.status !== 200 || !response.data) {
-      throw new Error('E_BAD_RESP_CHE_API')
-    }
-  }
-
-  async stopWorkspace(cheUrl: string, workspaceId: string, accessToken?: string): Promise<void> {
-    let endpoint = `${cheUrl}/api/workspace/${workspaceId}/runtime`
-    let response
-
-    const headers: { [key: string]: string } = {}
-    if (accessToken) {
-      headers.Authorization = accessToken
-    }
-    try {
-      response = await this.axios.delete(endpoint, { headers })
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        throw new Error(`E_WORKSPACE_NOT_EXIST - workspace with "${workspaceId}" id doesn't exist`)
-      } else {
-        throw this.getCheApiError(error, endpoint)
-      }
-    }
-
-    if (!response || response.status !== 204) {
-      throw new Error('E_BAD_RESP_CHE_API')
-    }
-  }
-
-  async createWorkspaceFromDevfile(namespace: string | undefined, devfilePath = '', workspaceName: string | undefined, accessToken = ''): Promise<chetypes.workspace.Workspace> {
-    if (!await this.cheNamespaceExist(namespace)) {
-      throw new Error('E_BAD_NS')
-    }
-    let url = await this.cheURL(namespace)
-    let endpoint = `${url}/api/workspace/devfile`
+  async createWorkspaceFromDevfile(cheApiEndpoint: string, devfilePath: string, workspaceName?: string, accessToken?: string): Promise<chetypes.workspace.Workspace> {
     let devfile: string | undefined
-    let response
-    const headers: any = { 'Content-Type': 'text/yaml' }
-    if (accessToken && accessToken.length > 0) {
-      headers.Authorization = `${accessToken}`
-    }
-
     try {
       devfile = await this.parseDevfile(devfilePath)
       if (workspaceName) {
@@ -337,34 +312,14 @@ export class CheHelper {
         json.metadata.name = workspaceName
         devfile = yaml.dump(json)
       }
-
-      response = await this.axios.post(endpoint, devfile, { headers })
     } catch (error) {
       if (!devfile) {
         throw new Error(`E_NOT_FOUND_DEVFILE - ${devfilePath} - ${error.message}`)
       }
-
-      if (error.response) {
-        if (error.response.status === 400) {
-          throw new Error(`E_BAD_DEVFILE_FORMAT - Message: ${error.response.data.message}`)
-        }
-        if (error.response.status === 409) {
-          let message = ''
-          if (error.response.data) {
-            message = error.response.data.message
-          }
-          throw new Error(`E_CONFLICT - Message: ${message}`)
-        }
-      }
-
-      throw this.getCheApiError(error, endpoint)
     }
 
-    if (response && response.data) {
-      return response.data as chetypes.workspace.Workspace
-    } else {
-      throw new Error('E_BAD_RESP_CHE_SERVER')
-    }
+    const cheApi = CheApiClient.getInstance(cheApiEndpoint)
+    return cheApi.createWorkspaceFromDevfile(devfile, accessToken)
   }
 
   async parseDevfile(devfilePath = ''): Promise<string> {
@@ -376,22 +331,12 @@ export class CheHelper {
     }
   }
 
+  /**
+   * DEPRECATED. Use CheApiClient instead.
+   */
   async isAuthenticationEnabled(cheURL: string, responseTimeoutMs = this.defaultCheResponseTimeoutMs): Promise<boolean> {
-    const endpoint = `${cheURL}/api/keycloak/settings`
-    let response = null
-    try {
-      response = await this.axios.get(endpoint, { timeout: responseTimeoutMs })
-    } catch (error) {
-      if (error.response && (error.response.status === 404 || error.response.status === 503)) {
-        return false
-      } else {
-        throw this.getCheApiError(error, endpoint)
-      }
-    }
-    if (!response || response.status !== 200 || !response.data) {
-      throw new Error('E_BAD_RESP_CHE_API')
-    }
-    return true
+    const cheApi = CheApiClient.getInstance(cheURL + '/api')
+    return cheApi.isAuthenticationEnabled(responseTimeoutMs)
   }
 
   async buildDashboardURL(ideURL: string): Promise<string> {
@@ -477,7 +422,7 @@ export class CheHelper {
     const processedContainers = new Map<string, Set<string>>()
 
     const watcher = new Watch(KubeHelper.KUBE_CONFIG)
-    watcher.watch(`/api/v1/namespaces/${namespace}/pods`, {},
+    return watcher.watch(`/api/v1/namespaces/${namespace}/pods`, {},
       async (_phase: string, obj: any) => {
         const pod = obj as V1Pod
         if (!pod || !pod.metadata || !pod.metadata.name) {
@@ -503,85 +448,6 @@ export class CheHelper {
       },
       // ignore errors
       () => { })
-  }
-
-  async getAllWorkspaces(cheURL: string, accessToken?: string): Promise<any[]> {
-    const all: any[] = []
-    const maxItems = 30
-    let skipCount = 0
-
-    do {
-      const workspaces = await this.doGetWorkspaces(cheURL, skipCount, maxItems, accessToken)
-      all.push(...workspaces)
-      skipCount += workspaces.length
-    } while (all.length === maxItems)
-
-    return all
-  }
-
-  /**
-   * Returns list of workspaces
-   */
-  async doGetWorkspaces(cheUrl: string, skipCount: number, maxItems: number, accessToken = ''): Promise<any[]> {
-    const endpoint = `${cheUrl}/api/workspace?skipCount=${skipCount}&maxItems=${maxItems}`
-    const headers: any = { 'Content-Type': 'text/yaml' }
-    if (accessToken && accessToken.length > 0) {
-      headers.Authorization = `${accessToken}`
-    }
-
-    try {
-      const response = await this.axios.get(endpoint, { headers })
-      if (response && response.data) {
-        return response.data
-      } else {
-        throw new Error('E_BAD_RESP_CHE_SERVER')
-      }
-    } catch (error) {
-      throw this.getCheApiError(error, endpoint)
-    }
-  }
-
-  /**
-   * Get workspace.
-   */
-  async getWorkspace(cheUrl: string, workspaceId: string, accessToken = ''): Promise<any> {
-    const endpoint = `${cheUrl}/api/workspace/${workspaceId}`
-    const headers: any = { 'Content-Type': 'text/yaml' }
-    if (accessToken) {
-      headers.Authorization = `${accessToken}`
-    }
-
-    try {
-      const response = await this.axios.get(endpoint, { headers })
-      return response.data
-    } catch (error) {
-      if (error.response.status === 404) {
-        throw new Error(`Workspace ${workspaceId} not found. Please use the command workspace:list to get list of the existed workspaces.`)
-      }
-      throw this.getCheApiError(error, endpoint)
-    }
-  }
-
-  /**
-   * Deletes workspace.
-   */
-  async deleteWorkspace(cheUrl: string, workspaceId: string, accessToken = ''): Promise<void> {
-    const endpoint = `${cheUrl}/api/workspace/${workspaceId}`
-    const headers: any = {}
-    if (accessToken) {
-      headers.Authorization = `${accessToken}`
-    }
-
-    try {
-      await this.axios.delete(endpoint, { headers })
-    } catch (error) {
-      if (error.response.status === 404) {
-        throw new Error(`Workspace ${workspaceId} not found. Please use the command workspace:list to get list of the existed workspaces.`)
-      } else if (error.response.status === 409) {
-        throw new Error('Cannot delete a running workspace. Please stop it using the command workspace:stop and try again')
-      }
-      throw this.getCheApiError(error, endpoint)
-    }
   }
 
   /**
@@ -634,29 +500,4 @@ export class CheHelper {
     return fileName
   }
 
-  getCheApiError(error: any, endpoint: string): Error {
-    if (error.response) {
-      const status = error.response.status
-      if (status === 403) {
-        return new Error(`E_CHE_API_FORBIDDEN - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data.message)}`)
-      } else if (status === 401) {
-        return new Error(`E_CHE_API_UNAUTHORIZED - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
-      } else if (status === 404) {
-        return new Error(`E_CHE_API_NOTFOUND - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
-      } else {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        return new Error(`E_CHE_API_UNKNOWN_ERROR - Endpoint: ${endpoint} -Status: ${error.response.status}`)
-      }
-
-    } else if (error.request) {
-      // The request was made but no response was received
-      // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-      // http.ClientRequest in node.js
-      return new Error(`E_CHE_API_NO_RESPONSE - Endpoint: ${endpoint} - Error message: ${error.message}`)
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      return new Error(`E_CHECTL_UNKNOWN_ERROR - Endpoint: ${endpoint} - Message: ${error.message}`)
-    }
-  }
 }

@@ -41,7 +41,7 @@ export class OperatorTasks {
     }
     return new Listr([
       copyOperatorResources(flags, command.config.cacheDir),
-      createNamespaceTask(flags),
+      createNamespaceTask(flags.chenamespace, flags.platform),
       {
         title: `Create ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
@@ -228,7 +228,7 @@ export class OperatorTasks {
               command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
             }
             task.title = `${task.title}...updated.`
-          // it is needed to check the legacy cluster object name to be compatible with previous installations
+            // it is needed to check the legacy cluster object name to be compatible with previous installations
           } else if (legacyClusterRoleExists) {
             const statusCode = await kube.replaceClusterRoleFromFile(yamlFilePath, this.operatorClusterRole)
             if (statusCode === 403) {
@@ -266,7 +266,7 @@ export class OperatorTasks {
           if (clusterRoleBindExists) {
             await kube.replaceClusterRoleBinding(clusterRoleBindingName, this.operatorServiceAccount, flags.chenamespace, clusterRoleName)
             task.title = `${task.title}...updated.`
-          // it is needed to check the legacy cluster object name to be compatible with previous installations
+            // it is needed to check the legacy cluster object name to be compatible with previous installations
           } else if (legacyClusterRoleBindExists) {
             await kube.replaceClusterRoleBinding(this.operatorClusterRoleBinding, this.operatorServiceAccount, flags.chenamespace, this.operatorClusterRole)
             task.title = `Updating ClusterRoleBinding ${this.operatorClusterRoleBinding}...updated.`
@@ -332,11 +332,40 @@ export class OperatorTasks {
     const clusterRoleName = `${flags.chenamespace}-${this.operatorClusterRole}`
     const clusterRoleBindingName = `${flags.chenamespace}-${this.operatorClusterRoleBinding}`
     return [{
+      title: 'Delete oauthClientAuthorizations',
+      task: async (_ctx: any, task: any) => {
+        const checluster = await kh.getCheCluster(flags.chenamespace)
+        if (checluster && checluster.spec && checluster.spec.auth && checluster.spec.auth.oAuthClientName) {
+          const oAuthClientAuthorizations = await kh.getOAuthClientAuthorizations(checluster.spec.auth.oAuthClientName)
+          await kh.deleteOAuthClientAuthorizations(oAuthClientAuthorizations)
+        }
+        task.title = `${task.title}...OK`
+      }
+    },
+    {
       title: `Delete the Custom Resource of type ${CHE_CLUSTER_CRD}`,
       task: async (_ctx: any, task: any) => {
         await kh.deleteCheCluster(flags.chenamespace)
-        await cli.wait(2000) //wait a couple of secs for the finalizers to be executed
+        do {
+          await cli.wait(2000) //wait a couple of secs for the finalizers to be executed
+        } while (await kh.getCheCluster(flags.chenamespace))
         task.title = await `${task.title}...OK`
+      }
+    },
+    {
+      title: `Delete CRD ${this.cheClusterCrd}`,
+      task: async (_ctx: any, task: any) => {
+        const crdExists = await kh.crdExist(this.cheClusterCrd)
+        const checlusters = await kh.getAllCheCluster()
+        if (checlusters.length > 0) {
+          task.title = await `${task.title}...Skipped: another CodeReady Workspaces deployment found.`
+        } else {
+          // Check if CRD exist. When installer is helm the CRD are not created
+          if (crdExists) {
+            await kh.deleteCrd(this.cheClusterCrd)
+          }
+          task.title = await `${task.title}...OK`
+        }
       }
     },
     {
@@ -365,7 +394,7 @@ export class OperatorTasks {
         if (clusterRoleBindExists) {
           await kh.deleteClusterRoleBinding(clusterRoleBindingName)
           task.title = await `${task.title}...OK`
-        // it is needed to check the legacy cluster object name to be compatible with previous installations
+          // it is needed to check the legacy cluster object name to be compatible with previous installations
         } else if (legacyClusterRoleBindExists) {
           await kh.deleteClusterRoleBinding(this.operatorClusterRoleBinding)
           task.title = await `Delete cluster role binding ${this.operatorClusterRoleBinding}...OK`
@@ -380,7 +409,7 @@ export class OperatorTasks {
         if (clusterRoleExists) {
           await kh.deleteClusterRole(clusterRoleName)
           task.title = await `${task.title}...OK`
-        // it is needed to check the legacy cluster object name to be compatible with previous installations
+          // it is needed to check the legacy cluster object name to be compatible with previous installations
         } else if (legacyClusterRoleExists) {
           await kh.deleteClusterRole(this.operatorClusterRole)
           task.title = await `Delete cluster role ${this.operatorClusterRole}...OK`
