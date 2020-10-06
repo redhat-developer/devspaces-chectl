@@ -3,8 +3,6 @@
 import groovy.transform.Field
 
 // PARAMETERS for this pipeline:
-@Field String branchCHECTL = "7.19.x" // branch or tag of https://github.com/che-incubator/chectl
-@Field String branchCRWCTL = "crw-2.5-rhel-8" // branch or tag of https://redhat-developer/codeready-workspaces-chectl
 // CSV_VERSION       = Full version (x.y.z), used in CSV and crwctl version
 // CRW_SERVER_TAG    = default to 2.5, but can override and set 2.5-zz for GA release
 // CRW_OPERATOR_TAG  = default to 2.5, but can override and set 2.5-zz for GA release
@@ -14,7 +12,9 @@ import groovy.transform.Field
 // PUBLISH_ARTIFACTS_TO_GITHUB = default false; check box to publish to GH releases
 // PUBLISH_ARTIFACTS_TO_RCM    = default false; check box to upload sources + binaries to RCM for a GA release ONLY
 
-def CRW_OPERATOR_DEPLOY_BRANCH=branchCRWCTL 
+@Field String branchCHECTL = "7.19.x" // branch or tag of https://github.com/che-incubator/chectl
+@Field String MIDSTM_BRANCH = "crw-2.5-rhel-8" // branch or tag of https://github.com/redhat-developer/codeready-workspaces-chectl
+def CRW_OPERATOR_BRANCH=MIDSTM_BRANCH // branch or tag of https://github.com/redhat-developer/codeready-workspaces-operator
 
 def installNPM(){
 	def yarnVersion="1.17.3"
@@ -43,7 +43,7 @@ timeout(20) {
         stage "Checkout crw-operator deploy"
         // check out crw-operator so we can use it as a poll trigger: will reuse sources later
         checkout([$class: 'GitSCM', 
-          branches: [[name: "${CRW_OPERATOR_DEPLOY_BRANCH}"]], 
+          branches: [[name: "${CRW_OPERATOR_BRANCH}"]], 
           doGenerateSubmoduleConfigurations: false, 
           poll: true,
           extensions: [
@@ -67,7 +67,7 @@ timeout(20) {
 			stage "Build ${CTL_path}"
 			cleanWs()
 			checkout([$class: 'GitSCM', 
-				branches: [[name: "${branchCRWCTL}"]],
+				branches: [[name: "${MIDSTM_BRANCH}"]],
 				doGenerateSubmoduleConfigurations: false, 
 				// disable polling since every build pushes a commit, which triggers a new build ad infinitum
 				poll: false,
@@ -104,10 +104,9 @@ timeout(20) {
 				cd chectl
 				git checkout ''' + branchCHECTL + '''
 			popd >/dev/null
-			git checkout ''' + branchCRWCTL + '''
-			# OLD WAY: CRW_TAG="''' + CSV_VERSION + '''"; CRW_TAG=${CRW_TAG%.*} # for 2.1.0 -> 2.1
-			# ./sync-chectl-to-crwctl.sh ${WORKSPACE}/chectl ${WORKSPACE}/crwctl_generated ${CRW_TAG} ${CRW_TAG}
-			./sync-chectl-to-crwctl.sh ${WORKSPACE}/chectl ${WORKSPACE}/crwctl_generated ${CRW_SERVER_TAG} ${CRW_OPERATOR_TAG}
+			git checkout ''' + MIDSTM_BRANCH + '''
+			./build/scripts/sync-chectl-to-crwctl.sh -b ''' + MIDSTM_BRANCH + ''' -s ${WORKSPACE}/chectl -t ${WORKSPACE}/crwctl_generated \
+				--server-tag ${CRW_SERVER_TAG} --operator-tag ${CRW_OPERATOR_TAG}
 			# check for differences
 			set +x
 			for d in $(cd ${WORKSPACE}/crwctl_generated/; find src test -type f); do diff -u ${d} ${WORKSPACE}/crwctl_generated/${d} || true; done
@@ -116,18 +115,14 @@ timeout(20) {
 			git config user.email "nickboldt+devstudio-release@gmail.com"
 			git config user.name "Red Hat Devstudio Release Bot"
 			git config --global push.default matching
-
-			# SOLVED :: Fatal: Could not read Username for "https://github.com", No such device or address :: https://github.com/github/hub/issues/1644
-			git remote -v
 			git config --global hub.protocol https
 			git remote set-url origin https://\$GITHUB_TOKEN:x-oauth-basic@github.com/redhat-developer/''' + CTL_path + '''.git
-			git remote -v
 
 			# ls -la
 			set -x
 			git add src/ test/ docs/
-			git commit -s -m "[sync] Push latest in chectl @ ''' + branchCHECTL + ''' to codeready-workspaces-chectl @ '''+branchCRWCTL+'''" . || true
-			git push origin '''+branchCRWCTL+''' || true
+			git commit -s -m "[sync] Push latest in chectl @ ''' + branchCHECTL + ''' to codeready-workspaces-chectl @ ''' + MIDSTM_BRANCH + '''" . || true
+			git push origin ''' + MIDSTM_BRANCH + ''' || true
 
 			#### 1. build using -redhat suffix and registry.redhat.io/codeready-workspaces/ URLs
 
@@ -146,11 +141,11 @@ timeout(20) {
 			pwd; du ./dist/channels/*/*gz
 
 			git commit -s -m "[update] commit latest package.json + README.md" package.json README.md || true
-			git push origin '''+branchCRWCTL+''' || true
+			git push origin ''' + MIDSTM_BRANCH + ''' || true
 
-			#### 2. prepare branchCRWCTL-quay branch of crw operator repo
+			#### 2. prepare MIDSTM_BRANCH-quay branch of crw operator repo
 
-			# check out from branchCRWCTL
+			# check out from MIDSTM_BRANCH
 			pushd ${WORKSPACE} >/dev/null
 				if [[ ! -d codeready-workspaces-operator/ ]]; then 
 					git clone https://github.com/redhat-developer/codeready-workspaces-operator.git
@@ -164,8 +159,8 @@ timeout(20) {
 				git config --global hub.protocol https
 				git remote set-url origin https://\$GITHUB_TOKEN:x-oauth-basic@github.com/redhat-developer/codeready-workspaces-operator.git
 				git remote -v
-				git branch '''+branchCRWCTL+'''-quay -f
-				git checkout '''+branchCRWCTL+'''-quay
+				git branch ''' + MIDSTM_BRANCH + '''-quay -f
+				git checkout ''' + MIDSTM_BRANCH + '''-quay
 				# change files
 				# TODO when we move to OCP 4.6 bundle format, must switch to manifests/ folder & new path structure
 				FILES="deploy/operator.yaml deploy/operator-local.yaml manifests/codeready-workspaces.csv.yaml"
@@ -173,14 +168,14 @@ timeout(20) {
 					# point to quay image, and use :latest instead of :2.x tag
 					sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/(.+):(.+)#quay.io/crw/\\1:latest#g"
 				done
-				# push to '''+branchCRWCTL+'''-quay branch
-				git commit -s -m "[update] Push latest in '''+branchCRWCTL+''' to '''+branchCRWCTL+'''-quay branch" ${FILES}
-				git push origin '''+branchCRWCTL+'''-quay -f
+				# push to ''' + MIDSTM_BRANCH + '''-quay branch
+				git commit -s -m "[update] Push latest in ''' + MIDSTM_BRANCH + ''' to ''' + MIDSTM_BRANCH + '''-quay branch" ${FILES}
+				git push origin ''' + MIDSTM_BRANCH + '''-quay -f
 			popd >/dev/null
 			# cleanup
 			rm -fr ${WORKSPACE}/codeready-workspaces-operator/
  
-			#### 3. now build using '''+branchCRWCTL+'''-quay branch, -quay suffix and quay.io/crw/ URLs
+			#### 3. now build using ''' + MIDSTM_BRANCH + '''-quay branch, -quay suffix and quay.io/crw/ URLs
 
 			YAML_REPO="`cat package.json | jq -r '.dependencies["codeready-workspaces-operator"]'`-quay"
 			jq -M --arg YAML_REPO \"${YAML_REPO}\" '.dependencies["codeready-workspaces-operator"] = $YAML_REPO' package.json > package.json2
@@ -210,7 +205,7 @@ timeout(20) {
 			if (PUBLISH_ARTIFACTS_TO_GITHUB.equals("true"))
 			{
 				def isPreRelease="true"; if ( "${versionSuffix}" == "GA" ) { isPreRelease="false"; }
-				sh "curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' --data '{\"tag_name\": \"${CUSTOM_TAG}\", \"target_commitish\": \"${branchCRWCTL}\", \"name\": \"${GITHUB_RELEASE_NAME}\", \"body\": \"${RELEASE_DESCRIPTION}\", \"draft\": false, \"prerelease\": ${isPreRelease}}' https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}"
+				sh "curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' --data '{\"tag_name\": \"${CUSTOM_TAG}\", \"target_commitish\": \"${MIDSTM_BRANCH}\", \"name\": \"${GITHUB_RELEASE_NAME}\", \"body\": \"${RELEASE_DESCRIPTION}\", \"draft\": false, \"prerelease\": ${isPreRelease}}' https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}"
 
 				// Extract the id of the release from the creation response
 				def RELEASE_ID=sh(returnStdout:true,script:"jq -r .id /tmp/${CUSTOM_TAG}").trim()
