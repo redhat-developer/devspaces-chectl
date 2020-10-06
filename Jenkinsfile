@@ -281,7 +281,12 @@ rsync -Pzrlt --rsh=ssh --protocol=28 \
     ${WORKSPACE}/''' + TARBALL_PREFIX + '''-crwctl-sources.tar.gz \
     ${WORKSPACE}/''' + CTL_path + '''/dist/channels/redhat/*gz \
     ${WORKSPACE}/${mnt}-ssh/CRW-''' + CSV_VERSION + '''/
+# clone files so we have a crwctl3 version too
+# codeready-workspaces-2.y.z-GA-crwctl-linux-x64.tar.gz -> codeready-workspaces-2.y.z-GA-crwctl3-linux-x64.tar.gz
+ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw/CRW-''' + CSV_VERSION + '''/ && for d in ''' + TARBALL_PREFIX + '''-crwctl-*; do echo $d ${d/crwctl-/crwctl3-}; done"
+# echo what we have on disk
 ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw/CRW-''' + CSV_VERSION + '''/ && ls -la ''' + TARBALL_PREFIX + '''*"
+# trigger release
 ssh "${DESTHOST}" "/mnt/redhat/scripts/rel-eng/utility/bus-clients/stage-mw-release CRW-''' + CSV_VERSION + '''"
 '''
 			}
