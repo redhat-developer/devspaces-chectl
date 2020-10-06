@@ -43,7 +43,7 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if [[ ! -d "${SOURCEDIR}" ]]; then usage; fi
-if [[ ! -d "${TARGETDIR}" ]]; then usage; fi
+if [[ -z "${TARGETDIR}" ]]; then usage; else mkdir -p "${TARGETDIR}"; fi
 
 # if not set use crw-2.5-rhel-8 ==> 2.5 as the default tag
 if [[ -z "${CRW_SERVER_TAG}" ]];   then CRW_SERVER_TAG=${MIDSTM_BRANCH#*-};   CRW_SERVER_TAG=${CRW_SERVER_TAG%%-*};     fi
