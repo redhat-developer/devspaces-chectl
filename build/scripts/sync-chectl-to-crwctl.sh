@@ -18,8 +18,8 @@ MIDSTM_BRANCH="crw-2.5-rhel-8"
 DEFAULT_TAG=${MIDSTM_BRANCH#*-}; DEFAULT_TAG=${DEFAULT_TAG%%-*};
 
 usage () {
-	echo "Usage:   $0 -b MIDSTM_BRANCH -s SOURCEDIR -t TARGETDIR"
-	echo "Example: $0 -b crw-2.5-rhel-8 -s /path/to/chectl -t /path/to/crwctl"
+	echo "Usage:   $0 -b MIDSTM_BRANCH -s SOURCEDIR -t TARGETDIR -j PACKAGEJSON"
+	echo "Example: $0 -b crw-2.5-rhel-8 -s /path/to/chectl -t /path/to/crwctl -j /path/to/package.json"
 	echo ""
 	echo "Options:
 	--server-tag ${DEFAULT_TAG}-xx   (instead of default ${DEFAULT_TAG})
@@ -34,6 +34,7 @@ while [[ "$#" -gt 0 ]]; do
 	# paths to use for input and ouput
 	'-s') SOURCEDIR="$2"; SOURCEDIR="${SOURCEDIR%/}"; shift 1;;
 	'-t') TARGETDIR="$2"; TARGETDIR="${TARGETDIR%/}"; shift 1;;
+	'-j') PACKAGEJSON="$2"; shift 1;;
 	'--help'|'-h') usage;;
 	# optional tag overrides
 	'--server-tag') CRW_SERVER_TAG="$2"; shift 1;;
@@ -182,16 +183,21 @@ popd >/dev/null
 
 replaceVar()
 {
-  replaceFile="$1"
-  updateName="$2"
-  updateVal="$3"
-  cat ${replaceFile} | jq --arg updateName "${updateName}" --arg updateVal "${updateVal}" ''${updateName}'="'${updateVal}'"' > ${replaceFile}.2
-  if [[ $(cat ${replaceFile}) != $(cat ${replaceFile}.2) ]]; then
+  inputFile="$1"
+  replaceFile="$2"
+  updateName="$3"
+  updateVal="$4"
+  cat ${inputFile} | jq --arg updateName "${updateName}" --arg updateVal "${updateVal}" ''${updateName}'="'${updateVal}'"' > ${replaceFile}.2
+  if [[ $(cat ${inputFile}) != $(cat ${replaceFile}.2) ]]; then
     echo -n " * $updateName: "
-    cat "${replaceFile}" | jq --arg updateName "${updateName}" ''${updateName}'' 2>/dev/null
+    cat "${replaceFile}.2" | jq --arg updateName "${updateName}" ''${updateName}'' 2>/dev/null
   fi
-  mv ${replaceFile}.2 ${replaceFile}
+  mv "${replaceFile}.2" "${replaceFile}"
 }
 
 # update package.json to latest branch of crw-operator
-replaceVar "${TARGETDIR}/package.json" '.dependencies["codeready-workspaces-operator"]' "git://github.com/redhat-developer/codeready-workspaces-operator#${MIDSTM_BRANCH}"
+if [[ -f ${PACKAGEJSON} ]]; then
+	replaceVar "${PACKAGEJSON}" "${TARGETDIR}/package.json" '.dependencies["codeready-workspaces-operator"]' "git://github.com/redhat-developer/codeready-workspaces-operator#${MIDSTM_BRANCH}"
+
+	# TODO apply more transforms from upstream to downstream so we get closer to Che version
+fi
