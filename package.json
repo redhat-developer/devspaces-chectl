@@ -24,7 +24,7 @@
     "ansi-colors": "4.1.1",
     "axios": "^0.19.0",
     "cli-ux": "^5.4.4",
-    "codeready-workspaces-operator": "git://github.com/redhat-developer/codeready-workspaces-operator#crw-2.4-rhel-8",
+    "codeready-workspaces-operator": "git://github.com/redhat-developer/codeready-workspaces-operator#crw-2.5-rhel-8",
     "command-exists": "^1.2.8",
     "debug": "^4.1.1",
     "esprima": "^4.0.1",
