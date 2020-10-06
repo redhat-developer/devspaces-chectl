@@ -14,23 +14,45 @@
 
 set -e
 
+MIDSTM_BRANCH="crw-2.5-rhel-8"
+DEFAULT_TAG=${MIDSTM_BRANCH#*-}; DEFAULT_TAG=${DEFAULT_TAG%%-*};
+
 if [[ $# -lt 3 ]]; then
-	echo "Usage:   $0 SOURCEDIR TARGETDIR CRW_SERVER_TAG CRW_OPERATOR_TAG"
-	echo "Example: $0 /path/to/chectl /path/to/crwctl 2.1-20 2.1-19"
+	echo "Usage:   $0 -b MIDSTM_BRANCH -s SOURCEDIR -t TARGETDIR"
+	echo "Example: $0 -b crw-2.5-rhel-8 -s /path/to/chectl -t /path/to/crwctl"
 	echo ""
-	echo "Note: CRW_*_TAG = default image tags (eg., server-rhel8:2.1-20 and crw-2-rhel8-operator:2.1-19)"
+	echo "Options:
+	--server-tag ${DEFAULT_TAG}-xx   (instead of default ${DEFAULT_TAG})
+	--operator-tag ${DEFAULT_TAG}-yy (instead of default ${DEFAULT_TAG})
+	"
 	exit 1
 fi
 
-SOURCEDIR=$1; SOURCEDIR=${SOURCEDIR%/}
-TARGETDIR=$2; TARGETDIR=${TARGETDIR%/}
-CRW_SERVER_TAG="$3"   # eg., 2.1-20 as in server-rhel8:2.1-20 to set as default
-CRW_OPERATOR_TAG="$4" # eg., 2.1-19 as in crw-2-rhel8-operator:2.1-19 to set as default
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+    '-b'|'--crw-branch') MIDSTM_BRANCH="$2"; shift 1;; # branch of redhat-developer/codeready-workspaces/pom.xml to check as default CHE_VERSION
+	# paths to use for input and ouput
+	'-s') SOURCEDIR="$2"; SOURCEDIR="${SOURCEDIR%/}"; shift 1;;
+	'-t') TARGETDIR="$2"; TARGETDIR="${TARGETDIR%/}"; shift 1;;
+	'--help'|'-h') usage;;
+	# optional tag overrides
+	'--server-tag') CRW_SERVER_TAG="$2"; shift 1;;
+	'--operator-tag') CRW_OPERATOR_TAG="$2"; shift 1;;
+  esac
+  shift 1
+done
+
+if [[ ! -d "${SOURCEDIR}" ]]; then usage; fi
+if [[ ! -d "${TARGETDIR}" ]]; then usage; fi
+
+# if not set use crw-2.5-rhel-8 ==> 2.5 as the default tag
+if [[ -z "${CRW_SERVER_TAG}" ]];   then CRW_SERVER_TAG=${MIDSTM_BRANCH#*-};   CRW_SERVER_TAG=${CRW_SERVER_TAG%%-*};     fi
+if [[ -z "${CRW_OPERATOR_TAG}" ]]; then CRW_OPERATOR_TAG=${MIDSTM_BRANCH#*-}; CRW_OPERATOR_TAG=${CRW_OPERATOR_TAG%%-*}; fi
 
 # global / generic changes
 pushd "${SOURCEDIR}" >/dev/null
 	while IFS= read -r -d '' d; do
-		echo "Convert ${d}"
+		echo "[INFO] Convert ${d}"
 		if [[ -d "${SOURCEDIR}/${d%/*}" ]]; then mkdir -p "${TARGETDIR}"/"${d%/*}"; fi
 		sed -r \
 			-e "s|route_names = \['che'|route_names = \['codeready'|g" \
@@ -78,13 +100,12 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|che-incubator/crwctl|redhat-developer/codeready-workspaces-chectl|g" \
 		"$d" > "${TARGETDIR}/${d}"
 	done <   <(find src test -type f -name "*" -print0)
-	# TODO add package.json into the above?
 popd >/dev/null
 
 # Remove files
 pushd "${TARGETDIR}" >/dev/null
 	while IFS= read -r -d '' d; do
-		echo "Delete ${d#./}"
+		echo "[INFO] Delete ${d#./}"
 		rm -f "$d"
 		#
 	done <   <(find . -regextype posix-extended -iregex '.+/(helm|minishift|minishift-addon|minikube|microk8s|k8s|docker-desktop)(.test|).ts' -print0)
@@ -104,7 +125,7 @@ installerString="    installer: string({\n\
     }),"; # echo -e "$installerString"
 pushd "${TARGETDIR}" >/dev/null
 	for d in src/commands/server/update.ts src/commands/server/start.ts; do
-		echo "Convert ${d}"
+		echo "[INFO] Convert ${d}"
 		mkdir -p "${TARGETDIR}/${d%/*}"
 		perl -0777 -p -i -e 's|(\ +platform: string\({.*?}\),)| ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
 		sed -r -e "s#INSERT-CONTENT-HERE#${platformString}#" -i "${TARGETDIR}/${d}"
@@ -121,7 +142,7 @@ popd >/dev/null
 
 pushd "${TARGETDIR}" >/dev/null
 	d=src/common-flags.ts
-	echo "Convert ${d}"
+	echo "[INFO] Convert ${d}"
 	mkdir -p "${TARGETDIR}/${d%/*}"
 	sed -r \
 		`# replace line after specified one with new default` \
@@ -143,7 +164,7 @@ operatorTasksString="export class OperatorTasks {\n\
   resourcesPath = ''"
 pushd "${TARGETDIR}" >/dev/null
 	d=src/tasks/installers/operator.ts
-	echo "Convert ${d}"
+	echo "[INFO] Convert ${d}"
 	mkdir -p "${TARGETDIR}/${d%/*}"
 	perl -0777 -p -i -e 's|(export class OperatorTasks.*?  resourcesPath = )|  ${1} =~ /.+che-operator.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
 	sed -r -e "s#INSERT-CONTENT-HERE.+#${operatorTasksString}#" -i "${TARGETDIR}/${d}"
@@ -152,18 +173,25 @@ popd >/dev/null
 # remove if blocks
 pushd "${TARGETDIR}" >/dev/null
 	for d in src/tasks/installers/installer.ts src/tasks/platforms/platform.ts; do
-		echo "Convert ${d}"
+		echo "[INFO] Convert ${d}"
 		mkdir -p "${TARGETDIR}/${d%/*}"
 		sed -i -r -e '/.+BEGIN CHE ONLY$/,/.+END CHE ONLY$/d' "${TARGETDIR}/${d}"
 		sed -r -e "/.*(import|const).+(Helm|Minishift|DockerDesktop|K8s|MicroK8s|Minikube).*Tasks.*/d" -i "${TARGETDIR}/${d}"
 	done
 popd >/dev/null
 
-# TODO implement changes for converting package.json from chectl to crwclt
-# pushd "${TARGETDIR}" >/dev/null
-# 	d=package.json
-# 	echo "Convert ${d}"
-# 	sed -r  \
-# 			-e "s|che-operator|codeready-workspaces-operator|g" \
-# 		-i "${TARGETDIR}/${d}"
-# popd >/dev/null
+replaceVar()
+{
+  replaceFile="$1"
+  updateName="$2"
+  updateVal="$3"
+  cat ${replaceFile} | jq --arg updateName "${updateName}" --arg updateVal "${updateVal}" ''${updateName}'="'${updateVal}'"' > ${replaceFile}.2
+  if [[ $(cat ${replaceFile}) != $(cat ${replaceFile}.2) ]]; then
+    echo -n " * $updateName: "
+    cat "${replaceFile}" | jq --arg updateName "${updateName}" ''${updateName}'' 2>/dev/null
+  fi
+  mv ${replaceFile}.2 ${replaceFile}
+}
+
+# update package.json to latest branch of crw-operator
+replaceVar "${TARGETDIR}/package.json" '.dependencies["codeready-workspaces-operator"]' "git://github.com/redhat-developer/codeready-workspaces-operator#${MIDSTM_BRANCH}"
