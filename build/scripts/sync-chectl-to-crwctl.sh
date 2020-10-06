@@ -17,7 +17,7 @@ set -e
 MIDSTM_BRANCH="crw-2.5-rhel-8"
 DEFAULT_TAG=${MIDSTM_BRANCH#*-}; DEFAULT_TAG=${DEFAULT_TAG%%-*};
 
-if [[ $# -lt 3 ]]; then
+usage () {
 	echo "Usage:   $0 -b MIDSTM_BRANCH -s SOURCEDIR -t TARGETDIR"
 	echo "Example: $0 -b crw-2.5-rhel-8 -s /path/to/chectl -t /path/to/crwctl"
 	echo ""
@@ -26,7 +26,7 @@ if [[ $# -lt 3 ]]; then
 	--operator-tag ${DEFAULT_TAG}-yy (instead of default ${DEFAULT_TAG})
 	"
 	exit 1
-fi
+}
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
