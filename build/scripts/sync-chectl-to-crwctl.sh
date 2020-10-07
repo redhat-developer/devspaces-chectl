@@ -208,19 +208,19 @@ if [[ -f ${replaceFile} ]]; then
 
 	echo "[INFO] Convert package.json (jq #1)"
 	declare -A package_replacements=(
-		['.dependencies["codeready-workspaces-operator"]']="git://github.com/redhat-developer/codeready-workspaces-operator#${MIDSTM_BRANCH}"
-		['.name']="crwctl"
-		['.description']="CodeReady Workspaces CLI"
-		['.version']="${DEFAULT_TAG}.0-CI-redhat"
-		['.bin["crwctl"]']="./bin/run"
-		['.bugs']="https://issues.jboss.org/projects/CRW/issues"
-		['.homepage']="https://developers.redhat.com/products/codeready-workspaces"
-		['.repository']="redhat-developer/codeready-workspaces-chectl"
-		['.oclif["macos"]["identifier"]']="redhat-developer.crwctl"
-		['.oclif["update"]["s3"]["host"]']="https://redhat-developer.github.io/codeready-workspaces-chectl/"
+		["git://github.com/redhat-developer/codeready-workspaces-operator#${MIDSTM_BRANCH}"]='.dependencies["codeready-workspaces-operator"]'
+		["crwctl"]='.name'
+		["CodeReady Workspaces CLI"]='.description'
+		["${DEFAULT_TAG}.0-CI-redhat"]='.version'
+		["./bin/run"]='.bin["crwctl"]'
+		["https://issues.jboss.org/projects/CRW/issues"]='.bugs'
+		["https://developers.redhat.com/products/codeready-workspaces"]='.homepage'
+		["redhat-developer/codeready-workspaces-chectl"]='.repository'
+		["redhat-developer.crwctl"]='.oclif["macos"]["identifier"]'
+		["https://redhat-developer.github.io/codeready-workspaces-chectl/"]='.oclif["update"]["s3"]["host"]'
 	)
-	for updateName in "${!package_replacements[@]}"; do
-		updateVal="${package_replacements[$updateName]}"
+	for updateVal in "${!package_replacements[@]}"; do
+		updateName="${package_replacements[$updateVal]}"
 		replaceVar
 	done
 fi
