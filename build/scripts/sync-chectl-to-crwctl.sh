@@ -75,6 +75,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|codeready-operator-image|che-operator-image|g" \
 			-e "s|CHE_CLUSTER_CR_NAME = 'eclipse-che'|CHE_CLUSTER_CR_NAME = 'codeready-workspaces'|g" \
 			-e "s|Eclipse Che|CodeReady Workspaces|g" \
+			-e "s|Che workspaces|CodeReady Workspaces workspaces|g" \
 			\
 			-e "s| when both minishift and OpenShift are stopped||" \
 			-e "s|resource: Kubernetes/OpenShift/Helm|resource|g" \
@@ -100,7 +101,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|\"CodeReady Workspaces will be deployed in Multi-User mode.+mode.\"|'CodeReady Workspaces can only be deployed in Multi-User mode.'|" \
 			-e "s|che-incubator/crwctl|redhat-developer/codeready-workspaces-chectl|g" \
 		"$d" > "${TARGETDIR}/${d}"
-	done <   <(find src test -type f -name "*" -print0)
+	done <   <(find src test package.json -type f -name "*" -print0)
 popd >/dev/null
 
 # Remove files
@@ -183,12 +184,8 @@ popd >/dev/null
 
 replaceVar()
 {
-  inputFile="$1"
-  replaceFile="$2"
-  updateName="$3"
-  updateVal="$4"
-  cat ${inputFile} | jq --arg updateName "${updateName}" --arg updateVal "${updateVal}" ''${updateName}'="'${updateVal}'"' > ${replaceFile}.2
-  if [[ $(cat ${inputFile}) != $(cat ${replaceFile}.2) ]]; then
+  cat ${replaceFile} | jq --arg updateName "${updateName}" --arg updateVal "${updateVal}" ''${updateName}'="'"${updateVal}"'"' > ${replaceFile}.2
+  if [[ $(cat ${replaceFile}) != $(cat ${replaceFile}.2) ]]; then
     echo -n " * $updateName: "
     cat "${replaceFile}.2" | jq --arg updateName "${updateName}" ''${updateName}'' 2>/dev/null
   fi
@@ -197,7 +194,34 @@ replaceVar()
 
 # update package.json to latest branch of crw-operator
 if [[ -f ${PACKAGEJSON} ]]; then
-	replaceVar "${PACKAGEJSON}" "${TARGETDIR}/package.json" '.dependencies["codeready-workspaces-operator"]' "git://github.com/redhat-developer/codeready-workspaces-operator#${MIDSTM_BRANCH}"
+	replaceFile="${TARGETDIR}/package.json"
+	echo "[INFO] Convert package.json (sed #2)"
+	sed -i ${replaceFile} -r \
+		-e '/"eclipse-.+": ".+"/d' \
+		-e "s#npm run -s postinstall-helm \&\& ##g" \
+		-e "s#npm run -s postinstall-minishift-addon \&\& ##g" \
+		-e '/postinstall-helm/d' \
+		-e '/e2e-minikube/d' \
+		-e '/e2e-minishift/d' \
+		-e '/eclipse-che-minishift/d' \
+		-e '/"\@oclif\/plugin-update"/d' \
+		-e 's#"\@oclif/plugin-help",#"@oclif/plugin-help"#g'
 
-	# TODO apply more transforms from upstream to downstream so we get closer to Che version
+	echo "[INFO] Convert package.json (jq #1)"
+	declare -A package_replacements=(
+		['.dependencies["codeready-workspaces-operator"]']="git://github.com/redhat-developer/codeready-workspaces-operator#${MIDSTM_BRANCH}"
+		['.name']="crwctl"
+		['.description']="CodeReady Workspaces CLI"
+		['.version']="${DEFAULT_TAG}.0-CI-redhat"
+		['.bin["crwctl"]']="./bin/run"
+		['.bugs']="https://issues.jboss.org/projects/CRW/issues"
+		['.homepage']="https://developers.redhat.com/products/codeready-workspaces"
+		['.repository']="redhat-developer/codeready-workspaces-chectl"
+		['.oclif["macos"]["identifier"]']="redhat-developer.crwctl"
+		['.oclif["update"]["s3"]["host"]']="https://redhat-developer.github.io/codeready-workspaces-chectl/"
+	)
+	for updateName in "${!package_replacements[@]}"; do
+		updateVal="${package_replacements[$updateName]}"
+		replaceVar
+	done
 fi
