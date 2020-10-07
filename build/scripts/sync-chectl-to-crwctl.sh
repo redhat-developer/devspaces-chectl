@@ -19,7 +19,7 @@ DEFAULT_TAG=${MIDSTM_BRANCH#*-}; DEFAULT_TAG=${DEFAULT_TAG%%-*};
 
 usage () {
 	echo "Usage:   $0 -b MIDSTM_BRANCH -s SOURCEDIR -t TARGETDIR -j PACKAGEJSON"
-	echo "Example: $0 -b crw-2.5-rhel-8 -s /path/to/chectl -t /path/to/crwctl -j /path/to/package.json"
+	echo "Example: $0 -b crw-2.5-rhel-8 -s /path/to/chectl -t /path/to/crwctl"
 	echo ""
 	echo "Options:
 	--server-tag ${DEFAULT_TAG}-xx   (instead of default ${DEFAULT_TAG})
@@ -34,7 +34,6 @@ while [[ "$#" -gt 0 ]]; do
 	# paths to use for input and ouput
 	'-s') SOURCEDIR="$2"; SOURCEDIR="${SOURCEDIR%/}"; shift 1;;
 	'-t') TARGETDIR="$2"; TARGETDIR="${TARGETDIR%/}"; shift 1;;
-	'-j') PACKAGEJSON="$2"; shift 1;;
 	'--help'|'-h') usage;;
 	# optional tag overrides
 	'--server-tag') CRW_SERVER_TAG="$2"; shift 1;;
@@ -193,8 +192,8 @@ replaceVar()
 }
 
 # update package.json to latest branch of crw-operator
-if [[ -f ${PACKAGEJSON} ]]; then
-	replaceFile="${TARGETDIR}/package.json"
+replaceFile="${TARGETDIR}/package.json"
+if [[ -f ${replaceFile} ]]; then
 	echo "[INFO] Convert package.json (sed #2)"
 	sed -i ${replaceFile} -r \
 		-e '/"eclipse-.+": ".+"/d' \

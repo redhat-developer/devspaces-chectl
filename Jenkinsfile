@@ -106,7 +106,7 @@ timeout(20) {
 			popd >/dev/null
 			git checkout ''' + MIDSTM_BRANCH + '''
 			./build/scripts/sync-chectl-to-crwctl.sh -b ''' + MIDSTM_BRANCH + ''' -s ${WORKSPACE}/chectl -t ${WORKSPACE}/crwctl_generated \
-				-j ${WORKSPACE}/crwctl/package.json --server-tag ${CRW_SERVER_TAG} --operator-tag ${CRW_OPERATOR_TAG} 
+				--server-tag ${CRW_SERVER_TAG} --operator-tag ${CRW_OPERATOR_TAG} 
 			# check for differences
 			set +x
 			for d in $(cd ${WORKSPACE}/crwctl_generated/; find src test -type f); do diff -u ${d} ${WORKSPACE}/crwctl_generated/${d} || true; done
