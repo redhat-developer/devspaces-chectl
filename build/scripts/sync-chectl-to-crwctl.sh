@@ -18,7 +18,7 @@ MIDSTM_BRANCH="crw-2.5-rhel-8"
 DEFAULT_TAG=${MIDSTM_BRANCH#*-}; DEFAULT_TAG=${DEFAULT_TAG%%-*};
 
 usage () {
-	echo "Usage:   $0 -b MIDSTM_BRANCH -s SOURCEDIR -t TARGETDIR -j PACKAGEJSON"
+	echo "Usage:   $0 -b MIDSTM_BRANCH -s SOURCEDIR -t TARGETDIR"
 	echo "Example: $0 -b crw-2.5-rhel-8 -s /path/to/chectl -t /path/to/crwctl"
 	echo ""
 	echo "Options:
@@ -100,7 +100,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|\"CodeReady Workspaces will be deployed in Multi-User mode.+mode.\"|'CodeReady Workspaces can only be deployed in Multi-User mode.'|" \
 			-e "s|che-incubator/crwctl|redhat-developer/codeready-workspaces-chectl|g" \
 		"$d" > "${TARGETDIR}/${d}"
-	done <   <(find src test package.json -type f -name "*" -print0)
+	done <   <(find src test -type f -name "*" -print0) # TODO include package.json in here
 popd >/dev/null
 
 # Remove files
@@ -191,36 +191,37 @@ replaceVar()
   mv "${replaceFile}.2" "${replaceFile}"
 }
 
-# update package.json to latest branch of crw-operator
-replaceFile="${TARGETDIR}/package.json"
-if [[ -f ${replaceFile} ]]; then
-	echo "[INFO] Convert package.json (sed #2)"
-	sed -i ${replaceFile} -r \
-		-e '/"eclipse-.+": ".+"/d' \
-		-e "s#npm run -s postinstall-helm \&\& ##g" \
-		-e "s#npm run -s postinstall-minishift-addon \&\& ##g" \
-		-e '/postinstall-helm/d' \
-		-e '/e2e-minikube/d' \
-		-e '/e2e-minishift/d' \
-		-e '/eclipse-che-minishift/d' \
-		-e '/"\@oclif\/plugin-update"/d' \
-		-e 's#"\@oclif/plugin-help",#"@oclif/plugin-help"#g'
+# TODO: update package.json to latest branch of crw-operator, including missing sync rules in 
+# https://github.com/redhat-developer/codeready-workspaces-chectl/commit/a6f09db230bcf9888092ac3f1a34f6e62ae36d53
+# replaceFile="${TARGETDIR}/package.json"
+# if [[ -f ${replaceFile} ]]; then
+# 	echo "[INFO] Convert package.json (sed #2)"
+# 	sed -i ${replaceFile} -r \
+# 		-e '/"eclipse-.+": ".+"/d' \
+# 		-e "s#npm run -s postinstall-helm \&\& ##g" \
+# 		-e "s#npm run -s postinstall-minishift-addon \&\& ##g" \
+# 		-e '/postinstall-helm/d' \
+# 		-e '/e2e-minikube/d' \
+# 		-e '/e2e-minishift/d' \
+# 		-e '/eclipse-che-minishift/d' \
+# 		-e '/"\@oclif\/plugin-update"/d' \
+# 		-e 's#"\@oclif/plugin-help",#"@oclif/plugin-help"#g'
 
-	echo "[INFO] Convert package.json (jq #1)"
-	declare -A package_replacements=(
-		["git://github.com/redhat-developer/codeready-workspaces-operator#${MIDSTM_BRANCH}"]='.dependencies["codeready-workspaces-operator"]'
-		["crwctl"]='.name'
-		["CodeReady Workspaces CLI"]='.description'
-		["${DEFAULT_TAG}.0-CI-redhat"]='.version'
-		["./bin/run"]='.bin["crwctl"]'
-		["https://issues.jboss.org/projects/CRW/issues"]='.bugs'
-		["https://developers.redhat.com/products/codeready-workspaces"]='.homepage'
-		["redhat-developer/codeready-workspaces-chectl"]='.repository'
-		["redhat-developer.crwctl"]='.oclif["macos"]["identifier"]'
-		["https://redhat-developer.github.io/codeready-workspaces-chectl/"]='.oclif["update"]["s3"]["host"]'
-	)
-	for updateVal in "${!package_replacements[@]}"; do
-		updateName="${package_replacements[$updateVal]}"
-		replaceVar
-	done
-fi
+# 	echo "[INFO] Convert package.json (jq #1)"
+# 	declare -A package_replacements=(
+# 		["git://github.com/redhat-developer/codeready-workspaces-operator#${MIDSTM_BRANCH}"]='.dependencies["codeready-workspaces-operator"]'
+# 		["crwctl"]='.name'
+# 		["CodeReady Workspaces CLI"]='.description'
+# 		["${DEFAULT_TAG}.0-CI-redhat"]='.version'
+# 		["./bin/run"]='.bin["crwctl"]'
+# 		["https://issues.jboss.org/projects/CRW/issues"]='.bugs'
+# 		["https://developers.redhat.com/products/codeready-workspaces"]='.homepage'
+# 		["redhat-developer/codeready-workspaces-chectl"]='.repository'
+# 		["redhat-developer.crwctl"]='.oclif["macos"]["identifier"]'
+# 		["https://redhat-developer.github.io/codeready-workspaces-chectl/"]='.oclif["update"]["s3"]["host"]'
+# 	)
+# 	for updateVal in "${!package_replacements[@]}"; do
+# 		updateName="${package_replacements[$updateVal]}"
+# 		replaceVar
+# 	done
+# fi
