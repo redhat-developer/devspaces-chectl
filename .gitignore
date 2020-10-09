@@ -11,6 +11,6 @@ coverage
 .vscode
 bin/crwctl-*
 tsconfig.tsbuildinfo
-.idea
-# k8s templates are added at post-install step
-templates/codeready-workspaces-operator
+# templates are added at post-install step
+templates
+
