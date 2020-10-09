@@ -100,7 +100,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|\"CodeReady Workspaces will be deployed in Multi-User mode.+mode.\"|'CodeReady Workspaces can only be deployed in Multi-User mode.'|" \
 			-e "s|che-incubator/crwctl|redhat-developer/codeready-workspaces-chectl|g" \
 		"$d" > "${TARGETDIR}/${d}"
-	done <   <(find src test -type f -name "*" -print0) # TODO include package.json in here
+	done <   <(find src test installers -type f -name "*" -print0) # TODO include package.json in here
 popd >/dev/null
 
 # Remove files
