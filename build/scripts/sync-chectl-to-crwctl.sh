@@ -205,7 +205,8 @@ if [[ -f ${replaceFile} ]]; then
 		-e '/"postinstall-helm":/d' \
 		-e '/"e2e-minikube":/d' \
 		-e '/"e2e-minishift":/d' \
-		-e 's#eclipse-codeready-operator#codeready-operator#g'
+		-e 's#eclipse-codeready-operator#codeready-operator#g' \
+		-e "s#templates/codeready-operator#templates/codeready-workspaces-operator#g"
 
 	echo "[INFO] Convert package.json (jq #1)"
 	declare -A package_replacements=(

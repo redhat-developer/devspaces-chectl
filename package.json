@@ -125,7 +125,7 @@
     "postinstall-cert-manager": "rimraf templates/cert-manager && cpx 'node_modules/eclipse-che/deploy/cert-manager/**' 'templates/cert-manager'",
     "postinstall-devfile-api": "rimraf templates/devfile-api && cpx 'node_modules/eclipse-che-devfile-api/deploy/**' 'templates/devfile-api'",
     "postinstall-dev-workspace": "rimraf templates/devworkspace && cpx 'node_modules/eclipse-che-devfile-workspace-operator/deploy/**' 'templates/devworkspace'",
-    "postinstall-operator": "rimraf templates/codeready-operator && cpx 'node_modules/codeready-operator/deploy/**' 'templates/codeready-operator'",
+    "postinstall-operator": "rimraf templates/codeready-workspaces-operator && cpx 'node_modules/codeready-operator/deploy/**' 'templates/codeready-workspaces-operator'",
     "postinstall-repositories": "yarn upgrade eclipse-che codeready-operator eclipse-che-devfile-api eclipse-che-devfile-workspace-operator",
     "postinstall-cleanup": "rimraf node_modules/eclipse-che && rimraf node_modules/codeready-operator",
     "test": "jest",
