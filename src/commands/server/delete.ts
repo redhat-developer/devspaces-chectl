@@ -24,7 +24,7 @@ import { ApiTasks } from '../../tasks/platforms/api'
 export default class Delete extends Command {
   static description = 'delete any CodeReady Workspaces related resource'
 
-  static flags = {
+  static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,
