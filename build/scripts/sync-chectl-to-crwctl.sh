@@ -65,8 +65,6 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|app=che|app=codeready|g" \
 			-e "s|app=codeready,component=che|app=codeready,component=codeready|" \
 			-e "s|che-operator|codeready-operator|g" \
-			-e "s| && isStableVersion\(flags\)||g" \
-			-e "s|, isStableVersion||g" \
 			-e "s|/codeready-operator/|/codeready-workspaces-operator/|g" \
 			\
 			-e "s|codeready-operator-(cr.+yaml)|che-operator-\1|g" \
