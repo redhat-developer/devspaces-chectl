@@ -25,6 +25,7 @@
     "ansi-colors": "4.1.1",
     "axios": "^0.19.2",
     "cli-ux": "^5.4.5",
+    "codeready-workspaces-operator": "git://github.com/redhat-developer/codeready-workspaces-operator#crw-2.5-rhel-8",
     "command-exists": "^1.2.9",
     "debug": "^4.1.1",
     "eclipse-che": "git://github.com/eclipse/che#7.19.2",
@@ -42,8 +43,7 @@
     "node-forge": "^0.10.0",
     "node-notifier": "^8.0.0",
     "stream-buffers": "^3.0.2",
-    "tslib": "^1",
-    "codeready-workspaces-operator": "git://github.com/redhat-developer/codeready-workspaces-operator#crw-2.5-rhel-8"
+    "tslib": "^1"
   },
   "devDependencies": {
     "@eclipse-che/api": "latest",
