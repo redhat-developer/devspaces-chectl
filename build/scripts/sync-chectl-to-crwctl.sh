@@ -189,8 +189,7 @@ replaceVar()
   mv "${replaceFile}.2" "${replaceFile}"
 }
 
-# TODO: update package.json to latest branch of crw-operator, including missing sync rules in 
-# https://github.com/redhat-developer/codeready-workspaces-chectl/commit/a6f09db230bcf9888092ac3f1a34f6e62ae36d53
+# update package.json to latest branch of crw-operator
 replaceFile="${TARGETDIR}/package.json"
 if [[ -f ${replaceFile} ]]; then
 	echo "[INFO] Convert package.json (sed #2)"
@@ -225,4 +224,8 @@ if [[ -f ${replaceFile} ]]; then
 		updateName="${package_replacements[$updateVal]}"
 		replaceVar
 	done
+	echo "[INFO] Sort package.json (to avoid nuissance commits)"
+	pushd ${TARGETDIR} >/dev/null
+	npx sort-package-json
+	popd >/dev/null
 fi

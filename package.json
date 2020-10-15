@@ -1,12 +1,69 @@
 {
   "name": "crwctl",
-  "description": "CodeReady Workspaces CLI",
   "version": "2.5.0-CI-redhat",
+  "description": "CodeReady Workspaces CLI",
+  "keywords": [
+    "oclif"
+  ],
+  "homepage": "https://developers.redhat.com/products/codeready-workspaces",
+  "bugs": "https://issues.jboss.org/projects/CRW/issues",
+  "repository": "redhat-developer/codeready-workspaces-chectl",
+  "license": "EPL-2.0",
   "author": "Mario Loriedo @l0rd",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "bin": {
     "crwctl": "./bin/run"
   },
-  "bugs": "https://issues.jboss.org/projects/CRW/issues",
+  "files": [
+    "/bin",
+    "/lib",
+    "/installers",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json"
+  ],
+  "scripts": {
+    "e2e-openshift": "jest ./test/e2e/openshift.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
+    "format": "tsfmt -r --useTsfmt tsfmt.json",
+    "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-cert-manager && npm run -s postinstall-operator && npm run -s postinstall-devfile-api && npm run -s postinstall-dev-workspace && npm run -s postinstall-cleanup",
+    "prepack": "rm -rf lib && rm -rf tsconfig.tsbuildinfo && tsc -b && oclif-dev manifest && oclif-dev readme",
+    "postpack": "rm -f oclif.manifest.json",
+    "pack-binaries": "oclif-dev pack",
+    "postinstall-cert-manager": "rimraf templates/cert-manager && cpx 'node_modules/eclipse-che/deploy/cert-manager/**' 'templates/cert-manager'",
+    "postinstall-cleanup": "rimraf node_modules/eclipse-che && rimraf node_modules/codeready-operator",
+    "postinstall-dev-workspace": "rimraf templates/devworkspace && cpx 'node_modules/eclipse-che-devfile-workspace-operator/deploy/**' 'templates/devworkspace'",
+    "postinstall-devfile-api": "rimraf templates/devfile-api && cpx 'node_modules/eclipse-che-devfile-api/deploy/**' 'templates/devfile-api'",
+    "postinstall-operator": "rimraf templates/codeready-workspaces-operator && cpx 'node_modules/codeready-operator/deploy/**' 'templates/codeready-workspaces-operator'",
+    "postinstall-repositories": "yarn upgrade eclipse-che codeready-operator eclipse-che-devfile-api eclipse-che-devfile-workspace-operator",
+    "test": "jest",
+    "posttest": "tslint -p test -t stylish",
+    "test-watch": "jest --watchAll",
+    "tslint-fix": "tslint --fix -p test -t stylish",
+    "version": "oclif-dev readme && git add README.md",
+    "watch": "tsc --watch"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "src/**/*.ts"
+    ],
+    "coverageDirectory": "./coverage",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json"
+    ],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/dist"
+    ],
+    "testEnvironment": "node",
+    "testRegex": "/test/(api|tasks)/.*.test.ts",
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    }
+  },
   "dependencies": {
     "@kubernetes/client-node": "0.12.1",
     "@oclif/command": "^1",
@@ -69,19 +126,6 @@
   "engines": {
     "node": ">=8.0.0"
   },
-  "files": [
-    "/bin",
-    "/lib",
-    "/installers",
-    "/npm-shrinkwrap.json",
-    "/oclif.manifest.json"
-  ],
-  "homepage": "https://developers.redhat.com/products/codeready-workspaces",
-  "keywords": [
-    "oclif"
-  ],
-  "license": "EPL-2.0",
-  "main": "lib/index.js",
   "oclif": {
     "commands": "./lib/commands",
     "bin": "crwctl",
@@ -118,49 +162,5 @@
         }
       }
     }
-  },
-  "repository": "redhat-developer/codeready-workspaces-chectl",
-  "scripts": {
-    "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-cert-manager && npm run -s postinstall-operator && npm run -s postinstall-devfile-api && npm run -s postinstall-dev-workspace && npm run -s postinstall-cleanup",
-    "postinstall-cert-manager": "rimraf templates/cert-manager && cpx 'node_modules/eclipse-che/deploy/cert-manager/**' 'templates/cert-manager'",
-    "postinstall-devfile-api": "rimraf templates/devfile-api && cpx 'node_modules/eclipse-che-devfile-api/deploy/**' 'templates/devfile-api'",
-    "postinstall-dev-workspace": "rimraf templates/devworkspace && cpx 'node_modules/eclipse-che-devfile-workspace-operator/deploy/**' 'templates/devworkspace'",
-    "postinstall-operator": "rimraf templates/codeready-workspaces-operator && cpx 'node_modules/codeready-operator/deploy/**' 'templates/codeready-workspaces-operator'",
-    "postinstall-repositories": "yarn upgrade eclipse-che codeready-operator eclipse-che-devfile-api eclipse-che-devfile-workspace-operator",
-    "postinstall-cleanup": "rimraf node_modules/eclipse-che && rimraf node_modules/codeready-operator",
-    "test": "jest",
-    "posttest": "tslint -p test -t stylish",
-    "test-watch": "jest --watchAll",
-    "e2e-openshift": "jest ./test/e2e/openshift.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
-    "prepack": "rm -rf lib && rm -rf tsconfig.tsbuildinfo && tsc -b && oclif-dev manifest && oclif-dev readme",
-    "pack-binaries": "oclif-dev pack",
-    "postpack": "rm -f oclif.manifest.json",
-    "format": "tsfmt -r --useTsfmt tsfmt.json",
-    "tslint-fix": "tslint --fix -p test -t stylish",
-    "version": "oclif-dev readme && git add README.md",
-    "watch": "tsc --watch"
-  },
-  "types": "lib/index.d.ts",
-  "jest": {
-    "collectCoverage": true,
-    "collectCoverageFrom": [
-      "src/**/*.ts"
-    ],
-    "coverageDirectory": "./coverage",
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
-    },
-    "modulePathIgnorePatterns": [
-      "<rootDir>/dist"
-    ],
-    "testRegex": "/test/(api|tasks)/.*.test.ts",
-    "testEnvironment": "node",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json"
-    ]
   }
 }
