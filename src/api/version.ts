@@ -11,12 +11,17 @@
 import execa = require('execa')
 import Listr = require('listr')
 
+import { CheTasks } from '../tasks/che'
+import { getClusterClientCommand } from '../util'
+
 import { KubeHelper } from './kube'
 
 export namespace VersionHelper {
   export const MINIMAL_OPENSHIFT_VERSION = '3.11'
   export const MINIMAL_K8S_VERSION = '1.9'
   export const MINIMAL_HELM_VERSION = '2.15'
+  export const CHE_POD_MANIFEST_FILE = '/home/user/eclipse-che/tomcat/webapps/ROOT/META-INF/MANIFEST.MF'
+  export const CHE_PREFFIX_VERSION = 'Implementation-Version: '
 
   export function getOpenShiftCheckVersionTask(flags: any): Listr.ListrTask {
     return {
@@ -130,6 +135,33 @@ export namespace VersionHelper {
     const args = ['version', '--short']
     const { stdout } = await execa(command, args, { timeout: 60000 })
     return stdout.split('\n').filter(value => value.startsWith(versionPrefix)).map(value => value.substring(versionPrefix.length))[0]
+  }
+
+  /**
+   * Returns CodeReady Workspaces version.
+   */
+  export async function getCheVersion(flags: any): Promise<string> {
+    const kube = new KubeHelper(flags)
+    const cheTasks = new CheTasks(flags)
+    const cheCluster = await kube.getCheCluster(flags.chenamespace)
+    if (cheCluster && cheCluster.spec.server.cheFlavor !== 'che') {
+      return cheCluster.status.cheVersion
+    }
+
+    const chePodList = await kube.getPodListByLabel(flags.chenamespace, cheTasks.cheSelector)
+    const [chePodName] = chePodList.map(pod => pod.metadata && pod.metadata.name)
+    if (!chePodName) {
+      return 'UNKNOWN'
+    }
+
+    const command = getClusterClientCommand()
+    const args = ['exec', chePodName, '--namespace', flags.chenamespace, 'cat', CHE_POD_MANIFEST_FILE]
+    try {
+      const { stdout } = await execa(command, args, { timeout: 60000 })
+      return stdout.split('\n').filter(value => value.startsWith(CHE_PREFFIX_VERSION)).map(value => value.substring(CHE_PREFFIX_VERSION.length))[0]
+    } catch {
+      return 'UNKNOWN'
+    }
   }
 
   function removeVPrefix(version: string): string {

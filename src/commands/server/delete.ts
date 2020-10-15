@@ -20,6 +20,7 @@ import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-work
 import { OLMTasks } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { ApiTasks } from '../../tasks/platforms/api'
+import { getCommandSuccessMessage, initializeContext } from '../../util'
 
 export default class Delete extends Command {
   static description = 'delete any CodeReady Workspaces related resource'
@@ -42,6 +43,7 @@ export default class Delete extends Command {
   }
 
   async run() {
+    const ctx = initializeContext()
     const { flags } = this.parse(Delete)
 
     const notifier = require('node-notifier')
@@ -78,11 +80,16 @@ export default class Delete extends Command {
       }
     }
 
-    await tasks.run()
+    try {
+      await tasks.run()
+      cli.log(getCommandSuccessMessage(this, ctx))
+    } catch (error) {
+      cli.error(error)
+    }
 
     notifier.notify({
       title: 'crwctl',
-      message: 'Command server:delete has completed.'
+      message: getCommandSuccessMessage(this, ctx)
     })
 
     this.exit(0)

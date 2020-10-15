@@ -11,9 +11,11 @@ import { Command } from '@oclif/command'
 import * as Listr from 'listr'
 
 import { CheHelper } from '../api/che'
+import { CheApiClient } from '../api/che-api-client'
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
-import { DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH } from '../constants'
+import { VersionHelper } from '../api/version'
+import { DOC_LINK, DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH, DOC_LINK_RELEASE_NOTES } from '../constants'
 
 import { KubeTasks } from './kube'
 
@@ -95,7 +97,6 @@ export class CheTasks {
         enabled: ctx => !ctx.isCheReady,
         task: () => this.kubeTasks.podStartTasks(command, this.cheSelector, this.cheNamespace)
       },
-      ...this.retrieveEclipseCheUrl(flags),
       ...this.checkEclipseCheStatus()
     ]
   }
@@ -193,8 +194,9 @@ export class CheTasks {
           let cheURL = ''
           try {
             cheURL = await this.che.cheURL(this.cheNamespace)
-            const status = await this.che.getCheServerStatus(cheURL)
-            ctx.isAuthEnabled = await this.che.isAuthenticationEnabled(cheURL)
+            const cheApi = CheApiClient.getInstance(cheURL + '/api')
+            const status = await cheApi.getCheServerStatus()
+            ctx.isAuthEnabled = await cheApi.isAuthenticationEnabled()
             const auth = ctx.isAuthEnabled ? '(auth enabled)' : '(auth disabled)'
             task.title = `${task.title}...${status} ${auth}`
           } catch (error) {
@@ -259,9 +261,10 @@ export class CheTasks {
       task: async (task: any) => {
         try {
           const cheURL = await this.che.cheURL(this.cheNamespace)
-          await this.che.startShutdown(cheURL, this.cheAccessToken)
-          await this.che.waitUntilReadyToShutdown(cheURL)
-          task.title = await `${task.title}...done`
+          const cheApi = CheApiClient.getInstance(cheURL + '/api')
+          await cheApi.startCheServerShutdown(this.cheAccessToken)
+          await cheApi.waitUntilCheServerReadyToShutdown()
+          task.title = `${task.title}...done`
         } catch (error) {
           command.error(`E_SHUTDOWN_CHE_SERVER_FAIL - Failed to shutdown CodeReady Workspaces server. ${error.message}`)
         }
@@ -608,13 +611,43 @@ export class CheTasks {
     ]
   }
 
-  retrieveEclipseCheUrl(flags: any): ReadonlyArray<Listr.ListrTask> {
+  preparePostInstallationOutput(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Retrieving CodeReady Workspaces server URL',
+        title: 'Prepare post installation output',
         task: async (ctx: any, task: any) => {
-          ctx.cheURL = await this.che.cheURL(flags.chenamespace)
-          task.title = `${task.title}... ${ctx.cheURL}`
+          const version = await VersionHelper.getCheVersion(flags)
+          ctx.highlightedMessages.push(`CodeReady Workspaces ${version.trim()} has successfully installed.`)
+
+          const cheUrl = await this.che.cheURL(flags.chenamespace)
+          ctx.highlightedMessages.push(`Users can access the Dashboard at   : ${cheUrl}`)
+
+          const cheConfigMap = await this.kube.getConfigMap('che', flags.chenamespace)
+          if (cheConfigMap && cheConfigMap.data) {
+            if (cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL) {
+              ctx.highlightedMessages.push(`Plugins can be viewed at            : ${cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL}`)
+            }
+            if (cheConfigMap.data.CHE_WORKSPACE_DEVFILE__REGISTRY__URL) {
+              ctx.highlightedMessages.push(`Devfiles can be viewed at           : ${cheConfigMap.data.CHE_WORKSPACE_DEVFILE__REGISTRY__URL}`)
+            }
+            if (cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL) {
+              ctx.highlightedMessages.push(`Identity provider can be accessed at: ${cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL}`)
+            }
+            ctx.highlightedMessages.push(`Product documentation is at         : ${DOC_LINK}`)
+            if (DOC_LINK_RELEASE_NOTES) {
+              ctx.highlightedMessages.push(`Release Notes are at                : ${DOC_LINK_RELEASE_NOTES}`)
+            }
+          }
+
+          const cheCluster = await this.kube.getCheCluster(flags.chenamespace)
+          if (cheCluster && cheCluster.spec.auth && cheCluster.spec.auth.updateAdminPassword) {
+            ctx.highlightedMessages.push('CodeReady Workspaces admin credentials       : "admin:admin". You will be asked to change default Che admin password on the first login.')
+          }
+          if (ctx.identityProviderUsername && ctx.identityProviderPassword) {
+            ctx.highlightedMessages.push(`Identity Provider credentials       : "${ctx.identityProviderUsername}:${ctx.identityProviderPassword}".`)
+          }
+
+          task.title = `${task.title}...done`
         }
       }
     ]
@@ -624,7 +657,10 @@ export class CheTasks {
     return [
       {
         title: 'CodeReady Workspaces status check',
-        task: async ctx => this.che.isCheServerReady(ctx.cheURL)
+        task: async ctx => {
+          const cheApi = CheApiClient.getInstance(ctx.cheURL + '/api')
+          return cheApi.isCheServerReady()
+        }
       }
     ]
   }
@@ -634,7 +670,8 @@ export class CheTasks {
       {
         title: 'Checking authentication',
         task: async (ctx: any, task: any) => {
-          ctx.isAuthEnabled = await this.che.isAuthenticationEnabled(ctx.cheURL)
+          const cheApi = CheApiClient.getInstance(ctx.cheURL + '/api')
+          ctx.isAuthEnabled = await cheApi.isAuthenticationEnabled()
           if (ctx.isAuthEnabled && !this.cheAccessToken) {
             throw new Error('E_AUTH_REQUIRED - CodeReady Workspaces authentication is enabled and an access token is needed to be provided (flag --access-token). ' +
               `See the documentation how to obtain token: ${DOC_LINK_OBTAIN_ACCESS_TOKEN} and ${DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH}.`)
