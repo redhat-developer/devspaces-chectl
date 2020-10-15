@@ -12,7 +12,7 @@ import groovy.transform.Field
 // PUBLISH_ARTIFACTS_TO_GITHUB = default false; check box to publish to GH releases
 // PUBLISH_ARTIFACTS_TO_RCM    = default false; check box to upload sources + binaries to RCM for a GA release ONLY
 
-@Field String branchCHECTL = "7.19.x" // branch or tag of https://github.com/che-incubator/chectl
+@Field String branchCHECTL = "7.20.x" // branch or tag of https://github.com/che-incubator/chectl
 @Field String MIDSTM_BRANCH = "crw-2.5-rhel-8" // branch or tag of https://github.com/redhat-developer/codeready-workspaces-chectl
 def CRW_OPERATOR_BRANCH=MIDSTM_BRANCH // branch or tag of https://github.com/redhat-developer/codeready-workspaces-operator
 
