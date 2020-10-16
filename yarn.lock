@@ -1995,7 +1995,7 @@ code-point-at@^1.0.0:
 
 "codeready-workspaces-operator@git://github.com/redhat-developer/codeready-workspaces-operator#crw-2.5-rhel-8":
   version "0.0.0"
-  resolved "git://github.com/redhat-developer/codeready-workspaces-operator#f07740568d047965ae923cc5b282e8e50390d37c"
+  resolved "git://github.com/redhat-developer/codeready-workspaces-operator#60f8459fe559bdeff522c2259b42a1544488a03a"
 
 collect-v8-coverage@^1.0.0:
   version "1.0.1"
@@ -2368,13 +2368,13 @@ ecc-jsbn@~0.1.1:
   version "0.0.0"
   resolved "git://github.com/devfile/api#9e2280a95680c4a042342a899311171f07fed0bf"
 
-"eclipse-che-devfile-workspace-operator@git://github.com/devfile/devworkspace-operator#8c503adf80acf4a117d1f6b4e495b956cfb738f5":
+"eclipse-che-devfile-workspace-operator@git://github.com/devfile/devworkspace-operator#4ea0394233e7b90a3512a4e1323eb25590309ff3":
   version "0.0.0"
-  resolved "git://github.com/devfile/devworkspace-operator#8c503adf80acf4a117d1f6b4e495b956cfb738f5"
+  resolved "git://github.com/devfile/devworkspace-operator#4ea0394233e7b90a3512a4e1323eb25590309ff3"
 
-"eclipse-che@git://github.com/eclipse/che#7.19.2":
+"eclipse-che@git://github.com/eclipse/che#7.20.0":
   version "0.0.0"
-  resolved "git://github.com/eclipse/che#78c092610a43c61dae96fd4cc7fa2f77bd30b270"
+  resolved "git://github.com/eclipse/che#09eddc653a6ac19f48cb6b2656876ebb4c1a64c7"
 
 editorconfig@^0.15.0:
   version "0.15.3"
