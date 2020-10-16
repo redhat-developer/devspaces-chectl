@@ -59,6 +59,7 @@ USAGE
 * [`crwctl server:delete`](#crwctl-serverdelete)
 * [`crwctl server:logs`](#crwctl-serverlogs)
 * [`crwctl server:start`](#crwctl-serverstart)
+* [`crwctl server:status`](#crwctl-serverstatus)
 * [`crwctl server:stop`](#crwctl-serverstop)
 * [`crwctl server:update`](#crwctl-serverupdate)
 * [`crwctl update [CHANNEL]`](#crwctl-update-channel)
@@ -362,7 +363,7 @@ OPTIONS
       [default: codeready] CodeReady Workspaces deployment name
 
   --dev-workspace-controller-image=dev-workspace-controller-image
-      [default: quay.io/devfile/devworkspace-controller:sha-8c503ad] Container image of the dev workspace controller. This 
+      [default: quay.io/devfile/devworkspace-controller:sha-4ea0394] Container image of the dev workspace controller. This 
       parameter is used only when the workspace engine is the DevWorkspace
 
   --dev-workspace-controller-namespace=dev-workspace-controller-namespace
@@ -425,6 +426,23 @@ OPTIONS
 ```
 
 _See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/server/start.ts)_
+
+## `crwctl server:status`
+
+status CodeReady Workspaces server
+
+```
+USAGE
+  $ crwctl server:status
+
+OPTIONS
+  -h, --help                       show CLI help
+
+  -n, --chenamespace=chenamespace  [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed
+                                   to be deployed
+```
+
+_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/server/status.ts)_
 
 ## `crwctl server:stop`
 
