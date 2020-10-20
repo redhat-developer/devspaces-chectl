@@ -38,6 +38,7 @@ while [[ "$#" -gt 0 ]]; do
 	# optional tag overrides
 	'--server-tag') CRW_SERVER_TAG="$2"; shift 1;;
 	'--operator-tag') CRW_OPERATOR_TAG="$2"; shift 1;;
+	'--crw-version') CRW_VERSION="$2"; shift 1;;
   esac
   shift 1
 done
@@ -48,6 +49,7 @@ if [[ -z "${TARGETDIR}" ]]; then usage; else mkdir -p "${TARGETDIR}"; fi
 # if not set use crw-2.5-rhel-8 ==> 2.5 as the default tag
 if [[ -z "${CRW_SERVER_TAG}" ]];   then CRW_SERVER_TAG=${MIDSTM_BRANCH#*-};   CRW_SERVER_TAG=${CRW_SERVER_TAG%%-*};     fi
 if [[ -z "${CRW_OPERATOR_TAG}" ]]; then CRW_OPERATOR_TAG=${MIDSTM_BRANCH#*-}; CRW_OPERATOR_TAG=${CRW_OPERATOR_TAG%%-*}; fi
+if [[ -z "${CRW_VERSION}" ]];   then CRW_SERVER_TAG=${MIDSTM_BRANCH#*-};   CRW_SERVER_TAG=${CRW_SERVER_TAG%%-*};     fi
 
 # global / generic changes
 pushd "${SOURCEDIR}" >/dev/null
@@ -177,6 +179,14 @@ pushd "${TARGETDIR}" >/dev/null
 		sed -i -r -e '/.+BEGIN CHE ONLY$/,/.+END CHE ONLY$/d' "${TARGETDIR}/${d}"
 		sed -r -e "/.*(import|const).+(Helm|Minishift|DockerDesktop|K8s|MicroK8s|Minikube).*Tasks.*/d" -i "${TARGETDIR}/${d}"
 	done
+popd >/dev/null
+
+pushd "${TARGETDIR}" >/dev/null
+	d=src/constants.ts
+	echo "Convert ${d}"
+	mkdir -p "${TARGETDIR}/${d%/*}"
+	sed -r -e "s#DOC_LINK =.+#DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/${CRW_VERSION}/'#" -i "${TARGETDIR}/${d}"
+	sed -r -e "s#DOC_LINK_RELEASE_NOTES.+#DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/${CRW_VERSION}/html/release_notes_and_known_issues/index'#" -i "${TARGETDIR}/${d}"
 popd >/dev/null
 
 replaceVar()
