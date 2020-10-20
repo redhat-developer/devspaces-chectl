@@ -49,7 +49,7 @@ if [[ -z "${TARGETDIR}" ]]; then usage; else mkdir -p "${TARGETDIR}"; fi
 # if not set use crw-2.5-rhel-8 ==> 2.5 as the default tag
 if [[ -z "${CRW_SERVER_TAG}" ]];   then CRW_SERVER_TAG=${MIDSTM_BRANCH#*-};   CRW_SERVER_TAG=${CRW_SERVER_TAG%%-*};     fi
 if [[ -z "${CRW_OPERATOR_TAG}" ]]; then CRW_OPERATOR_TAG=${MIDSTM_BRANCH#*-}; CRW_OPERATOR_TAG=${CRW_OPERATOR_TAG%%-*}; fi
-if [[ -z "${CRW_VERSION}" ]];   then CRW_VERSION=${MIDSTM_BRANCH#*-};   CRW_VERSION=${CRW_VERSION%%-*};     fi
+if [[ -z "${CRW_VERSION}" ]];      then CRW_VERSION=${MIDSTM_BRANCH#*-};      CRW_VERSION=${CRW_VERSION%%-*};           fi
 
 # global / generic changes
 pushd "${SOURCEDIR}" >/dev/null
@@ -183,7 +183,7 @@ popd >/dev/null
 
 pushd "${TARGETDIR}" >/dev/null
 	d=src/constants.ts
-	echo "Convert ${d}"
+	echo "[INFO] Convert ${d}"
 	mkdir -p "${TARGETDIR}/${d%/*}"
 	sed -r -e "s#DOC_LINK =.+#DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/${CRW_VERSION}/'#" -i "${TARGETDIR}/${d}"
 	sed -r -e "s#DOC_LINK_RELEASE_NOTES.+#DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/${CRW_VERSION}/html/release_notes_and_known_issues/index'#" -i "${TARGETDIR}/${d}"
@@ -234,8 +234,8 @@ if [[ -f ${replaceFile} ]]; then
 		updateName="${package_replacements[$updateVal]}"
 		replaceVar
 	done
-	echo "[INFO] Sort package.json (to avoid nuissance commits)"
+	echo -n "[INFO] Sort package.json (to avoid nuissance commits): "
 	pushd ${TARGETDIR} >/dev/null
-	npx sort-package-json
+	npx -q sort-package-json
 	popd >/dev/null
 fi
