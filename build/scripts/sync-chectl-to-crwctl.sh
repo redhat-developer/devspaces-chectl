@@ -24,6 +24,7 @@ usage () {
 	echo "Options:
 	--server-tag ${DEFAULT_TAG}-xx   (instead of default ${DEFAULT_TAG})
 	--operator-tag ${DEFAULT_TAG}-yy (instead of default ${DEFAULT_TAG})
+	--crw-version ${DEFAULT_TAG}     (compute from MIDSTM_BRANCH if not set)
 	"
 	exit 1
 }
