@@ -81,6 +81,16 @@ pushd "${SOURCEDIR}" >/dev/null
 	# TODO add package.json into the above?
 popd >/dev/null
 
+# Remove workspace commands
+pushd "${TARGETDIR}" >/dev/null
+    while IFS= read -r -d '' d; do
+        echo "[INFO] Delete ${d#./}"
+        rm -f "$d"
+        #
+    done <   <(find . -regextype posix-extended -iregex '.+/(inject|create|delete|list|logs|start|stop).ts' -print0)
+popd >/dev/null
+
+
 # Remove files
 pushd "${TARGETDIR}" >/dev/null
 	while IFS= read -r -d '' d; do
