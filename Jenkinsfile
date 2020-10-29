@@ -16,10 +16,24 @@ import groovy.transform.Field
 @Field String MIDSTM_BRANCH = "crw-2.5-rhel-8" // branch or tag of https://github.com/redhat-developer/codeready-workspaces-chectl
 def CRW_OPERATOR_BRANCH=MIDSTM_BRANCH // branch or tag of https://github.com/redhat-developer/codeready-workspaces-operator
 
-def installNPM(){
+def nodeVersion = "12.18.2"
+def installNPM(nodeVersion) {
 	def yarnVersion="1.17.3"
-	def nodeHome = tool 'nodejs-10.19.0'
+	sh '''#!/bin/bash -e
+export LATEST_NVM="$(git ls-remote --refs --tags https://github.com/nvm-sh/nvm.git \
+		| cut --delimiter='/' --fields=3 | tr '-' '~'| sort --version-sort| tail --lines=1)"
+
+export NODE_VERSION=''' + nodeVersion + '''
+export METHOD=script
+export PROFILE=/dev/null
+curl -sSLo- https://raw.githubusercontent.com/nvm-sh/nvm/${LATEST_NVM}/install.sh | bash
+'''
+	def nodeHome = sh(script: '''#!/bin/bash -e
+	source $HOME/.nvm/nvm.sh
+	nvm use --silent ''' + nodeVersion + '''
+	dirname $(dirname $(nvm which node))''' , returnStdout: true).trim()
 	env.PATH="${nodeHome}/bin:${env.PATH}"
+
 	// remove windows 7z if installed
 	sh "rm -fr ${nodeHome}/lib/node_modules/7zip"
 	// link to rpm-installed p7zip
@@ -78,7 +92,7 @@ timeout(20) {
 				],
 				submoduleCfg: [], 
 				userRemoteConfigs: [[url: "https://github.com/redhat-developer/${CTL_path}.git"]]])
-			installNPM()
+			installNPM(nodeVersion)
 			def CURRENT_DAY=sh(returnStdout:true,script:"date +'%Y%m%d-%H%M'").trim()
 			def SHORT_SHA1=sh(returnStdout:true,script:"cd ${CTL_path}/ && git rev-parse --short HEAD").trim()
 			def CHECTL_VERSION=""
