@@ -126,7 +126,7 @@ installerString="    installer: string({\n\
       options: ['olm', 'operator']\n\
     }),"; # echo -e "$installerString"
 pushd "${TARGETDIR}" >/dev/null
-	for d in src/commands/server/update.ts src/commands/server/start.ts; do
+	for d in src/commands/server/update.ts src/commands/server/deploy.ts; do
 		echo "[INFO] Convert ${d}"
 		mkdir -p "${TARGETDIR}/${d%/*}"
 		perl -0777 -p -i -e 's|(\ +platform: string\({.*?}\),)| ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
@@ -137,7 +137,7 @@ pushd "${TARGETDIR}" >/dev/null
 		# Remove --domain flag
 		sed -i '/domain: string({/,/}),/d' "${TARGETDIR}/${d}"
 		# Change multi-user flag description. Code Ready Workspaces support multi-user by default. https://issues.redhat.com/browse/CRW-1174
-		sed -i "s|'Starts CodeReady Workspaces in multi-user mode'|\`Starts CodeReady Workspaces in multi-user mode.\n\ \
+		sed -i "s|'Starts CodeReady Workspaces in multi-user mode'|\`Deploys CodeReady Workspaces in multi-user mode.\n\ \
 		                Note, this option is turned on by default.\`|g" "${TARGETDIR}/${d}"
 	done
 popd >/dev/null
