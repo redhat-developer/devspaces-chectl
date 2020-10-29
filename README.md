@@ -57,6 +57,7 @@ USAGE
 * [`crwctl help [COMMAND]`](#crwctl-help-command)
 * [`crwctl server:debug`](#crwctl-serverdebug)
 * [`crwctl server:delete`](#crwctl-serverdelete)
+* [`crwctl server:deploy`](#crwctl-serverdeploy)
 * [`crwctl server:logs`](#crwctl-serverlogs)
 * [`crwctl server:start`](#crwctl-serverstart)
 * [`crwctl server:status`](#crwctl-serverstatus)
@@ -247,6 +248,164 @@ OPTIONS
 ```
 
 _See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/server/delete.ts)_
+
+## `crwctl server:deploy`
+
+start CodeReady Workspaces server
+
+```
+USAGE
+  $ crwctl server:deploy
+
+OPTIONS
+  -a, --installer=olm|operator
+      Installer type. If not set, default is olm for OpenShift >= 4.2, and operator for earlier versions.
+
+  -d, --directory=directory
+      Directory to store logs into
+
+  -h, --help
+      show CLI help
+
+  -i, --cheimage=cheimage
+      [default: registry.redhat.io/codeready-workspaces/server-rhel8:2.5] CodeReady Workspaces server container image
+
+  -m, --multiuser
+      Deploys CodeReady Workspaces in multi-user mode.
+        		                Note, this option is turned on by default.
+
+  -n, --chenamespace=chenamespace
+      [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed to be deployed
+
+  -o, --cheboottimeout=cheboottimeout
+      (required) [default: 40000] CodeReady Workspaces server bootstrap timeout (in milliseconds)
+
+  -p, --platform=openshift|crc
+      [default: openshift] Type of OpenShift platform. Valid values are "openshift", "crc (for CodeReady Containers)".
+
+  -s, --tls
+      Enable TLS encryption.
+                           Note, this option is turned on by default.
+                           To provide own certificate for Kubernetes infrastructure, 'che-tls' secret with TLS certificate 
+      must be pre-created in the configured namespace.
+                           In case of providing own self-signed certificate 'self-signed-certificate' secret should be 
+      also created.
+                           For OpenShift, router will use default cluster certificates.
+                           Please see the docs how to deploy CodeReady Workspaces on different infrastructures: 
+      https://www.eclipse.org/che/docs/che-7/overview/running-che-locally/
+
+  -t, --templates=templates
+      Path to the templates folder
+
+  --auto-update
+      Auto update approval strategy for installation CodeReady Workspaces.
+                           With this strategy will be provided auto-update CodeReady Workspaces without any human 
+      interaction.
+                           By default strategy this flag is false. It requires approval from user.
+                           To approve installation newer version CodeReady Workspaces user should execute 'crwctl 
+      server:update' command.
+                           This parameter is used only when the installer is 'olm'.
+
+  --catalog-source-name=catalog-source-name
+      OLM catalog source to install CodeReady Workspaces operator.
+                           This parameter is used only when the installer is the 'olm'.
+
+  --catalog-source-namespace=catalog-source-namespace
+      Namespace for OLM catalog source to install CodeReady Workspaces operator.
+                           This parameter is used only when the installer is the 'olm'.
+
+  --catalog-source-yaml=catalog-source-yaml
+      Path to a yaml file that describes custom catalog source for installation CodeReady Workspaces operator.
+                           Catalog source will be applied to the namespace with Che operator.
+                           Also you need define 'olm-channel' name and 'package-manifest-name'.
+                           This parameter is used only when the installer is the 'olm'.
+
+  --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
+      Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used 
+      only when the installer is the 'operator' or the 'olm'.
+
+  --che-operator-cr-yaml=che-operator-cr-yaml
+      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer 
+      is the 'operator' or the 'olm'.
+
+  --che-operator-image=che-operator-image
+      [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.5] Container image of the operator. This 
+      parameter is used only when the installer is the operator
+
+  --debug
+      Enables the debug mode for CodeReady Workspaces server. To debug CodeReady Workspaces server from localhost use 
+      'server:debug' command.
+
+  --deployment-name=deployment-name
+      [default: codeready] CodeReady Workspaces deployment name
+
+  --dev-workspace-controller-image=dev-workspace-controller-image
+      [default: quay.io/devfile/devworkspace-controller:sha-4ea0394] Container image of the dev workspace controller. This 
+      parameter is used only when the workspace engine is the DevWorkspace
+
+  --dev-workspace-controller-namespace=dev-workspace-controller-namespace
+      [default: devworkspace-controller] Namespace for the DevWorkspace controller.  This parameter is used only when the 
+      workspace engine is the DevWorkspace
+
+  --devfile-registry-url=devfile-registry-url
+      The URL of the external Devfile registry.
+
+  --k8spodreadytimeout=k8spodreadytimeout
+      [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
+
+  --k8spodwaittimeout=k8spodwaittimeout
+      [default: 300000] Waiting time for Pod Wait Timeout Kubernetes (in milliseconds)
+
+  --listr-renderer=default|silent|verbose
+      [default: default] Listr renderer
+
+  --olm-channel=olm-channel
+      Olm channel to install CodeReady Workspaces, f.e. stable.
+                           If options was not set, will be used default version for package manifest.
+                           This parameter is used only when the installer is the 'olm'.
+
+  --package-manifest-name=package-manifest-name
+      Package manifest name to subscribe to CodeReady Workspaces OLM package manifest.
+                           This parameter is used only when the installer is the 'olm'.
+
+  --plugin-registry-url=plugin-registry-url
+      The URL of the external plugin registry.
+
+  --postgres-pvc-storage-class-name=postgres-pvc-storage-class-name
+      persistent volume storage class name to use to store CodeReady Workspaces postgres database
+
+  --self-signed-cert
+      Deprecated. The flag is ignored. Self signed certificates usage is autodetected now.
+
+  --skip-cluster-availability-check
+      Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.
+
+  --skip-kubernetes-health-check
+      Skip Kubernetes health check
+
+  --skip-version-check
+      Skip minimal versions check.
+
+  --starting-csv=starting-csv
+      Starting cluster service version(CSV) for installation CodeReady Workspaces.
+                           Flags uses to set up start installation version Che.
+                           For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
+                           Then OLM will install CodeReady Workspaces with version 7.10.0.
+                           Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs 
+      the latest known version.
+                           This parameter is used only when the installer is 'olm'.
+
+  --workspace-engine=che-server|dev-workspace
+      [default: che-server] Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.
+
+  --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
+      persistent volume(s) storage class name to use to store CodeReady Workspaces workspaces data
+
+ALIASES
+  $ crwctl server:start
+```
+
+_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/server/deploy.ts)_
 
 ## `crwctl server:logs`
 
