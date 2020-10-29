@@ -132,7 +132,7 @@ export default class Update extends Command {
       await preInstallTasks.run(ctx)
 
       if (!ctx.isCheDeployed) {
-        this.error('CodeReady Workspaces deployment is not found. Use `crwctl server:start` to initiate a new deployment.')
+        this.error('CodeReady Workspaces deployment is not found. Use `crwctl server:deploy` to initiate a new deployment.')
       } else {
         if (isKubernetesPlatformFamily(flags.platform!)) {
           await this.setDomainFlag(flags)

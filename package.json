@@ -85,7 +85,7 @@
     "codeready-workspaces-operator": "git://github.com/redhat-developer/codeready-workspaces-operator#crw-2.5-rhel-8",
     "command-exists": "^1.2.9",
     "debug": "^4.1.1",
-    "eclipse-che": "git://github.com/eclipse/che#7.20.0",
+    "eclipse-che": "git://github.com/eclipse/che#7.20.1",
     "eclipse-che-devfile-api": "git://github.com/devfile/api#v1alpha1",
     "eclipse-che-devfile-workspace-operator": "git://github.com/devfile/devworkspace-operator#4ea0394233e7b90a3512a4e1323eb25590309ff3",
     "esprima": "^4.0.1",
