@@ -129,9 +129,9 @@ installerString="    installer: string({\n\
 clusterMonitoringString="    'cluster-monitoring': boolean({\n\
       default: false,\n\
       hidden: false,\n\
-      description: \`Enable cluster monitoring to scrape metrics in Prometheus.\n\
+      description: \`Enable cluster monitoring to scrape CodeReady Workspaces metrics in Prometheus.\n\
 	                  This parameter is used only when the platform is 'openshift'.\`\n\
-    }),"; # echo -e "$installerString"
+    }),"; # echo -e "$clusterMonitoringString"
 
 pushd "${TARGETDIR}" >/dev/null
 	for d in src/commands/server/update.ts src/commands/server/deploy.ts; do
