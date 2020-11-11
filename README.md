@@ -268,7 +268,7 @@ OPTIONS
       show CLI help
 
   -i, --cheimage=cheimage
-      [default: registry.redhat.io/codeready-workspaces/server-rhel8:2.5] CodeReady Workspaces server container image
+      [default: registry.redhat.io/codeready-workspaces/server-rhel8:2.5-10] CodeReady Workspaces server container image
 
   -m, --multiuser
       Deploys CodeReady Workspaces in multi-user mode.
@@ -329,7 +329,7 @@ OPTIONS
       is the 'operator' or the 'olm'.
 
   --che-operator-image=che-operator-image
-      [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.5] Container image of the operator. This 
+      [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.5-7] Container image of the operator. This 
       parameter is used only when the installer is the operator
 
   --debug
@@ -450,7 +450,7 @@ OPTIONS
       show CLI help
 
   -i, --cheimage=cheimage
-      [default: registry.redhat.io/codeready-workspaces/server-rhel8:2.5] CodeReady Workspaces server container image
+      [default: registry.redhat.io/codeready-workspaces/server-rhel8:2.5-10] CodeReady Workspaces server container image
 
   -m, --multiuser
       Starts CodeReady Workspaces in multi-user mode.
@@ -511,7 +511,7 @@ OPTIONS
       is the 'operator' or the 'olm'.
 
   --che-operator-image=che-operator-image
-      [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.5] Container image of the operator. This 
+      [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.5-7] Container image of the operator. This 
       parameter is used only when the installer is the operator
 
   --debug
@@ -666,7 +666,7 @@ OPTIONS
 
   -t, --templates=templates                [default: templates] Path to the templates folder
 
-  --che-operator-image=che-operator-image  [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.5]
+  --che-operator-image=che-operator-image  [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.5-7]
                                            Container image of the operator. This parameter is used only when the
                                            installer is the operator
 
