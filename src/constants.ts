@@ -8,8 +8,8 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-export const DEFAULT_CHE_IMAGE = 'registry.redhat.io/codeready-workspaces/server-rhel8:2.5'
-export const DEFAULT_CHE_OPERATOR_IMAGE = 'registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.5'
+export const DEFAULT_CHE_IMAGE = 'registry.redhat.io/codeready-workspaces/server-rhel8:2.5-10'
+export const DEFAULT_CHE_OPERATOR_IMAGE = 'registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.5-7'
 export const DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE = 'quay.io/devfile/devworkspace-controller:sha-4ea0394'
 
 // This image should be updated manually when needed.
