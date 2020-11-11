@@ -96,6 +96,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|(const SUBSCRIPTION_NAME =).+|\1 'codeready-subscription'|g" \
 			-e "s|(const OPERATOR_GROUP_NAME =).+|\1 'codeready-operator-group'|g" \
 			-e "s|(const OPENSHIFT_OLM_CATALOG =).+|\1 'redhat-operators'|g" \
+			-e "s|(const DEFAULT_OLM_SUGGESTED_NAMESPACE =).+|\1 'openshift-workspaces'|g" \
 			-e "s|(CVS_PREFIX =).+|\1 'crwoperator'|g" \
 			\
 			-e "s|\"CodeReady Workspaces will be deployed in Multi-User mode.+mode.\"|'CodeReady Workspaces can only be deployed in Multi-User mode.'|" \
@@ -125,6 +126,13 @@ installerString="    installer: string({\n\
       description: 'Installer type. If not set, default is "olm" for OpenShift >= 4.2, and "operator" for earlier versions.',\n\
       options: ['olm', 'operator']\n\
     }),"; # echo -e "$installerString"
+clusterMonitoringString="    'cluster-monitoring': boolean({\n\
+      default: false,\n\
+      hidden: false,\n\
+      description: \`Enable cluster monitoring to scrape CodeReady Workspaces metrics in Prometheus.\n\
+	                  This parameter is used only when the platform is 'openshift'.\`\n\
+    }),"; # echo -e "$clusterMonitoringString"
+
 pushd "${TARGETDIR}" >/dev/null
 	for d in src/commands/server/update.ts src/commands/server/deploy.ts; do
 		echo "[INFO] Convert ${d}"
@@ -134,11 +142,18 @@ pushd "${TARGETDIR}" >/dev/null
 
 		perl -0777 -p -i -e 's|(\ +installer: string\({.*?}\),)| ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
 		sed -r -e "s#INSERT-CONTENT-HERE#${installerString}#" -i "${TARGETDIR}/${d}"
+
 		# Remove --domain flag
 		sed -i '/domain: string({/,/}),/d' "${TARGETDIR}/${d}"
+
 		# Change multi-user flag description. Code Ready Workspaces support multi-user by default. https://issues.redhat.com/browse/CRW-1174
 		sed -i "s|'Starts CodeReady Workspaces in multi-user mode'|\`Deploys CodeReady Workspaces in multi-user mode.\n\ \
 		                Note, this option is turned on by default.\`|g" "${TARGETDIR}/${d}"
+
+		# Enable cluster monitoring description in Readme. Cluster Monitoring actually is available only for downstream
+		perl -0777 -p -i -e 's|(\ +'"'cluster-monitoring'"': boolean\({.*?}\),)| ${1} =~ /.+openshift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
+		sed -r -e "s#INSERT-CONTENT-HERE#${clusterMonitoringString}#" -i "${TARGETDIR}/${d}"
+
 	done
 popd >/dev/null
 
