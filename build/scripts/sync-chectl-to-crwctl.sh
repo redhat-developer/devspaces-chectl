@@ -19,7 +19,7 @@ DEFAULT_TAG=${MIDSTM_BRANCH#*-}; DEFAULT_TAG=${DEFAULT_TAG%%-*};
 
 usage () {
 	echo "Usage:   $0 -b MIDSTM_BRANCH -s SOURCEDIR -t TARGETDIR"
-	echo "Example: $0 -b ${MIDSTM_BRANCH} -s /path/to/chectl -t /path/to/crwctl"
+	echo "Example: $0 -b ${MIDSTM_BRANCH} -s /absolute/path/to/chectl -t /absolute/path/to/crwctl"
 	echo ""
 	echo "Options:
 	--server-tag ${DEFAULT_TAG}-xx   (instead of default ${DEFAULT_TAG})
@@ -45,7 +45,7 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if [[ ! -d "${SOURCEDIR}" ]]; then usage; fi
-if [[ -z "${TARGETDIR}" ]]; then usage; else mkdir -p "${TARGETDIR}"; fi
+if [[ -z "${TARGETDIR}" ]] || [[ ${TARGETDIR} == "." ]]; then usage; else mkdir -p "${TARGETDIR}"; fi
 
 # if not set use crw-2.5-rhel-8 ==> 2.5 as the default tag
 if [[ -z "${CRW_SERVER_TAG}" ]];   then CRW_SERVER_TAG=${MIDSTM_BRANCH#*-};   CRW_SERVER_TAG=${CRW_SERVER_TAG%%-*};     fi
