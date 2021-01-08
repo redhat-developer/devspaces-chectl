@@ -104,7 +104,7 @@
     "lodash": "^4.17.20",
     "mkdirp": "^1.0.4",
     "node-forge": "^0.10.0",
-    "node-notifier": "^8.0.0",
+    "node-notifier": "^8.0.1",
     "querystring": "^0.2.0",
     "stream-buffers": "^3.0.2",
     "tslib": "^1"
