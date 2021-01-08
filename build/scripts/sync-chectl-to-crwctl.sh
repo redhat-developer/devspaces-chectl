@@ -133,15 +133,15 @@ clusterMonitoringString="    'cluster-monitoring': boolean({\n\
 	                  This parameter is used only when the platform is 'openshift'.\`\n\
     }),"; # echo -e "$clusterMonitoringString"
 
-set -x
+# set -x
 pushd "${TARGETDIR}" >/dev/null
 	for d in src/commands/server/update.ts src/commands/server/deploy.ts; do
 		echo "[INFO] Convert ${d}"
 		mkdir -p "${TARGETDIR}/${d%/*}"
-		perl -0777 -p -i -e 's|(\ +platform: string\({.*?}\),)| ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
+		perl -0777 -p -i -e 's|(\ +platform: string\(\{.*?\}\),)| ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
 		sed -r -e "s#INSERT-CONTENT-HERE#${platformString}#" -i "${TARGETDIR}/${d}"
 
-		perl -0777 -p -i -e 's|(\ +installer: string\({.*?}\),)| ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
+		perl -0777 -p -i -e 's|(\ +installer: string\(\{.*?\}\),)| ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
 		sed -r -e "s#INSERT-CONTENT-HERE#${installerString}#" -i "${TARGETDIR}/${d}"
 
 		# Remove --domain flag
@@ -152,12 +152,12 @@ pushd "${TARGETDIR}" >/dev/null
 		                Note, this option is turned on by default.\`|g" "${TARGETDIR}/${d}"
 
 		# Enable cluster monitoring description in Readme. Cluster Monitoring actually is available only for downstream
-		perl -0777 -p -i -e 's|(\ +'"'cluster-monitoring'"': boolean\({.*?}\),)| ${1} =~ /.+openshift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
+		perl -0777 -p -i -e 's|(\ +'"'cluster-monitoring'"': boolean\(\{.*?\}\),)| ${1} =~ /.+openshift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
 		sed -r -e "s#INSERT-CONTENT-HERE#${clusterMonitoringString}#" -i "${TARGETDIR}/${d}"
 
 	done
 popd >/dev/null
-set +x
+# set +x
 
 pushd "${TARGETDIR}" >/dev/null
 	d=src/common-flags.ts
