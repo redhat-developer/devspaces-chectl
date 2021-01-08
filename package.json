@@ -84,7 +84,7 @@
     "@types/ws": "^7.2.6",
     "analytics-node": "^3.4.0-beta.3",
     "ansi-colors": "4.1.1",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "cli-ux": "^5.4.5",
     "codeready-workspaces-operator": "git://github.com/redhat-developer/codeready-workspaces-operator#crw-2.6-rhel-8",
     "command-exists": "^1.2.9",
