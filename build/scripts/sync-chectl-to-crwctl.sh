@@ -133,6 +133,7 @@ clusterMonitoringString="    'cluster-monitoring': boolean({\n\
 	                  This parameter is used only when the platform is 'openshift'.\`\n\
     }),"; # echo -e "$clusterMonitoringString"
 
+set -x
 pushd "${TARGETDIR}" >/dev/null
 	for d in src/commands/server/update.ts src/commands/server/deploy.ts; do
 		echo "[INFO] Convert ${d}"
@@ -156,6 +157,7 @@ pushd "${TARGETDIR}" >/dev/null
 
 	done
 popd >/dev/null
+set +x
 
 pushd "${TARGETDIR}" >/dev/null
 	d=src/common-flags.ts
