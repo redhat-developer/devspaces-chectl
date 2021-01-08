@@ -50,6 +50,12 @@ USAGE
 ```
 # Commands
 <!-- commands -->
+* [`crwctl auth:delete CHE-API-ENDPOINT`](#crwctl-authdelete-che-api-endpoint)
+* [`crwctl auth:get`](#crwctl-authget)
+* [`crwctl auth:list`](#crwctl-authlist)
+* [`crwctl auth:login [CHE-API-ENDPOINT]`](#crwctl-authlogin-che-api-endpoint)
+* [`crwctl auth:logout`](#crwctl-authlogout)
+* [`crwctl auth:use [CHE-API-ENDPOINT]`](#crwctl-authuse-che-api-endpoint)
 * [`crwctl autocomplete [SHELL]`](#crwctl-autocomplete-shell)
 * [`crwctl cacert:export`](#crwctl-cacertexport)
 * [`crwctl dashboard:open`](#crwctl-dashboardopen)
@@ -71,6 +77,158 @@ USAGE
 * [`crwctl workspace:logs`](#crwctl-workspacelogs)
 * [`crwctl workspace:start WORKSPACE`](#crwctl-workspacestart-workspace)
 * [`crwctl workspace:stop WORKSPACE`](#crwctl-workspacestop-workspace)
+
+## `crwctl auth:delete CHE-API-ENDPOINT`
+
+Delete specified login session(s)
+
+```
+USAGE
+  $ crwctl auth:delete CHE-API-ENDPOINT
+
+ARGUMENTS
+  CHE-API-ENDPOINT  CodeReady Workspaces server API endpoint
+
+OPTIONS
+  -h, --help               show CLI help
+  -u, --username=username  CodeReady Workspaces username
+  --telemetry=on|off       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+
+EXAMPLES
+  # Delete login session of the specified user on the cluster:
+  crwctl auth:delete che-che.apps-crc.testing/api -u username
+
+
+  # Delete all login sessions on the cluster:
+  crwctl auth:delete che-che.apps-crc.testing
+```
+
+_See code: [src/commands/auth/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/auth/delete.ts)_
+
+## `crwctl auth:get`
+
+Display active login session
+
+```
+USAGE
+  $ crwctl auth:get
+
+OPTIONS
+  -h, --help          show CLI help
+  --telemetry=on|off  Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+```
+
+_See code: [src/commands/auth/get.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/auth/get.ts)_
+
+## `crwctl auth:list`
+
+Show all existing login sessions
+
+```
+USAGE
+  $ crwctl auth:list
+
+OPTIONS
+  -h, --help          show CLI help
+  --telemetry=on|off  Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+```
+
+_See code: [src/commands/auth/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/auth/list.ts)_
+
+## `crwctl auth:login [CHE-API-ENDPOINT]`
+
+Log in to CodeReady Workspaces server
+
+```
+USAGE
+  $ crwctl auth:login [CHE-API-ENDPOINT]
+
+ARGUMENTS
+  CHE-API-ENDPOINT  CodeReady Workspaces server API endpoint
+
+OPTIONS
+  -h, --help                         show CLI help
+
+  -n, --chenamespace=chenamespace    [default: workspaces] Openshift Project where CodeReady Workspaces server is
+                                     supposed to be deployed
+
+  -p, --password=password            CodeReady Workspaces user password
+
+  -t, --refresh-token=refresh-token  Keycloak refresh token
+
+  -u, --username=username            CodeReady Workspaces username
+
+  --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+
+EXAMPLES
+  # Log in with username and password (when OpenShift OAuth is not enabled):
+  crwctl auth:login https://che-che.apps-crc.testing/api -u username -p password
+
+
+  # Log in with username and password (password will be asked interactively):
+  crwctl auth:login che-che.apps-crc.testing -u username
+
+
+  # Log in with token (when OpenShift OAuth is enabled):
+  crwctl auth:login che.openshift.io -t token
+
+
+  # Log in with oc token (when logged into an OpenShift cluster with oc and OpenShift OAuth is enabled):
+  crwctl auth:login che.my.server.net
+```
+
+_See code: [src/commands/auth/login.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/auth/login.ts)_
+
+## `crwctl auth:logout`
+
+Log out of the active login session
+
+```
+USAGE
+  $ crwctl auth:logout
+
+OPTIONS
+  -h, --help          show CLI help
+  --telemetry=on|off  Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+```
+
+_See code: [src/commands/auth/logout.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/auth/logout.ts)_
+
+## `crwctl auth:use [CHE-API-ENDPOINT]`
+
+Set active login session
+
+```
+USAGE
+  $ crwctl auth:use [CHE-API-ENDPOINT]
+
+ARGUMENTS
+  CHE-API-ENDPOINT  CodeReady Workspaces server API endpoint
+
+OPTIONS
+  -h, --help               show CLI help
+  -i, --interactive        Select an active login session in interactive mode
+  -u, --username=username  CodeReady Workspaces username
+  --telemetry=on|off       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+
+EXAMPLES
+  # Set an active login session for the specified user on the given cluster:
+  crwctl auth:use che-che.apps-crc.testing/api -u username
+
+
+  # Switch to another user on the same cluster:
+  crwctl auth:use -u another-user-on-this-server
+
+
+  # Switch to the only user on the given cluster:
+  crwctl auth:use my.cluster.net
+
+
+  # Select an active login session in interactive mode:
+  crwctl auth:use -i
+```
+
+_See code: [src/commands/auth/use.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/auth/use.ts)_
 
 ## `crwctl autocomplete [SHELL]`
 
@@ -110,8 +268,8 @@ OPTIONS
       format.
                            If the destination is a directory, then cheCA.crt file will be created there with Che 
       certificate in PEM format.
-                           If this option is ommited, then Che certificate will be stored in user's home directory as 
-      cheCA.crt
+                           If this option is omitted, then Che certificate will be stored in a user's temporary directory 
+      as cheCA.crt.
 
   -h, --help
       show CLI help
@@ -121,9 +279,12 @@ OPTIONS
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
+
+  --telemetry=on|off
+      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/cacert/export.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/cacert/export.ts)_
 
 ## `crwctl dashboard:open`
 
@@ -138,9 +299,11 @@ OPTIONS
 
   -n, --chenamespace=chenamespace  [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed
                                    to be deployed
+
+  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/dashboard/open.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/dashboard/open.ts)_
 
 ## `crwctl devfile:generate`
 
@@ -170,9 +333,11 @@ OPTIONS
 
   --selector=selector        label selector to filter the Kubernetes resources. For example
                              --selector="app.kubernetes.io/name=employee-manager"
+
+  --telemetry=on|off         Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/devfile/generate.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/devfile/generate.ts)_
+_See code: [src/commands/devfile/generate.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/devfile/generate.ts)_
 
 ## `crwctl help [COMMAND]`
 
@@ -200,19 +365,19 @@ USAGE
   $ crwctl server:debug
 
 OPTIONS
-  -h, --help                               show CLI help
+  -h, --help                       show CLI help
 
-  -n, --chenamespace=chenamespace          [default: workspaces] Openshift Project where CodeReady Workspaces server is
-                                           supposed to be deployed
+  -n, --chenamespace=chenamespace  [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed
+                                   to be deployed
 
-  --debug-port=debug-port                  [default: 8000] CodeReady Workspaces server debug port
+  --debug-port=debug-port          [default: 8000] CodeReady Workspaces server debug port
 
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+  --skip-kubernetes-health-check   Skip Kubernetes health check
 
-  --skip-kubernetes-health-check           Skip Kubernetes health check
+  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/server/debug.ts)_
 
 ## `crwctl server:delete`
 
@@ -229,6 +394,10 @@ OPTIONS
                                                                            CodeReady Workspaces server is supposed to be
                                                                            deployed
 
+  -y, --yes                                                                Automatic yes to prompts; assume "yes" as
+                                                                           answer to all prompts and run
+                                                                           non-interactively
+
   --delete-namespace                                                       Indicates that a CodeReady Workspaces
                                                                            namespace will be deleted as well
 
@@ -240,18 +409,17 @@ OPTIONS
                                                                            parameter is used only when the workspace
                                                                            engine is the DevWorkspace
 
-  --listr-renderer=default|silent|verbose                                  [default: default] Listr renderer
-
-  --skip-deletion-check                                                    Skip user confirmation on deletion check
-
   --skip-kubernetes-health-check                                           Skip Kubernetes health check
+
+  --telemetry=on|off                                                       Enable or disable telemetry. This flag skips
+                                                                           a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/server/delete.ts)_
 
 ## `crwctl server:deploy`
 
-start CodeReady Workspaces server
+Deploy CodeReady Workspaces server
 
 ```
 USAGE
@@ -268,7 +436,7 @@ OPTIONS
       show CLI help
 
   -i, --cheimage=cheimage
-      [default: registry.redhat.io/codeready-workspaces/server-rhel8:2.5] CodeReady Workspaces server container image
+      CodeReady Workspaces server container image
 
   -m, --multiuser
       Deploys CodeReady Workspaces in multi-user mode.
@@ -283,27 +451,14 @@ OPTIONS
   -p, --platform=openshift|crc
       [default: openshift] Type of OpenShift platform. Valid values are "openshift", "crc (for CodeReady Containers)".
 
-  -s, --tls
-      Enable TLS encryption.
-                           Note, this option is turned on by default.
-                           To provide own certificate for Kubernetes infrastructure, 'che-tls' secret with TLS certificate 
-      must be pre-created in the configured namespace.
-                           In case of providing own self-signed certificate 'self-signed-certificate' secret should be 
-      also created.
-                           For OpenShift, router will use default cluster certificates.
-                           Please see the docs how to deploy CodeReady Workspaces on different infrastructures: 
-      https://www.eclipse.org/che/docs/che-7/overview/running-che-locally/
-
   -t, --templates=templates
       Path to the templates folder
 
-  --auto-update
+  --[no-]auto-update
       Auto update approval strategy for installation CodeReady Workspaces.
                            With this strategy will be provided auto-update CodeReady Workspaces without any human 
       interaction.
-                           By default strategy this flag is false. It requires approval from user.
-                           To approve installation newer version CodeReady Workspaces user should execute 'crwctl 
-      server:update' command.
+                           By default this flag is enabled.
                            This parameter is used only when the installer is 'olm'.
 
   --catalog-source-name=catalog-source-name
@@ -329,8 +484,12 @@ OPTIONS
       is the 'operator' or the 'olm'.
 
   --che-operator-image=che-operator-image
-      [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.5] Container image of the operator. This 
+      [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.6] Container image of the operator. This 
       parameter is used only when the installer is the operator
+
+  --cluster-monitoring
+      Enable cluster monitoring to scrape CodeReady Workspaces metrics in Prometheus.
+      	                  This parameter is used only when the platform is 'openshift'.
 
   --debug
       Enables the debug mode for CodeReady Workspaces server. To debug CodeReady Workspaces server from localhost use 
@@ -340,7 +499,7 @@ OPTIONS
       [default: codeready] CodeReady Workspaces deployment name
 
   --dev-workspace-controller-image=dev-workspace-controller-image
-      [default: quay.io/devfile/devworkspace-controller:sha-4ea0394] Container image of the dev workspace controller. This 
+      [default: quay.io/devfile/devworkspace-controller:sha-252745a] Container image of the dev workspace controller. This 
       parameter is used only when the workspace engine is the DevWorkspace
 
   --dev-workspace-controller-namespace=dev-workspace-controller-namespace
@@ -350,19 +509,32 @@ OPTIONS
   --devfile-registry-url=devfile-registry-url
       The URL of the external Devfile registry.
 
+  --helm-patch-yaml=helm-patch-yaml
+      Path to yaml file with Helm Chart values patch.
+                           The file format is identical to values.yaml from the chart.
+                           Note, Provided command line arguments take precedence over patch file.
+
+  --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout
+      [default: 600000] Waiting time for Pod downloading image (in milliseconds)
+
+  --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout
+      [default: 15000] Waiting time for Pod rechecking error (in milliseconds)
+
   --k8spodreadytimeout=k8spodreadytimeout
-      [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
+      [default: 600000] Waiting time for Pod Ready condition (in milliseconds)
 
   --k8spodwaittimeout=k8spodwaittimeout
-      [default: 300000] Waiting time for Pod Wait Timeout Kubernetes (in milliseconds)
-
-  --listr-renderer=default|silent|verbose
-      [default: default] Listr renderer
+      [default: 600000] Waiting time for Pod scheduled condition (in milliseconds)
 
   --olm-channel=olm-channel
       Olm channel to install CodeReady Workspaces, f.e. stable.
                            If options was not set, will be used default version for package manifest.
                            This parameter is used only when the installer is the 'olm'.
+
+  --[no-]olm-suggested-namespace
+      Indicate to deploy CodeReady Workspaces in OLM suggested namespace: 'openshift-workspaces'.
+                           Flag 'chenamespace' is ignored in this case
+                           This parameter is used only when the installer is 'olm'.
 
   --package-manifest-name=package-manifest-name
       Package manifest name to subscribe to CodeReady Workspaces OLM package manifest.
@@ -373,9 +545,6 @@ OPTIONS
 
   --postgres-pvc-storage-class-name=postgres-pvc-storage-class-name
       persistent volume storage class name to use to store CodeReady Workspaces postgres database
-
-  --self-signed-cert
-      Deprecated. The flag is ignored. Self signed certificates usage is autodetected now.
 
   --skip-cluster-availability-check
       Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.
@@ -395,17 +564,17 @@ OPTIONS
       the latest known version.
                            This parameter is used only when the installer is 'olm'.
 
+  --telemetry=on|off
+      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+
   --workspace-engine=che-server|dev-workspace
       [default: che-server] Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.
 
   --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
       persistent volume(s) storage class name to use to store CodeReady Workspaces workspaces data
-
-ALIASES
-  $ crwctl server:start
 ```
 
-_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/server/deploy.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/server/deploy.ts)_
 
 ## `crwctl server:logs`
 
@@ -416,179 +585,58 @@ USAGE
   $ crwctl server:logs
 
 OPTIONS
-  -d, --directory=directory                Directory to store logs into
-  -h, --help                               show CLI help
+  -d, --directory=directory          Directory to store logs into
+  -h, --help                         show CLI help
 
-  -n, --chenamespace=chenamespace          [default: workspaces] Openshift Project where CodeReady Workspaces server is
-                                           supposed to be deployed
+  -n, --chenamespace=chenamespace    [default: workspaces] Openshift Project where CodeReady Workspaces server is
+                                     supposed to be deployed
 
-  --deployment-name=deployment-name        [default: codeready] CodeReady Workspaces deployment name
+  --deployment-name=deployment-name  [default: codeready] CodeReady Workspaces deployment name
 
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+  --skip-kubernetes-health-check     Skip Kubernetes health check
 
-  --skip-kubernetes-health-check           Skip Kubernetes health check
+  --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/server/logs.ts)_
 
 ## `crwctl server:start`
 
-start CodeReady Workspaces server
+Start CodeReady Workspaces server
 
 ```
 USAGE
   $ crwctl server:start
 
 OPTIONS
-  -a, --installer=olm|operator
-      Installer type. If not set, default is olm for OpenShift >= 4.2, and operator for earlier versions.
+  -d, --directory=directory                                Directory to store logs into
+  -h, --help                                               show CLI help
 
-  -d, --directory=directory
-      Directory to store logs into
+  -n, --chenamespace=chenamespace                          [default: workspaces] Openshift Project where CodeReady
+                                                           Workspaces server is supposed to be deployed
 
-  -h, --help
-      show CLI help
+  --deployment-name=deployment-name                        [default: codeready] CodeReady Workspaces deployment name
 
-  -i, --cheimage=cheimage
-      [default: registry.redhat.io/codeready-workspaces/server-rhel8:2.5] CodeReady Workspaces server container image
+  --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 600000] Waiting time for Pod downloading image (in
+                                                           milliseconds)
 
-  -m, --multiuser
-      Starts CodeReady Workspaces in multi-user mode.
-        		                Note, this option is turned on by default.
+  --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout    [default: 15000] Waiting time for Pod rechecking error (in
+                                                           milliseconds)
 
-  -n, --chenamespace=chenamespace
-      [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed to be deployed
+  --k8spodreadytimeout=k8spodreadytimeout                  [default: 600000] Waiting time for Pod Ready condition (in
+                                                           milliseconds)
 
-  -o, --cheboottimeout=cheboottimeout
-      (required) [default: 40000] CodeReady Workspaces server bootstrap timeout (in milliseconds)
+  --k8spodwaittimeout=k8spodwaittimeout                    [default: 600000] Waiting time for Pod scheduled condition
+                                                           (in milliseconds)
 
-  -p, --platform=openshift|crc
-      [default: openshift] Type of OpenShift platform. Valid values are "openshift", "crc (for CodeReady Containers)".
-
-  -s, --tls
-      Enable TLS encryption.
-                           Note, this option is turned on by default.
-                           To provide own certificate for Kubernetes infrastructure, 'che-tls' secret with TLS certificate 
-      must be pre-created in the configured namespace.
-                           In case of providing own self-signed certificate 'self-signed-certificate' secret should be 
-      also created.
-                           For OpenShift, router will use default cluster certificates.
-                           Please see the docs how to deploy CodeReady Workspaces on different infrastructures: 
-      https://www.eclipse.org/che/docs/che-7/overview/running-che-locally/
-
-  -t, --templates=templates
-      Path to the templates folder
-
-  --auto-update
-      Auto update approval strategy for installation CodeReady Workspaces.
-                           With this strategy will be provided auto-update CodeReady Workspaces without any human 
-      interaction.
-                           By default strategy this flag is false. It requires approval from user.
-                           To approve installation newer version CodeReady Workspaces user should execute 'crwctl 
-      server:update' command.
-                           This parameter is used only when the installer is 'olm'.
-
-  --catalog-source-name=catalog-source-name
-      OLM catalog source to install CodeReady Workspaces operator.
-                           This parameter is used only when the installer is the 'olm'.
-
-  --catalog-source-namespace=catalog-source-namespace
-      Namespace for OLM catalog source to install CodeReady Workspaces operator.
-                           This parameter is used only when the installer is the 'olm'.
-
-  --catalog-source-yaml=catalog-source-yaml
-      Path to a yaml file that describes custom catalog source for installation CodeReady Workspaces operator.
-                           Catalog source will be applied to the namespace with Che operator.
-                           Also you need define 'olm-channel' name and 'package-manifest-name'.
-                           This parameter is used only when the installer is the 'olm'.
-
-  --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
-      Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used 
-      only when the installer is the 'operator' or the 'olm'.
-
-  --che-operator-cr-yaml=che-operator-cr-yaml
-      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer 
-      is the 'operator' or the 'olm'.
-
-  --che-operator-image=che-operator-image
-      [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.5] Container image of the operator. This 
-      parameter is used only when the installer is the operator
-
-  --debug
-      Enables the debug mode for CodeReady Workspaces server. To debug CodeReady Workspaces server from localhost use 
-      'server:debug' command.
-
-  --deployment-name=deployment-name
-      [default: codeready] CodeReady Workspaces deployment name
-
-  --dev-workspace-controller-image=dev-workspace-controller-image
-      [default: quay.io/devfile/devworkspace-controller:sha-4ea0394] Container image of the dev workspace controller. This 
-      parameter is used only when the workspace engine is the DevWorkspace
-
-  --dev-workspace-controller-namespace=dev-workspace-controller-namespace
-      [default: devworkspace-controller] Namespace for the DevWorkspace controller.  This parameter is used only when the 
-      workspace engine is the DevWorkspace
-
-  --devfile-registry-url=devfile-registry-url
-      The URL of the external Devfile registry.
-
-  --k8spodreadytimeout=k8spodreadytimeout
-      [default: 130000] Waiting time for Pod Ready Kubernetes (in milliseconds)
-
-  --k8spodwaittimeout=k8spodwaittimeout
-      [default: 300000] Waiting time for Pod Wait Timeout Kubernetes (in milliseconds)
-
-  --listr-renderer=default|silent|verbose
-      [default: default] Listr renderer
-
-  --olm-channel=olm-channel
-      Olm channel to install CodeReady Workspaces, f.e. stable.
-                           If options was not set, will be used default version for package manifest.
-                           This parameter is used only when the installer is the 'olm'.
-
-  --package-manifest-name=package-manifest-name
-      Package manifest name to subscribe to CodeReady Workspaces OLM package manifest.
-                           This parameter is used only when the installer is the 'olm'.
-
-  --plugin-registry-url=plugin-registry-url
-      The URL of the external plugin registry.
-
-  --postgres-pvc-storage-class-name=postgres-pvc-storage-class-name
-      persistent volume storage class name to use to store CodeReady Workspaces postgres database
-
-  --self-signed-cert
-      Deprecated. The flag is ignored. Self signed certificates usage is autodetected now.
-
-  --skip-cluster-availability-check
-      Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.
-
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
-
-  --skip-version-check
-      Skip minimal versions check.
-
-  --starting-csv=starting-csv
-      Starting cluster service version(CSV) for installation CodeReady Workspaces.
-                           Flags uses to set up start installation version Che.
-                           For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
-                           Then OLM will install CodeReady Workspaces with version 7.10.0.
-                           Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs 
-      the latest known version.
-                           This parameter is used only when the installer is 'olm'.
-
-  --workspace-engine=che-server|dev-workspace
-      [default: che-server] Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.
-
-  --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
-      persistent volume(s) storage class name to use to store CodeReady Workspaces workspaces data
+  --skip-kubernetes-health-check                           Skip Kubernetes health check
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/server/start.ts)_
 
 ## `crwctl server:status`
 
-status CodeReady Workspaces server
+Status CodeReady Workspaces server
 
 ```
 USAGE
@@ -599,9 +647,11 @@ OPTIONS
 
   -n, --chenamespace=chenamespace  [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed
                                    to be deployed
+
+  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/server/status.ts)_
+_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/server/status.ts)_
 
 ## `crwctl server:stop`
 
@@ -635,14 +685,14 @@ OPTIONS
       [default: devworkspace-controller] Namespace for the DevWorkspace controller.  This parameter is used only when the 
       workspace engine is the DevWorkspace
 
-  --listr-renderer=default|silent|verbose
-      [default: default] Listr renderer
-
   --skip-kubernetes-health-check
       Skip Kubernetes health check
+
+  --telemetry=on|off
+      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/server/stop.ts)_
 
 ## `crwctl server:update`
 
@@ -653,33 +703,47 @@ USAGE
   $ crwctl server:update
 
 OPTIONS
-  -a, --installer=operator|olm             Installer type. If not set, default is autodetected depending on previous
-                                           installation.
+  -h, --help                                               show CLI help
 
-  -h, --help                               show CLI help
+  -n, --chenamespace=chenamespace                          [default: workspaces] Openshift Project where CodeReady
+                                                           Workspaces server is supposed to be deployed
 
-  -n, --chenamespace=chenamespace          [default: workspaces] Openshift Project where CodeReady Workspaces server is
-                                           supposed to be deployed
+  -p, --platform=openshift|crc                             [default: openshift] Type of OpenShift platform. Valid values
+                                                           are "openshift", "crc (for CodeReady Containers)".
 
-  -p, --platform=openshift|crc             [default: openshift] Type of OpenShift platform. Valid values are
-                                           "openshift", "crc (for CodeReady Containers)".
+  -t, --templates=templates                                [default: templates] Path to the templates folder
 
-  -t, --templates=templates                [default: templates] Path to the templates folder
+  -y, --yes                                                Automatic yes to prompts; assume "yes" as answer to all
+                                                           prompts and run non-interactively
 
-  --che-operator-image=che-operator-image  [default: registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.5]
-                                           Container image of the operator. This parameter is used only when the
-                                           installer is the operator
+  --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml  Path to a yaml file that overrides the default values in
+                                                           CheCluster CR used by the operator. This parameter is used
+                                                           only when the installer is the 'operator' or the 'olm'.
 
-  --deployment-name=deployment-name        [default: codeready] CodeReady Workspaces deployment name
+  --che-operator-image=che-operator-image                  [default:
+                                                           registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:
+                                                           2.6] Container image of the operator. This parameter is used
+                                                           only when the installer is the operator
 
-  --listr-renderer=default|silent|verbose  [default: default] Listr renderer
+  --deployment-name=deployment-name                        [default: codeready] CodeReady Workspaces deployment name
 
-  --skip-kubernetes-health-check           Skip Kubernetes health check
+  --skip-kubernetes-health-check                           Skip Kubernetes health check
 
-  --skip-version-check                     Skip user confirmation on version check
+  --telemetry=on|off                                       Enable or disable telemetry. This flag skips a prompt and
+                                                           enable/disable telemetry
+
+EXAMPLES
+  # Update CodeReady Workspaces:
+  crwctl server:update
+
+  # Update CodeReady Workspaces in 'eclipse-che' namespace:
+  crwctl server:update -n eclipse-che
+
+  # Update CodeReady Workspaces and update its configuration in the custom resource:
+  crwctl server:update --che-operator-cr-patch-yaml patch.yaml
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/server/update.ts)_
 
 ## `crwctl update [CHANNEL]`
 
@@ -732,13 +796,16 @@ OPTIONS
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
+
+  --telemetry=on|off
+      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/workspace/create.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/workspace/create.ts)_
+_See code: [src/commands/workspace/create.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/workspace/create.ts)_
 
 ## `crwctl workspace:delete WORKSPACE`
 
-delete a stopped workspace - use workspace:stop to stop the workspace before deleting it
+Delete a stopped workspace - use workspace:stop to stop the workspace before deleting it
 
 ```
 USAGE
@@ -769,13 +836,16 @@ OPTIONS
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
+
+  --telemetry=on|off
+      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/workspace/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/workspace/delete.ts)_
+_See code: [src/commands/workspace/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/workspace/delete.ts)_
 
 ## `crwctl workspace:inject`
 
-inject configurations and tokens in a workspace
+Inject configurations and tokens in a workspace
 
 ```
 USAGE
@@ -813,13 +883,16 @@ OPTIONS
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
+
+  --telemetry=on|off
+      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/workspace/inject.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/workspace/inject.ts)_
+_See code: [src/commands/workspace/inject.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/workspace/inject.ts)_
 
 ## `crwctl workspace:list`
 
-list workspaces
+List workspaces
 
 ```
 USAGE
@@ -844,9 +917,12 @@ OPTIONS
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
+
+  --telemetry=on|off
+      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/workspace/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/workspace/list.ts)_
+_See code: [src/commands/workspace/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/workspace/list.ts)_
 
 ## `crwctl workspace:logs`
 
@@ -866,9 +942,11 @@ OPTIONS
   -w, --workspace=workspace       (required) Target workspace id. Can be found in workspace configuration 'id' field.
 
   --skip-kubernetes-health-check  Skip Kubernetes health check
+
+  --telemetry=on|off              Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/workspace/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/workspace/logs.ts)_
+_See code: [src/commands/workspace/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/workspace/logs.ts)_
 
 ## `crwctl workspace:start WORKSPACE`
 
@@ -903,9 +981,12 @@ OPTIONS
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
+
+  --telemetry=on|off
+      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/workspace/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/workspace/start.ts)_
+_See code: [src/commands/workspace/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/workspace/start.ts)_
 
 ## `crwctl workspace:stop WORKSPACE`
 
@@ -937,9 +1018,12 @@ OPTIONS
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
+
+  --telemetry=on|off
+      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/workspace/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.5.0-CI-redhat/src/commands/workspace/stop.ts)_
+_See code: [src/commands/workspace/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-CI-redhat/src/commands/workspace/stop.ts)_
 <!-- commandsstop -->
 
 # Contributing
