@@ -15,10 +15,11 @@ import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
 
 import { KubeHelper } from '../../api/kube'
-import { CHE_CLUSTER_CRD } from '../../constants'
+import { CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME } from '../../constants'
 import { isStableVersion } from '../../util'
+import { KubeTasks } from '../kube'
 
-import { copyOperatorResources, createEclipseCheCluster, createNamespaceTask } from './common-tasks'
+import { copyOperatorResources, createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
 
 export class OperatorTasks {
   operatorServiceAccount = 'codeready-operator'
@@ -26,8 +27,9 @@ export class OperatorTasks {
   operatorClusterRole = 'codeready-operator'
   operatorRoleBinding = 'codeready-operator'
   operatorClusterRoleBinding = 'codeready-operator'
+  namespaceEditorClusterRole = 'che-namespace-editor'
+  operatorNamespaceEditorClusterRoleBinding = 'codeready-operator-namespace-editor'
   cheClusterCrd = 'checlusters.org.eclipse.che'
-  operatorName = 'codeready-operator'
 
   /**
    * Returns tasks list which perform preflight platform checks.
@@ -35,13 +37,16 @@ export class OperatorTasks {
   startTasks(flags: any, command: Command): Listr {
     const clusterRoleName = `${flags.chenamespace}-${this.operatorClusterRole}`
     const clusterRoleBindingName = `${flags.chenamespace}-${this.operatorClusterRoleBinding}`
+    const namespaceEditorClusterRoleName = `${flags.chenamespace}-${this.namespaceEditorClusterRole}`
+    const operatorNamespaceEditorClusterRoleBindingName = `${flags.chenamespace}-${this.operatorNamespaceEditorClusterRoleBinding}`
     const kube = new KubeHelper(flags)
+    const kubeTasks = new KubeTasks(flags)
     if (isStableVersion(flags)) {
       command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of CodeReady Workspaces (--installer=olm).')
     }
     return new Listr([
       copyOperatorResources(flags, command.config.cacheDir),
-      createNamespaceTask(flags.chenamespace, flags.platform),
+      createNamespaceTask(flags.chenamespace, {}),
       {
         title: `Create ServiceAccount ${this.operatorServiceAccount} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
@@ -63,10 +68,7 @@ export class OperatorTasks {
             task.title = `${task.title}...It already exists.`
           } else {
             const yamlFilePath = ctx.resourcesPath + 'role.yaml'
-            const statusCode = await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...done.`
           }
         }
@@ -79,10 +81,33 @@ export class OperatorTasks {
             task.title = `${task.title}...It already exists.`
           } else {
             const yamlFilePath = ctx.resourcesPath + 'cluster_role.yaml'
-            const statusCode = await kube.createClusterRoleFromFile(yamlFilePath, clusterRoleName)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.createClusterRoleFromFile(yamlFilePath, clusterRoleName)
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
+      {
+        title: `Create ClusterRole ${namespaceEditorClusterRoleName}`,
+        task: async (ctx: any, task: any) => {
+          ctx.namespaceEditorClusterRoleName = namespaceEditorClusterRoleName
+          const exist = await kube.clusterRoleExist(namespaceEditorClusterRoleName)
+          if (exist) {
+            task.title = `${task.title}...It already exists.`
+          } else {
+            const yamlFilePath = ctx.resourcesPath + 'namespaces_cluster_role.yaml'
+            await kube.createClusterRoleFromFile(yamlFilePath, namespaceEditorClusterRoleName)
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
+      {
+        title: `Create ClusterRoleBinding ${operatorNamespaceEditorClusterRoleBindingName}`,
+        task: async (_ctx: any, task: any) => {
+          const exist = await kube.clusterRoleBindingExist(operatorNamespaceEditorClusterRoleBindingName)
+          if (exist) {
+            task.title = `${task.title}...It already exists.`
+          } else {
+            await kube.createClusterRoleBinding(operatorNamespaceEditorClusterRoleBindingName, this.operatorServiceAccount, flags.chenamespace, namespaceEditorClusterRoleName)
             task.title = `${task.title}...done.`
           }
         }
@@ -138,15 +163,36 @@ export class OperatorTasks {
         }
       },
       {
-        title: `Create deployment ${this.operatorName} in namespace ${flags.chenamespace}`,
+        title: `Create deployment ${OPERATOR_DEPLOYMENT_NAME} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
-          const exist = await kube.deploymentExist(this.operatorName, flags.chenamespace)
+          const exist = await kube.deploymentExist(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
           if (exist) {
             task.title = `${task.title}...It already exists.`
           } else {
             await kube.createDeploymentFromFile(ctx.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
             task.title = `${task.title}...done.`
           }
+        }
+      },
+      {
+        title: 'Operator pod bootstrap',
+        task: () => kubeTasks.podStartTasks(CHE_OPERATOR_SELECTOR, flags.chenamespace)
+      },
+      {
+        title: 'Prepare CodeReady Workspaces cluster CR',
+        task: async (ctx: any, task: any) => {
+          const cheCluster = await kube.getCheCluster(flags.chenamespace)
+          if (cheCluster) {
+            task.title = `${task.title}...It already exists..`
+            return
+          }
+
+          if (!ctx.customCR) {
+            const yamlFilePath = ctx.resourcesPath + 'crds/org_v1_che_cr.yaml'
+            ctx.defaultCR = yaml.safeLoad(fs.readFileSync(yamlFilePath).toString())
+          }
+
+          task.title = `${task.title}...Done.`
         }
       },
       createEclipseCheCluster(flags, kube)
@@ -159,10 +205,9 @@ export class OperatorTasks {
       {
         title: 'Checking versions compatibility before updating',
         task: async (ctx: any, _task: any) => {
-          const operatorDeployment = await kube.getDeployment(this.operatorName, flags.chenamespace)
+          const operatorDeployment = await kube.getDeployment(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
           if (!operatorDeployment) {
-            command.error(`${this.operatorName} deployment is not found in namespace ${flags.chenamespace}.\nProbably CodeReady Workspaces was initially deployed with another installer`)
-            return
+            command.error(`${OPERATOR_DEPLOYMENT_NAME} deployment is not found in namespace ${flags.chenamespace}.\nProbably CodeReady Workspaces was initially deployed with another installer`)
           }
           const deployedCheOperator = this.retrieveContainerImage(operatorDeployment)
           const deployedCheOperatorImageAndTag = deployedCheOperator.split(':', 2)
@@ -180,6 +225,8 @@ export class OperatorTasks {
     const kube = new KubeHelper(flags)
     const clusterRoleName = `${flags.chenamespace}-${this.operatorClusterRole}`
     const clusterRoleBindingName = `${flags.chenamespace}-${this.operatorClusterRoleBinding}`
+    const namespaceEditorClusterRoleName = `${flags.chenamespace}-${this.namespaceEditorClusterRole}`
+    const operatorNamespaceEditorClusterRoleBindingName = `${flags.chenamespace}-${this.operatorNamespaceEditorClusterRoleBinding}`
     return new Listr([
       copyOperatorResources(flags, command.config.cacheDir),
       {
@@ -202,16 +249,10 @@ export class OperatorTasks {
           const exist = await kube.roleExist(this.operatorRole, flags.chenamespace)
           const yamlFilePath = ctx.resourcesPath + 'role.yaml'
           if (exist) {
-            const statusCode = await kube.replaceRoleFromFile(yamlFilePath, flags.chenamespace)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.replaceRoleFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...updated.`
           } else {
-            const statusCode = await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...created new one.`
           }
         }
@@ -223,23 +264,28 @@ export class OperatorTasks {
           const legacyClusterRoleExists = await kube.clusterRoleExist(this.operatorClusterRole)
           const yamlFilePath = ctx.resourcesPath + 'cluster_role.yaml'
           if (clusterRoleExists) {
-            const statusCode = await kube.replaceClusterRoleFromFile(yamlFilePath, clusterRoleName)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.replaceClusterRoleFromFile(yamlFilePath, clusterRoleName)
             task.title = `${task.title}...updated.`
             // it is needed to check the legacy cluster object name to be compatible with previous installations
           } else if (legacyClusterRoleExists) {
-            const statusCode = await kube.replaceClusterRoleFromFile(yamlFilePath, this.operatorClusterRole)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.replaceClusterRoleFromFile(yamlFilePath, this.operatorClusterRole)
             task.title = `Updating ClusterRole ${this.operatorClusterRole}...updated.`
           } else {
-            const statusCode = await kube.createClusterRoleFromFile(yamlFilePath, clusterRoleName)
-            if (statusCode === 403) {
-              command.error('ERROR: It looks like you don\'t have enough privileges. You need to grant more privileges to current user or use a different user. If you are using minishift you can "oc login -u system:admin"')
-            }
+            await kube.createClusterRoleFromFile(yamlFilePath, clusterRoleName)
+            task.title = `${task.title}...created a new one.`
+          }
+        }
+      },
+      {
+        title: `Updating ClusterRole ${namespaceEditorClusterRoleName}`,
+        task: async (ctx: any, task: any) => {
+          const clusterRoleExists = await kube.clusterRoleExist(namespaceEditorClusterRoleName)
+          const yamlFilePath = ctx.resourcesPath + 'namespaces_cluster_role.yaml'
+          if (clusterRoleExists) {
+            await kube.replaceClusterRoleFromFile(yamlFilePath, namespaceEditorClusterRoleName)
+            task.title = `${task.title}...updated.`
+          } else {
+            await kube.createClusterRoleFromFile(yamlFilePath, namespaceEditorClusterRoleName)
             task.title = `${task.title}...created a new one.`
           }
         }
@@ -277,6 +323,19 @@ export class OperatorTasks {
         }
       },
       {
+        title: `Updating ClusterRoleBinding ${operatorNamespaceEditorClusterRoleBindingName}`,
+        task: async (_ctx: any, task: any) => {
+          const clusterRoleBindExists = await kube.clusterRoleBindingExist(operatorNamespaceEditorClusterRoleBindingName)
+          if (clusterRoleBindExists) {
+            await kube.replaceClusterRoleBinding(operatorNamespaceEditorClusterRoleBindingName, this.operatorServiceAccount, flags.chenamespace, namespaceEditorClusterRoleName)
+            task.title = `${task.title}...updated.`
+          } else {
+            await kube.createClusterRoleBinding(operatorNamespaceEditorClusterRoleBindingName, this.operatorServiceAccount, flags.chenamespace, namespaceEditorClusterRoleName)
+            task.title = `${task.title}...created new one.`
+          }
+        }
+      },
+      {
         title: `Updating CodeReady Workspaces cluster CRD ${this.cheClusterCrd}`,
         task: async (ctx: any, task: any) => {
           const crd = await kube.getCrd(this.cheClusterCrd)
@@ -302,9 +361,9 @@ export class OperatorTasks {
         }
       },
       {
-        title: `Updating deployment ${this.operatorName} in namespace ${flags.chenamespace}`,
+        title: `Updating deployment ${OPERATOR_DEPLOYMENT_NAME} in namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
-          const exist = await kube.deploymentExist(this.operatorName, flags.chenamespace)
+          const exist = await kube.deploymentExist(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
           if (exist) {
             await kube.replaceDeploymentFromFile(ctx.resourcesPath + 'operator.yaml', flags.chenamespace, flags['che-operator-image'])
             task.title = `${task.title}...updated.`
@@ -318,9 +377,10 @@ export class OperatorTasks {
         title: 'Waiting newer operator to be run',
         task: async (_ctx: any, _task: any) => {
           await cli.wait(1000)
-          await kube.waitLatestReplica(this.operatorName, flags.chenamespace)
+          await kube.waitLatestReplica(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
         }
-      }
+      },
+      patchingEclipseCheCluster(flags, kube, command),
     ], { renderer: flags['listr-renderer'] as any })
   }
 
@@ -331,6 +391,8 @@ export class OperatorTasks {
     let kh = new KubeHelper(flags)
     const clusterRoleName = `${flags.chenamespace}-${this.operatorClusterRole}`
     const clusterRoleBindingName = `${flags.chenamespace}-${this.operatorClusterRoleBinding}`
+    const namespaceEditorClusterRoleName = `${flags.chenamespace}-${this.namespaceEditorClusterRole}`
+    const operatorNamespaceEditorClusterRoleBindingName = `${flags.chenamespace}-${this.operatorNamespaceEditorClusterRoleBinding}`
     return [{
       title: 'Delete oauthClientAuthorizations',
       task: async (_ctx: any, task: any) => {
@@ -345,6 +407,11 @@ export class OperatorTasks {
     {
       title: `Delete the Custom Resource of type ${CHE_CLUSTER_CRD}`,
       task: async (_ctx: any, task: any) => {
+        const checluster = await kh.getCheCluster(flags.chenamespace)
+        if (checluster) {
+          await kh.patchCheClusterCustomResource(checluster.metadata.name, flags.chenamespace, { metadata: { finalizers: null } })
+        }
+
         await kh.deleteCheCluster(flags.chenamespace)
         do {
           await cli.wait(2000) //wait a couple of secs for the finalizers to be executed
@@ -356,7 +423,7 @@ export class OperatorTasks {
       title: `Delete CRD ${this.cheClusterCrd}`,
       task: async (_ctx: any, task: any) => {
         const crdExists = await kh.crdExist(this.cheClusterCrd)
-        const checlusters = await kh.getAllCheCluster()
+        const checlusters = await kh.getAllCheClusters()
         if (checlusters.length > 0) {
           task.title = await `${task.title}...Skipped: another CodeReady Workspaces deployment found.`
         } else {
@@ -413,6 +480,26 @@ export class OperatorTasks {
         } else if (legacyClusterRoleExists) {
           await kh.deleteClusterRole(this.operatorClusterRole)
           task.title = await `Delete cluster role ${this.operatorClusterRole}...OK`
+        }
+      }
+    },
+    {
+      title: `Delete cluster role binding ${operatorNamespaceEditorClusterRoleBindingName}`,
+      task: async (_ctx: any, task: any) => {
+        const clusterRoleBindExists = await kh.clusterRoleBindingExist(operatorNamespaceEditorClusterRoleBindingName)
+        if (clusterRoleBindExists) {
+          await kh.deleteClusterRoleBinding(operatorNamespaceEditorClusterRoleBindingName)
+          task.title = await `${task.title}...OK`
+        }
+      }
+    },
+    {
+      title: `Delete cluster role ${namespaceEditorClusterRoleName}`,
+      task: async (_ctx: any, task: any) => {
+        const clusterRoleExists = await kh.clusterRoleExist(namespaceEditorClusterRoleName)
+        if (clusterRoleExists) {
+          await kh.deleteClusterRole(namespaceEditorClusterRoleName)
+          task.title = await `${task.title}...OK`
         }
       }
     },

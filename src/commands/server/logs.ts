@@ -11,13 +11,13 @@
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import * as Listr from 'listr'
-import * as notifier from 'node-notifier'
-import * as os from 'os'
-import * as path from 'path'
 
-import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { ChectlContext } from '../../api/context'
+import { cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
+import { getCommandErrorMessage, getCommandSuccessMessage } from '../../util'
 
 export default class Logs extends Command {
   static description = 'Collect CodeReady Workspaces logs'
@@ -32,34 +32,30 @@ export default class Logs extends Command {
       description: 'Directory to store logs into',
       env: 'CHE_LOGS'
     }),
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {
     const { flags } = this.parse(Logs)
-    const ctx: any = {}
-    ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'crwctl-logs', Date.now().toString()))
+    const ctx = await ChectlContext.initAndGet(flags, this)
+
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
 
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logs.id, flags })
     tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.serverLogsTasks(flags, false))
-    tasks.add(cheTasks.namespaceEventsTask(flags.chenamespace, this, false))
 
     try {
       this.log(`CodeReady Workspaces logs will be available in '${ctx.directory}'`)
       await tasks.run(ctx)
-      this.log('Command server:logs has completed successfully.')
-    } catch (error) {
-      this.error(error)
+      this.log(getCommandSuccessMessage())
+    } catch (err) {
+      this.error(getCommandErrorMessage(err))
     }
-
-    notifier.notify({
-      title: 'crwctl',
-      message: 'Command server:logs has completed successfully.'
-    })
 
     this.exit(0)
   }

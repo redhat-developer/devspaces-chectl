@@ -12,10 +12,11 @@ import * as Listr from 'listr'
 
 import { CheHelper } from '../api/che'
 import { CheApiClient } from '../api/che-api-client'
+import { CheServerLoginManager } from '../api/che-login-manager'
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
 import { VersionHelper } from '../api/version'
-import { DOC_LINK, DOC_LINK_OBTAIN_ACCESS_TOKEN, DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH, DOC_LINK_RELEASE_NOTES } from '../constants'
+import { CHE_OPERATOR_SELECTOR, DOC_LINK, DOC_LINK_RELEASE_NOTES, OUTPUT_SEPARATOR } from '../constants'
 
 import { KubeTasks } from './kube'
 
@@ -30,9 +31,12 @@ export class CheTasks {
 
   cheNamespace: string
 
-  cheAccessToken: string
+  cheAccessToken: string | undefined
   cheSelector = 'app=codeready,component=codeready'
   cheDeploymentName: string
+
+  dashboardDeploymentName = 'che-dashboard'
+  dashboardSelector = 'app=codeready,component=codeready-dashboard'
 
   keycloakDeploymentName = 'keycloak'
   keycloakSelector = 'app=codeready,component=keycloak'
@@ -45,8 +49,6 @@ export class CheTasks {
 
   pluginRegistryDeploymentName = 'plugin-registry'
   pluginRegistrySelector = 'app=codeready,component=plugin-registry'
-
-  cheOperatorSelector = 'app=codeready-operator'
 
   cheConsoleLinkName = 'che'
 
@@ -68,34 +70,32 @@ export class CheTasks {
    *
    * @see che.checkIfCheIsInstalledTasks
    */
-  waitDeployedChe(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
+  waitDeployedChe(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'PostgreSQL pod bootstrap',
-        skip: () => !flags.multiuser,
         enabled: ctx => ctx.isPostgresDeployed && !ctx.isPostgresReady,
-        task: () => this.kubeTasks.podStartTasks(command, this.postgresSelector, this.cheNamespace)
+        task: () => this.kubeTasks.podStartTasks(this.postgresSelector, this.cheNamespace)
       },
       {
         title: 'Keycloak pod bootstrap',
-        skip: () => !flags.multiuser,
         enabled: ctx => ctx.isKeycloakDeployed && !ctx.isKeycloakReady,
-        task: () => this.kubeTasks.podStartTasks(command, this.keycloakSelector, this.cheNamespace)
+        task: () => this.kubeTasks.podStartTasks(this.keycloakSelector, this.cheNamespace)
       },
       {
         title: 'Devfile registry pod bootstrap',
         enabled: ctx => ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryReady,
-        task: () => this.kubeTasks.podStartTasks(command, this.devfileRegistrySelector, this.cheNamespace)
+        task: () => this.kubeTasks.podStartTasks(this.devfileRegistrySelector, this.cheNamespace)
       },
       {
         title: 'Plugin registry pod bootstrap',
         enabled: ctx => ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryReady,
-        task: () => this.kubeTasks.podStartTasks(command, this.pluginRegistrySelector, this.cheNamespace)
+        task: () => this.kubeTasks.podStartTasks(this.pluginRegistrySelector, this.cheNamespace)
       },
       {
         title: 'CodeReady Workspaces pod bootstrap',
         enabled: ctx => !ctx.isCheReady,
-        task: () => this.kubeTasks.podStartTasks(command, this.cheSelector, this.cheNamespace)
+        task: () => this.kubeTasks.podStartTasks(this.cheSelector, this.cheNamespace)
       },
       ...this.checkEclipseCheStatus()
     ]
@@ -119,6 +119,14 @@ export class CheTasks {
             ctx.isCheReady = await this.kube.deploymentReady(this.cheDeploymentName, this.cheNamespace)
             if (!ctx.isCheReady) {
               ctx.isCheStopped = await this.kube.deploymentStopped(this.cheDeploymentName, this.cheNamespace)
+            }
+
+            ctx.isDashboardDeployed = await this.kube.deploymentExist(this.dashboardDeploymentName, this.cheNamespace)
+            if (ctx.isDashboardDeployed) {
+              ctx.isDashboardReady = await this.kube.deploymentReady(this.dashboardDeploymentName, this.cheNamespace)
+              if (!ctx.isDashboardReady) {
+                ctx.isDashboardStopped = await this.kube.deploymentStopped(this.dashboardDeploymentName, this.cheNamespace)
+              }
             }
 
             ctx.isKeycloakDeployed = await this.kube.deploymentExist(this.keycloakDeploymentName, this.cheNamespace)
@@ -208,43 +216,62 @@ export class CheTasks {
   }
 
   /**
-   * Returns tasks list which scale down all CodeReady Workspaces components which are deployed.
+   * Returns tasks list which scale up all CodeReady Workspaces components which are deployed.
    * It requires {@link this#checkIfCheIsInstalledTasks} to be executed before.
    *
    * @see [CheTasks](#checkIfCheIsInstalledTasks)
    */
-  scaleCheUpTasks(_command: Command): ReadonlyArray<Listr.ListrTask> {
+  scaleCheUpTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Scaling up CodeReady Workspaces Deployments',
-        enabled: (ctx: any) => ctx.isCheDeployed,
-        task: async (ctx: any, task: any) => {
-          if (ctx.isPostgresDeployed) {
-            await this.kube.scaleDeployment(this.postgresDeploymentName, this.cheNamespace, 1)
-          }
-          if (ctx.isKeycloakDeployed) {
-            await this.kube.scaleDeployment(this.keycloakDeploymentName, this.cheNamespace, 1)
-          }
-          if (ctx.isPluginRegistryDeployed) {
-            await this.kube.scaleDeployment(this.pluginRegistryDeploymentName, this.cheNamespace, 1)
-          }
-          if (ctx.isDevfileRegistryDeployed) {
-            await this.kube.scaleDeployment(this.devfileRegistryDeploymentName, this.cheNamespace, 1)
-          }
-          await this.kube.scaleDeployment(this.cheDeploymentName, this.cheNamespace, 1)
-          task.title = `${task.title}...done.`
+        title: 'PostgreSQL pod bootstrap',
+        enabled: ctx => ctx.isPostgresDeployed && !ctx.isPostgresReady,
+        task: async () => {
+          await this.kube.scaleDeployment(this.postgresDeploymentName, this.cheNamespace, 1)
+          return this.kubeTasks.podStartTasks(this.postgresSelector, this.cheNamespace)
         }
       },
       {
-        title: `CodeReady Workspaces is already running in namespace \"${this.cheNamespace}\".`,
-        enabled: (ctx: any) => (ctx.isCheDeployed && ctx.isCheAvailable),
-        task: async (ctx: any, task: any) => {
-          ctx.cheDeploymentExist = true
-          ctx.cheIsAlreadyRunning = true
-          ctx.cheURL = await this.che.cheURL(this.cheNamespace)
-          task.title = await `${task.title}...it's URL is ${ctx.cheURL}`
+        title: 'Keycloak pod bootstrap',
+        enabled: ctx => ctx.isKeycloakDeployed && !ctx.isKeycloakReady,
+        task: async () => {
+          await this.kube.scaleDeployment(this.keycloakDeploymentName, this.cheNamespace, 1)
+          return this.kubeTasks.podStartTasks(this.keycloakSelector, this.cheNamespace)
         }
-      }
+      },
+      {
+        title: 'Devfile registry pod bootstrap',
+        enabled: ctx => ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryReady,
+        task: async () => {
+          await this.kube.scaleDeployment(this.devfileRegistryDeploymentName, this.cheNamespace, 1)
+          return this.kubeTasks.podStartTasks(this.devfileRegistrySelector, this.cheNamespace)
+        }
+      },
+      {
+        title: 'Plugin registry pod bootstrap',
+        enabled: ctx => ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryReady,
+        task: async () => {
+          await this.kube.scaleDeployment(this.pluginRegistryDeploymentName, this.cheNamespace, 1)
+          return this.kubeTasks.podStartTasks(this.pluginRegistrySelector, this.cheNamespace)
+        }
+      },
+      {
+        title: 'CodeReady Workspaces pod bootstrap',
+        enabled: ctx => ctx.isCheDeployed && !ctx.isCheReady,
+        task: async () => {
+          await this.kube.scaleDeployment(this.cheDeploymentName, this.cheNamespace, 1)
+          return this.kubeTasks.podStartTasks(this.cheSelector, this.cheNamespace)
+        }
+      },
+      {
+        title: 'CodeReady Workspaces dashboard pod bootstrap',
+        enabled: ctx => ctx.isDashboardDeployed && !ctx.isDashboardReady,
+        task: async () => {
+          await this.kube.scaleDeployment(this.dashboardDeploymentName, this.cheNamespace, 1)
+          return this.kubeTasks.podStartTasks(this.dashboardSelector, this.cheNamespace)
+        }
+      },
+      ...this.checkEclipseCheStatus()
     ]
   }
 
@@ -262,7 +289,12 @@ export class CheTasks {
         try {
           const cheURL = await this.che.cheURL(this.cheNamespace)
           const cheApi = CheApiClient.getInstance(cheURL + '/api')
-          await cheApi.startCheServerShutdown(this.cheAccessToken)
+          let cheAccessToken = this.cheAccessToken
+          if (!cheAccessToken && await cheApi.isAuthenticationEnabled()) {
+            const loginManager = await CheServerLoginManager.getInstance()
+            cheAccessToken = await loginManager.getNewAccessToken()
+          }
+          await cheApi.startCheServerShutdown(cheAccessToken)
           await cheApi.waitUntilCheServerReadyToShutdown()
           task.title = `${task.title}...done`
         } catch (error) {
@@ -279,6 +311,18 @@ export class CheTasks {
           task.title = await `${task.title}...done`
         } catch (error) {
           command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale deployment. ${error.message}`)
+        }
+      }
+    },
+    {
+      title: 'Scale \"dashboard\" deployment to zero',
+      enabled: (ctx: any) => ctx.isDashboardDeployed && !ctx.isDashboardStopped,
+      task: async (_ctx: any, task: any) => {
+        try {
+          await this.kube.scaleDeployment(this.dashboardDeploymentName, this.cheNamespace, 0)
+          task.title = await `${task.title}...done`
+        } catch (error) {
+          command.error(`E_SCALE_DEPLOY_FAIL - Failed to scale dashboard deployment. ${error.message}`)
         }
       }
     },
@@ -425,7 +469,7 @@ export class CheTasks {
         title: `Delete consoleLink ${this.cheConsoleLinkName}`,
         task: async (_ctx: any, task: any) => {
           const consoleLinkExists = await this.kube.consoleLinkExists(this.cheConsoleLinkName)
-          const checlusters = await this.kube.getAllCheCluster()
+          const checlusters = await this.kube.getAllCheClusters()
           // Delete the consoleLink only in case if there no more checluster installed
           if (checlusters.length === 0 && consoleLinkExists) {
             await this.kube.deleteConsoleLink(this.cheConsoleLinkName)
@@ -482,7 +526,7 @@ export class CheTasks {
     return [{
       title: `Delete namespace ${flags.chenamespace}`,
       task: async (task: any) => {
-        const namespaceExist = await this.kube.namespaceExist(flags.chenamespace)
+        const namespaceExist = await this.kube.getNamespace(flags.chenamespace)
         if (namespaceExist) {
           await this.kube.deleteNamespace(flags.chenamespace)
         }
@@ -495,7 +539,7 @@ export class CheTasks {
     return [{
       title: `Verify if namespace '${flags.chenamespace}' exists`,
       task: async () => {
-        if (!await this.che.cheNamespaceExist(flags.chenamespace)) {
+        if (!await this.kube.getNamespace(flags.chenamespace)) {
           command.error(`E_BAD_NS - Namespace does not exist.\nThe Kubernetes Namespace "${flags.chenamespace}" doesn't exist.`, { code: 'EBADNS' })
         }
       }
@@ -521,14 +565,14 @@ export class CheTasks {
     return [
       {
         title: `${follow ? 'Start following' : 'Read'} Operator logs`,
-        skip: () => flags.installer !== 'operator' && flags.installer !== 'olm',
+        skip: () => flags.installer === 'helm',
         task: async (ctx: any, task: any) => {
-          await this.che.readPodLog(flags.chenamespace, this.cheOperatorSelector, ctx.directory, follow)
+          await this.che.readPodLog(flags.chenamespace, CHE_OPERATOR_SELECTOR, ctx.directory, follow)
           task.title = `${task.title}...done`
         }
       },
       {
-        title: `${follow ? 'Start following' : 'Read'} CodeReady Workspaces logs`,
+        title: `${follow ? 'Start following' : 'Read'} CodeReady Workspaces server logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.cheSelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
@@ -561,16 +605,11 @@ export class CheTasks {
           await this.che.readPodLog(flags.chenamespace, this.devfileRegistrySelector, ctx.directory, follow)
           task.title = await `${task.title}...done`
         }
-      }
-    ]
-  }
-
-  namespaceEventsTask(namespace: string, command: Command, follow: boolean): ReadonlyArray<Listr.ListrTask> {
-    return [
+      },
       {
         title: `${follow ? 'Start following' : 'Read'} namespace events`,
         task: async (ctx: any, task: any) => {
-          await this.che.readNamespaceEvents(namespace, ctx.directory, follow).catch(e => command.error(e.message))
+          await this.che.readNamespaceEvents(flags.chenamespace, ctx.directory, follow)
           task.title = await `${task.title}...done`
         }
       }
@@ -616,37 +655,40 @@ export class CheTasks {
       {
         title: 'Prepare post installation output',
         task: async (ctx: any, task: any) => {
+          const messages: string[] = []
+
           const version = await VersionHelper.getCheVersion(flags)
-          ctx.highlightedMessages.push(`CodeReady Workspaces ${version.trim()} has successfully installed.`)
+          messages.push(`CodeReady Workspaces ${version.trim()} has been successfully deployed.`)
+          messages.push(`Documentation             : ${DOC_LINK}`)
+          if (DOC_LINK_RELEASE_NOTES) {
+            messages.push(`Release Notes           : ${DOC_LINK_RELEASE_NOTES}`)
+          }
+          messages.push(OUTPUT_SEPARATOR)
 
           const cheUrl = await this.che.cheURL(flags.chenamespace)
-          ctx.highlightedMessages.push(`Users can access the Dashboard at   : ${cheUrl}`)
+          messages.push(`Users Dashboard           : ${cheUrl}`)
+          messages.push('Admin user login          : "admin:admin". NOTE: must change after first login.')
+          messages.push(OUTPUT_SEPARATOR)
 
           const cheConfigMap = await this.kube.getConfigMap('che', flags.chenamespace)
           if (cheConfigMap && cheConfigMap.data) {
             if (cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL) {
-              ctx.highlightedMessages.push(`Plugins can be viewed at            : ${cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL}`)
+              messages.push(`Plug-in Registry          : ${cheConfigMap.data.CHE_WORKSPACE_PLUGIN__REGISTRY__URL}`)
             }
             if (cheConfigMap.data.CHE_WORKSPACE_DEVFILE__REGISTRY__URL) {
-              ctx.highlightedMessages.push(`Devfiles can be viewed at           : ${cheConfigMap.data.CHE_WORKSPACE_DEVFILE__REGISTRY__URL}`)
+              messages.push(`Devfile Registry          : ${cheConfigMap.data.CHE_WORKSPACE_DEVFILE__REGISTRY__URL}`)
             }
+            messages.push(OUTPUT_SEPARATOR)
+
             if (cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL) {
-              ctx.highlightedMessages.push(`Identity provider can be accessed at: ${cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL}`)
+              messages.push(`Identity Provider URL     : ${cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL}`)
             }
-            ctx.highlightedMessages.push(`Product documentation is at         : ${DOC_LINK}`)
-            if (DOC_LINK_RELEASE_NOTES) {
-              ctx.highlightedMessages.push(`Release Notes are at                : ${DOC_LINK_RELEASE_NOTES}`)
+            if (ctx.identityProviderUsername && ctx.identityProviderPassword) {
+              messages.push(`Identity Provider login   : "${ctx.identityProviderUsername}:${ctx.identityProviderPassword}".`)
             }
+            messages.push(OUTPUT_SEPARATOR)
           }
-
-          const cheCluster = await this.kube.getCheCluster(flags.chenamespace)
-          if (cheCluster && cheCluster.spec.auth && cheCluster.spec.auth.updateAdminPassword) {
-            ctx.highlightedMessages.push('CodeReady Workspaces admin credentials       : "admin:admin". You will be asked to change default Che admin password on the first login.')
-          }
-          if (ctx.identityProviderUsername && ctx.identityProviderPassword) {
-            ctx.highlightedMessages.push(`Identity Provider credentials       : "${ctx.identityProviderUsername}:${ctx.identityProviderPassword}".`)
-          }
-
+          ctx.highlightedMessages = messages.concat(ctx.highlightedMessages)
           task.title = `${task.title}...done`
         }
       }
@@ -657,28 +699,13 @@ export class CheTasks {
     return [
       {
         title: 'CodeReady Workspaces status check',
-        task: async ctx => {
+        task: async (ctx, task) => {
           const cheApi = CheApiClient.getInstance(ctx.cheURL + '/api')
+          task.title = `${task.title}...done`
           return cheApi.isCheServerReady()
         }
       }
     ]
   }
 
-  checkIsAuthenticationEnabled(): ReadonlyArray<Listr.ListrTask> {
-    return [
-      {
-        title: 'Checking authentication',
-        task: async (ctx: any, task: any) => {
-          const cheApi = CheApiClient.getInstance(ctx.cheURL + '/api')
-          ctx.isAuthEnabled = await cheApi.isAuthenticationEnabled()
-          if (ctx.isAuthEnabled && !this.cheAccessToken) {
-            throw new Error('E_AUTH_REQUIRED - CodeReady Workspaces authentication is enabled and an access token is needed to be provided (flag --access-token). ' +
-              `See the documentation how to obtain token: ${DOC_LINK_OBTAIN_ACCESS_TOKEN} and ${DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH}.`)
-          }
-          task.title = `${task.title}... ${ctx.isAuthEnabled ? '(auth enabled)' : '(auth disabled)'}`
-        }
-      }
-    ]
-  }
 }

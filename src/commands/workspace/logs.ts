@@ -10,12 +10,13 @@
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
-import * as notifier from 'node-notifier'
 import * as os from 'os'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
-import { skipKubeHealthzCheck } from '../../common-flags'
+import { ChectlContext } from '../../api/context'
+import { CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
 export default class Logs extends Command {
   static description = 'Collect workspace(s) logs'
@@ -37,13 +38,17 @@ export default class Logs extends Command {
       description: 'Directory to store logs into',
       env: 'CHE_LOGS'
     }),
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {
     const { flags } = this.parse(Logs)
+    await ChectlContext.init(flags, this)
+
     const logsDirectory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'crwctl-logs', Date.now().toString()))
 
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logs.id, flags })
     const cheHelper = new CheHelper(flags)
     const workspaceRun = await cheHelper.readWorkspacePodLog(flags.namespace, flags.workspace, logsDirectory)
 
@@ -58,10 +63,5 @@ export default class Logs extends Command {
     } catch (error) {
       this.error(error)
     }
-
-    notifier.notify({
-      title: 'crwctl',
-      message: 'Command workspace:logs has completed successfully.'
-    })
   }
 }

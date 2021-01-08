@@ -23,10 +23,13 @@
     "/oclif.manifest.json"
   ],
   "scripts": {
-    "e2e-openshift": "jest ./test/e2e/openshift.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
+    "e2e-minikube-helm": "export PLATFORM=minikube && export INSTALLER=helm && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
+    "e2e-minikube-operator": "export PLATFORM=minikube && export INSTALLER=operator && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
+    "e2e-openshift": "export PLATFORM=openshift && export INSTALLER=operator && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
     "format": "tsfmt -r --useTsfmt tsfmt.json",
+    "gnirts-ci": "node .ci/obfuscate/gnirts.js",
     "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-cert-manager && npm run -s postinstall-operator && npm run -s postinstall-devfile-api && npm run -s postinstall-dev-workspace && npm run -s postinstall-cleanup",
-    "prepack": "rm -rf lib && rm -rf tsconfig.tsbuildinfo && tsc -b && oclif-dev manifest && oclif-dev readme",
+    "prepack": "rm -rf lib && rm -rf tsconfig.tsbuildinfo && tsc -b && oclif-dev manifest && oclif-dev readme && yarn gnirts-ci",
     "postpack": "rm -f oclif.manifest.json",
     "pack-binaries": "oclif-dev pack",
     "postinstall-cert-manager": "rimraf templates/cert-manager && cpx 'node_modules/eclipse-che/deploy/cert-manager/**' 'templates/cert-manager'",
@@ -74,24 +77,27 @@
     "@oclif/plugin-update": "^1.3.10",
     "@types/command-exists": "^1.2.0",
     "@types/fs-extra": "^9.0.1",
-    "@types/js-yaml": "^3.12.5",
+    "@types/inquirer": "^7.3.1",
     "@types/node-notifier": "^8.0.0",
     "@types/request": "^2.48.5",
     "@types/websocket": "^1.0.1",
     "@types/ws": "^7.2.6",
+    "analytics-node": "^3.4.0-beta.3",
     "ansi-colors": "4.1.1",
     "axios": "^0.19.2",
     "cli-ux": "^5.4.5",
     "codeready-workspaces-operator": "git://github.com/redhat-developer/codeready-workspaces-operator#crw-2.6-rhel-8",
     "command-exists": "^1.2.9",
     "debug": "^4.1.1",
-    "eclipse-che": "git://github.com/eclipse/che#7.20.1",
+    "eclipse-che": "git://github.com/eclipse/che#7.24.0",
     "eclipse-che-devfile-api": "git://github.com/devfile/api#v1alpha1",
-    "eclipse-che-devfile-workspace-operator": "git://github.com/devfile/devworkspace-operator#4ea0394233e7b90a3512a4e1323eb25590309ff3",
+    "eclipse-che-devfile-workspace-operator": "git://github.com/devfile/devworkspace-operator#252745a7e223a7084961aa5774af8f7fc81de70a",
     "esprima": "^4.0.1",
     "execa": "^4.0.3",
     "fancy-test": "^1.4.9",
     "fs-extra": "^9.0.1",
+    "gnirts": "^1.1.7",
+    "inquirer": "^7.3.3",
     "js-yaml": "^3.14.0",
     "listr": "^0.14.3",
     "listr-verbose-renderer": "^0.6.0",
@@ -99,6 +105,7 @@
     "mkdirp": "^1.0.4",
     "node-forge": "^0.10.0",
     "node-notifier": "^8.0.0",
+    "querystring": "^0.2.0",
     "stream-buffers": "^3.0.2",
     "tslib": "^1"
   },
@@ -109,6 +116,7 @@
     "@oclif/tslint": "^3",
     "@types/chai": "^4",
     "@types/jest": "26.0.14",
+    "@types/js-yaml": "^3.12.5",
     "@types/listr": "^0.14.2",
     "@types/node": "^12",
     "@types/node-forge": "^0.9.5",
@@ -132,17 +140,23 @@
     "macos": {
       "identifier": "redhat-developer.crwctl"
     },
+    "hooks": {
+      "analytics": "./lib/hooks/analytics/analytics"
+    },
     "plugins": [
       "@oclif/plugin-autocomplete",
       "@oclif/plugin-help",
       "@oclif/plugin-update"
     ],
     "topics": {
+      "auth": {
+        "description": "Manage CodeReady Workspaces server login sessions"
+      },
       "server": {
-        "description": "control CodeReady Workspaces server"
+        "description": "Control CodeReady Workspaces server"
       },
       "workspace": {
-        "description": "control CodeReady Workspaces workspaces"
+        "description": "Control CodeReady Workspaces workspaces"
       }
     },
     "update": {

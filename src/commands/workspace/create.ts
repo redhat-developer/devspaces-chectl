@@ -12,12 +12,13 @@ import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as fs from 'fs'
-import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
-import { KubeHelper } from '../../api/kube'
-import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
+import { getLoginData } from '../../api/che-login-manager'
+import { ChectlContext } from '../../api/context'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
 export default class Create extends Command {
   static description = 'Creates a workspace from a devfile'
@@ -47,27 +48,21 @@ export default class Create extends Command {
     }),
     [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {
     const { flags } = this.parse(Create)
+    await ChectlContext.init(flags, this)
+
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Create.id, flags })
 
     const devfilePath = this.getDevfilePath(flags.devfile)
-    const accessToken = flags[ACCESS_TOKEN_KEY]
     const cheHelper = new CheHelper(flags)
 
-    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
-    if (!cheApiEndpoint) {
-      const kube = new KubeHelper(flags)
-      if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
-        throw new Error(`CodeReady Workspaces API endpoint is required. Use flag --${CHE_API_ENDPOINT_KEY} to provide it.`)
-      }
-      cheApiEndpoint = await cheHelper.cheURL(flags.chenamespace) + '/api'
-    }
-
+    const { cheApiEndpoint, accessToken } = await getLoginData(flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
-    await cheApiClient.checkCheApiEndpointUrl()
 
     let workspace = await cheHelper.createWorkspaceFromDevfile(cheApiEndpoint, devfilePath, flags.name, accessToken)
     const workspaceId = workspace.id!
@@ -84,11 +79,6 @@ export default class Create extends Command {
       const workspaceIdeURL = await cheHelper.buildDashboardURL(workspace.links.ide)
       cli.url(workspaceIdeURL, workspaceIdeURL)
     }
-
-    notifier.notify({
-      title: 'crwctl',
-      message: 'Command workspace:create has completed successfully.'
-    })
 
     this.exit(0)
   }

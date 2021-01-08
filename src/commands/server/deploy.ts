@@ -12,27 +12,23 @@ import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as fs from 'fs-extra'
-import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
-import * as notifier from 'node-notifier'
-import * as os from 'os'
 import * as path from 'path'
 
+import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_CHE_IMAGE, DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
+import { cheDeployment, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, devWorkspaceControllerNamespace, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE, DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { getCommandSuccessMessage, initializeContext, isOpenshiftPlatformFamily } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Deploy extends Command {
-  static description = 'start CodeReady Workspaces server'
-  static aliases = ['server:start']
+  static description = 'Deploy CodeReady Workspaces server'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
@@ -42,7 +38,6 @@ export default class Deploy extends Command {
     cheimage: string({
       char: 'i',
       description: 'CodeReady Workspaces server container image',
-      default: DEFAULT_CHE_IMAGE,
       env: 'CHE_CONTAINER_IMAGE'
     }),
     templates: string({
@@ -65,14 +60,11 @@ export default class Deploy extends Command {
       required: true,
       env: 'CHE_SERVER_BOOT_TIMEOUT'
     }),
-    k8spodwaittimeout: string({
-      description: 'Waiting time for Pod Wait Timeout Kubernetes (in milliseconds)',
-      default: '300000'
-    }),
-    k8spodreadytimeout: string({
-      description: 'Waiting time for Pod Ready Kubernetes (in milliseconds)',
-      default: '130000'
-    }),
+    [K8SPODWAITTIMEOUT_KEY]: k8sPodWaitTimeout,
+    [K8SPODREADYTIMEOUT_KEY]: k8sPodReadyTimeout,
+    [K8SPODDOWNLOADIMAGETIMEOUT_KEY]: k8sPodDownloadImageTimeout,
+    [K8SPODERRORRECHECKTIMEOUT_KEY]: k8sPodErrorRecheckTimeout,
+    [LOG_DIRECTORY_KEY]: logsDirectory,
     multiuser: flags.boolean({
       char: 'm',
       description: `Deploys CodeReady Workspaces in multi-user mode.
@@ -81,16 +73,18 @@ export default class Deploy extends Command {
     }),
     tls: flags.boolean({
       char: 's',
-      description: `Enable TLS encryption.
+      description: `Deprecated. Enable TLS encryption.
                     Note, this option is turned on by default.
                     To provide own certificate for Kubernetes infrastructure, 'che-tls' secret with TLS certificate must be pre-created in the configured namespace.
                     In case of providing own self-signed certificate 'self-signed-certificate' secret should be also created.
                     For OpenShift, router will use default cluster certificates.
-                    Please see the docs how to deploy CodeReady Workspaces on different infrastructures: ${DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY}`
+                    Please see the docs how to deploy CodeReady Workspaces on different infrastructures: ${DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY}`,
+      hidden: true
     }),
     'self-signed-cert': flags.boolean({
       description: 'Deprecated. The flag is ignored. Self signed certificates usage is autodetected now.',
-      default: false
+      default: false,
+      hidden: true
     }),
     platform: string({
       char: 'p',
@@ -111,18 +105,13 @@ export default class Deploy extends Command {
       description: 'Container image of the operator. This parameter is used only when the installer is the operator',
       default: DEFAULT_CHE_OPERATOR_IMAGE
     }),
-    'che-operator-cr-yaml': string({
-      description: 'Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer is the \'operator\' or the \'olm\'.',
-      default: ''
-    }),
-    'che-operator-cr-patch-yaml': string({
-      description: 'Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used only when the installer is the \'operator\' or the \'olm\'.',
-      default: ''
-    }),
-    directory: string({
-      char: 'd',
-      description: 'Directory to store logs into',
-      env: 'CHE_LOGS'
+    [CHE_OPERATOR_CR_YAML_KEY]: cheOperatorCRYaml,
+    [CHE_OPERATOR_CR_PATCH_YAML_KEY]: cheOperatorCRPatchYaml,
+    'helm-patch-yaml': string({
+      description: `Path to yaml file with Helm Chart values patch.
+                    The file format is identical to values.yaml from the chart.
+                    Note, Provided command line arguments take precedence over patch file.`,
+      default: '',
     }),
     'workspace-pvc-storage-class-name': string({
       description: 'persistent volume(s) storage class name to use to store CodeReady Workspaces workspaces data',
@@ -144,10 +133,10 @@ export default class Deploy extends Command {
     'auto-update': flags.boolean({
       description: `Auto update approval strategy for installation CodeReady Workspaces.
                     With this strategy will be provided auto-update CodeReady Workspaces without any human interaction.
-                    By default strategy this flag is false. It requires approval from user.
-                    To approve installation newer version CodeReady Workspaces user should execute 'crwctl server:update' command.
+                    By default this flag is enabled.
                     This parameter is used only when the installer is 'olm'.`,
-      default: false,
+      default: true,
+      allowNo: true,
       exclusive: ['starting-csv']
     }),
     'starting-csv': flags.string({
@@ -181,6 +170,19 @@ export default class Deploy extends Command {
       description: `Namespace for OLM catalog source to install CodeReady Workspaces operator.
                     This parameter is used only when the installer is the 'olm'.`
     }),
+    'cluster-monitoring': boolean({
+      default: false,
+      hidden: false,
+      description: `Enable cluster monitoring to scrape CodeReady Workspaces metrics in Prometheus.
+	                  This parameter is used only when the platform is 'openshift'.`
+    }),
+    'olm-suggested-namespace': boolean({
+      default: true,
+      allowNo: true,
+      description: `Indicate to deploy CodeReady Workspaces in OLM suggested namespace: '${DEFAULT_OLM_SUGGESTED_NAMESPACE}'.
+                    Flag 'chenamespace' is ignored in this case
+                    This parameter is used only when the installer is 'olm'.`
+    }),
     'skip-kubernetes-health-check': skipK8sHealthCheck,
     'workspace-engine': string({
       description: 'Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.',
@@ -192,14 +194,15 @@ export default class Deploy extends Command {
       default: DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE,
       env: 'DEV_WORKSPACE_OPERATOR_IMAGE',
     }),
-    'dev-workspace-controller-namespace': devWorkspaceControllerNamespace
+    'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,
+    telemetry: CHE_TELEMETRY
   }
 
-  async setPlaformDefaults(flags: any): Promise<void> {
-    flags.tls = await this.checkTlsMode(flags)
+  async setPlaformDefaults(flags: any, ctx: any): Promise<void> {
+    flags.tls = await this.checkTlsMode(ctx)
 
     if (!flags.installer) {
-      await this.setDefaultInstaller(flags)
+      await this.setDefaultInstaller(flags, ctx)
       cli.info(`› Installer type is set to: '${flags.installer}'`)
     }
 
@@ -224,49 +227,27 @@ export default class Deploy extends Command {
   }
 
   /**
-   * Determine if a directory is empty.
-   */
-  async isDirEmpty(dirname: string): Promise<boolean> {
-    try {
-      return fs.readdirSync(dirname).length === 0
-      // Fails in case if directory doesn't exist
-    } catch {
-      return true
-    }
-  }
-
-  /**
    * Checks if TLS is disabled via operator custom resource.
    * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
    */
-  async checkTlsMode(flags: any): Promise<boolean> {
-    if (flags['che-operator-cr-patch-yaml']) {
-      const cheOperatorCrPatchYamlPath = flags['che-operator-cr-patch-yaml']
-      if (fs.existsSync(cheOperatorCrPatchYamlPath)) {
-        const crPatch: any = yaml.safeLoad(fs.readFileSync(cheOperatorCrPatchYamlPath).toString())
-        if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
-          return false
-        }
-      }
+  async checkTlsMode(ctx: any): Promise<boolean> {
+    const crPatch = ctx.crPatch
+    if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
+      return false
     }
 
-    if (flags['che-operator-cr-yaml']) {
-      const cheOperatorCrYamlPath = flags['che-operator-cr-yaml']
-      if (fs.existsSync(cheOperatorCrYamlPath)) {
-        const cr: any = yaml.safeLoad(fs.readFileSync(cheOperatorCrYamlPath).toString())
-        if (cr && cr.spec && cr.spec.server && cr.spec.server.tlsSupport === false) {
-          return false
-        }
-      }
+    const customCR = ctx.customCR
+    if (customCR && customCR.spec && customCR.spec.server && customCR.spec.server.tlsSupport === false) {
+      return false
     }
 
     return true
   }
 
   checkPlatformCompatibility(flags: any) {
-    if (flags.installer === 'operator' && flags['che-operator-cr-yaml']) {
+    if (flags.installer === 'operator' && flags[CHE_OPERATOR_CR_YAML_KEY]) {
       const ignoredFlags = []
-      flags['plugin-registry-url'] && ignoredFlags.push('--plugin-registry-urlomain')
+      flags['plugin-registry-url'] && ignoredFlags.push('--plugin-registry-url')
       flags['devfile-registry-url'] && ignoredFlags.push('--devfile-registry-url')
       flags['postgres-pvc-storage-class-name'] && ignoredFlags.push('--postgres-pvc-storage-class-name')
       flags['workspace-pvc-storage-class-name'] && ignoredFlags.push('--workspace-pvc-storage-class-name')
@@ -277,11 +258,11 @@ export default class Deploy extends Command {
       flags.multiuser && ignoredFlags.push('--multiuser')
 
       if (ignoredFlags.length) {
-        this.warn(`--che-operator-cr-yaml is used. The following flag(s) will be ignored: ${ignoredFlags.join('\t')}`)
+        this.warn(`--${CHE_OPERATOR_CR_YAML_KEY} is used. The following flag(s) will be ignored: ${ignoredFlags.join('\t')}`)
       }
     }
 
-    if (flags.domain && !flags['che-operator-cr-yaml'] && isOpenshiftPlatformFamily(flags.platform)) {
+    if (flags.domain && !flags[CHE_OPERATOR_CR_YAML_KEY] && isOpenshiftPlatformFamily(flags.platform)) {
       this.warn('"--domain" flag is ignored for Openshift family infrastructures. It should be done on the cluster level.')
     }
 
@@ -300,9 +281,6 @@ export default class Deploy extends Command {
         this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
       }
 
-      if (flags.installer !== 'olm' && flags['auto-update']) {
-        this.error('"auto-update" flag should be used only with "olm" installer.')
-      }
       if (flags.installer !== 'olm' && flags['starting-csv']) {
         this.error('"starting-csv" flag should be used only with "olm" installer.')
       }
@@ -321,6 +299,9 @@ export default class Deploy extends Command {
       if (flags.installer !== 'olm' && flags['catalog-source-namespace']) {
         this.error('"package-manifest-name" flag should be used only with "olm" installer.')
       }
+      if (flags.installer !== 'olm' && flags['cluster-monitoring'] && flags.platform !== 'openshift') {
+        this.error('"cluster-monitoring" flag should be used only with "olm" installer and "openshift" platform.')
+      }
       if (flags['catalog-source-name'] && flags['catalog-source-yaml']) {
         this.error('should be provided only one argument: "catalog-source-name" or "catalog-source-yaml"')
       }
@@ -335,20 +316,21 @@ export default class Deploy extends Command {
   }
 
   async run() {
-    if (process.argv.indexOf('server:start') > -1) {
-      this.warn('\'server:start\' command is deprecated. Use \'server:deploy\' instead.')
-    }
-
     const { flags } = this.parse(Deploy)
-    const ctx = initializeContext()
-    ctx.directory = path.resolve(flags.directory ? flags.directory : path.resolve(os.tmpdir(), 'crwctl-logs', Date.now().toString()))
-    const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false, showSubtasks: true } as Listr.ListrOptions
-    ctx.listrOptions = listrOptions
+    const ctx = await ChectlContext.initAndGet(flags, this)
 
     if (flags['self-signed-cert']) {
       this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
     }
 
+    await this.setPlaformDefaults(flags, ctx)
+
+    if (flags.installer === 'olm' && flags['olm-suggested-namespace']) {
+      flags.chenamespace = DEFAULT_OLM_SUGGESTED_NAMESPACE
+      cli.info(` ❕olm-suggested-namespace flag is turned on. CodeReady Workspaces will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
+    }
+
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Deploy.id, flags })
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()
     const installerTasks = new InstallerTasks()
@@ -356,89 +338,63 @@ export default class Deploy extends Command {
     const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
     // Platform Checks
-    let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), listrOptions)
-    platformCheckTasks.add(CommonPlatformTasks.oAuthProvidersExists(flags))
+    let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), ctx.listrOptions)
 
     // Checks if CodeReady Workspaces is already deployed
-    let preInstallTasks = new Listr(undefined, listrOptions)
+    let preInstallTasks = new Listr(undefined, ctx.listrOptions)
     preInstallTasks.add(apiTasks.testApiTasks(flags, this))
     preInstallTasks.add({
       title: '👀  Looking for an already existing CodeReady Workspaces instance',
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
     })
 
-    await this.setPlaformDefaults(flags)
-    let installTasks = new Listr(installerTasks.installTasks(flags, this), listrOptions)
-
-    const startDeployedCheTasks = new Listr([{
-      title: '👀  Starting already deployed CodeReady Workspaces',
-      task: () => new Listr(cheTasks.scaleCheUpTasks(this))
-    }], listrOptions)
+    let installTasks = new Listr(installerTasks.installTasks(flags, this), ctx.listrOptions)
 
     // Post Install Checks
     const postInstallTasks = new Listr([
       {
         title: '✅  Post installation checklist',
-        task: () => new Listr(cheTasks.waitDeployedChe(flags, this))
+        task: () => new Listr(cheTasks.waitDeployedChe())
       },
       {
         title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
         enabled: () => flags['workspace-engine'] === 'dev-workspace',
-        task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags, this))
+        task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags))
 
       },
       getRetrieveKeycloakCredentialsTask(flags),
       retrieveCheCaCertificateTask(flags),
       ...cheTasks.preparePostInstallationOutput(flags),
       getPrintHighlightedMessagesTask(),
-    ], listrOptions)
+    ], ctx.listrOptions)
 
     const logsTasks = new Listr([{
-      title: 'Start following logs',
+      title: 'Following CodeReady Workspaces logs',
       task: () => new Listr(cheTasks.serverLogsTasks(flags, true))
-    }], listrOptions)
-
-    const eventTasks = new Listr([{
-      title: 'Start following events',
-      task: () => new Listr(cheTasks.namespaceEventsTask(flags.chenamespace, this, true))
-    }], listrOptions)
+    }], ctx.listrOptions)
 
     try {
       await preInstallTasks.run(ctx)
 
-      if (!ctx.isCheDeployed) {
+      if (ctx.isCheDeployed) {
+        let message = 'CodeReady Workspaces has been already deployed.'
+        if (!ctx.isCheReady) {
+          message += ' Use server:start command to start a stopped CodeReady Workspaces instance.'
+        }
+        cli.warn(message)
+      } else {
         this.checkPlatformCompatibility(flags)
         await platformCheckTasks.run(ctx)
         await logsTasks.run(ctx)
-        await eventTasks.run(ctx)
         await installTasks.run(ctx)
-      } else if (!ctx.isCheReady
-        || (ctx.isPostgresDeployed && !ctx.isPostgresReady)
-        || (ctx.isKeycloakDeployed && !ctx.isKeycloakReady)
-        || (ctx.isPluginRegistryDeployed && !ctx.isPluginRegistryReady)
-        || (ctx.isDevfileRegistryDeployed && !ctx.isDevfileRegistryReady)) {
-        if (flags.platform || flags.installer) {
-          this.warn('Deployed CodeReady Workspaces is found and the specified installation parameters will be ignored')
-        }
-        // perform CodeReady Workspaces start task if there is any component that is not ready
-        await startDeployedCheTasks.run(ctx)
+        await postInstallTasks.run(ctx)
+        this.log(getCommandSuccessMessage())
       }
-
-      await postInstallTasks.run(ctx)
-      this.log(getCommandSuccessMessage(this, ctx))
     } catch (err) {
-      const isDirEmpty = await this.isDirEmpty(ctx.directory)
-      if (isDirEmpty) {
-        this.error(`${err}\nInstallation failed. There are no available logs.`)
-      }
-      this.error(`${err}\nInstallation failed, check logs in '${ctx.directory}'`)
+      this.error(getCommandErrorMessage(err))
     }
 
-    notifier.notify({
-      title: 'crwctl',
-      message: getCommandSuccessMessage(this, ctx)
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 
@@ -446,7 +402,7 @@ export default class Deploy extends Command {
    * Sets default installer which is `olm` for OpenShift 4 with stable version of crwctl
    * and `operator` for other cases.
    */
-  async setDefaultInstaller(flags: any): Promise<void> {
+  async setDefaultInstaller(flags: any, ctx: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
 
     const isOlmPreinstalled = await kubeHelper.isPreInstalledOLM()
@@ -455,7 +411,7 @@ export default class Deploy extends Command {
       return
     }
 
-    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isOlmPreinstalled) {
+    if (flags.platform === 'openshift' && ctx.isOpenShift4 && isOlmPreinstalled) {
       flags.installer = 'olm'
     } else {
       flags.installer = 'operator'

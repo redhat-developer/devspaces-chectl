@@ -12,10 +12,12 @@ import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 
-import { accessToken, cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { ChectlContext } from '../../api/context'
+import { accessToken, cheDeployment, cheNamespace, CHE_TELEMETRY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandSuccessMessage, initializeContext } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Stop extends Command {
   static description = 'stop CodeReady Workspaces server'
@@ -32,16 +34,19 @@ export default class Stop extends Command {
     }),
     'access-token': accessToken,
     'listr-renderer': listrRenderer,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {
-    const ctx = initializeContext()
     const { flags } = this.parse(Stop)
+    await ChectlContext.init(flags, this)
+
     const Listr = require('listr')
-    const notifier = require('node-notifier')
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()
+
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Stop.id, flags })
 
     let tasks = new Listr(undefined,
       {
@@ -67,16 +72,12 @@ export default class Stop extends Command {
     tasks.add(cheTasks.waitPodsDeletedTasks())
     try {
       await tasks.run()
-      cli.log(getCommandSuccessMessage(this, ctx))
+      cli.log(getCommandSuccessMessage())
     } catch (err) {
-      this.error(err)
+      this.error(getCommandErrorMessage(err))
     }
 
-    notifier.notify({
-      title: 'crwctl',
-      message: getCommandSuccessMessage(this, ctx)
-    })
-
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 }

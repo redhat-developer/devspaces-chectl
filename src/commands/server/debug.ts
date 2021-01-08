@@ -12,9 +12,12 @@ import { Command, flags } from '@oclif/command'
 import { integer } from '@oclif/parser/lib/flags'
 import * as Listr from 'listr'
 
-import { cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { ChectlContext } from '../../api/context'
+import { cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
+import { getCommandErrorMessage } from '../../util'
 
 export default class Debug extends Command {
   static description = 'Enable local debug of CodeReady Workspaces server'
@@ -27,13 +30,15 @@ export default class Debug extends Command {
       description: 'CodeReady Workspaces server debug port',
       default: 8000
     }),
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {
     const { flags } = this.parse(Debug)
-    const ctx: any = {}
+    const ctx = await ChectlContext.initAndGet(flags, this)
 
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Debug.id, flags })
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
@@ -46,8 +51,8 @@ export default class Debug extends Command {
       await tasks.run(ctx)
       this.log(`CodeReady Workspaces server debug is available on localhost:${flags['debug-port']}.`)
       this.log('The program keeps running to enable port forwarding.')
-    } catch (error) {
-      this.error(error)
+    } catch (err) {
+      this.error(getCommandErrorMessage(err))
     }
   }
 }

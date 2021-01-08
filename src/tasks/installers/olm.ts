@@ -10,16 +10,20 @@
 
 import Command from '@oclif/command'
 import { cli } from 'cli-ux'
+import * as yaml from 'js-yaml'
 import Listr = require('listr')
+import * as path from 'path'
 
 import { KubeHelper } from '../../api/kube'
 import { CatalogSource, Subscription } from '../../api/typings/olm'
 import { CUSTOM_CATALOG_SOURCE_NAME, CVS_PREFIX, DEFAULT_CHE_OLM_PACKAGE_NAME, DEFAULT_OLM_KUBERNETES_NAMESPACE, DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE, KUBERNETES_OLM_CATALOG, NIGHTLY_CATALOG_SOURCE_NAME, OLM_NIGHTLY_CHANNEL_NAME, OLM_STABLE_CHANNEL_NAME, OPENSHIFT_OLM_CATALOG, OPERATOR_GROUP_NAME, SUBSCRIPTION_NAME } from '../../constants'
 import { isKubernetesPlatformFamily, isStableVersion } from '../../util'
 
-import { copyOperatorResources, createEclipseCheCluster, createNamespaceTask } from './common-tasks'
+import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
 
 export class OLMTasks {
+  prometheusRoleName = 'prometheus-k8s'
+  prometheusRoleBindingName = 'prometheus-k8s'
   /**
    * Returns list of tasks which perform preflight platform checks.
    */
@@ -27,8 +31,36 @@ export class OLMTasks {
     const kube = new KubeHelper(flags)
     return new Listr([
       this.isOlmPreInstalledTask(command, kube),
-      copyOperatorResources(flags, command.config.cacheDir),
-      createNamespaceTask(flags.chenamespace, flags.platform),
+      createNamespaceTask(flags.chenamespace, this.getOlmNamespaceLabels(flags)),
+      {
+        enabled: () => flags['cluster-monitoring'] && flags.platform === 'openshift',
+        title: `Create Role ${this.prometheusRoleName} in namespace ${flags.chenamespace}`,
+        task: async (_ctx: any, task: any) => {
+          const yamlFilePath = path.join(flags.templates, '..', 'installers', 'prometheus-role.yaml')
+          const exist = await kube.roleExist(this.prometheusRoleName, flags.chenamespace)
+          if (exist) {
+            task.title = `${task.title}...It already exists.`
+          } else {
+            await kube.createRoleFromFile(yamlFilePath, flags.chenamespace)
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
+      {
+        enabled: () => flags['cluster-monitoring'] && flags.platform === 'openshift',
+        title: `Create RoleBinding ${this.prometheusRoleBindingName} in namespace ${flags.chenamespace}`,
+        task: async (_ctx: any, task: any) => {
+          const exist = await kube.roleBindingExist(this.prometheusRoleBindingName, flags.chenamespace)
+          const yamlFilePath = path.join(flags.templates, '..', 'installers', 'prometheus-role-binding.yaml')
+
+          if (exist) {
+            task.title = `${task.title}...It already exists.`
+          } else {
+            await kube.createRoleBindingFromFile(yamlFilePath, flags.chenamespace)
+            task.title = `${task.title}...done.`
+          }
+        }
+      },
       {
         title: 'Create operator group',
         task: async (_ctx: any, task: any) => {
@@ -60,7 +92,7 @@ export class OLMTasks {
         }
       },
       {
-        enabled: () => !isStableVersion(flags),
+        enabled: () => !isStableVersion(flags) && !flags['catalog-source-name'] && !flags['catalog-source-yaml'],
         title: `Create nightly index CatalogSource in the namespace ${flags.chenamespace}`,
         task: async (ctx: any, task: any) => {
           if (!await kube.catalogSourceExists(NIGHTLY_CATALOG_SOURCE_NAME, flags.chenamespace)) {
@@ -77,8 +109,8 @@ export class OLMTasks {
         enabled: () => flags['catalog-source-yaml'],
         title: 'Create custom catalog source from file',
         task: async (ctx: any, task: any) => {
-          if (!await kube.catalogSourceExists(CUSTOM_CATALOG_SOURCE_NAME, flags.chenamespace)) {
-            const customCatalogSource: CatalogSource = kube.readCatalogSourceFromFile(flags['catalog-source-yaml'])
+          const customCatalogSource: CatalogSource = kube.readCatalogSourceFromFile(flags['catalog-source-yaml'])
+          if (!await kube.catalogSourceExists(customCatalogSource.metadata!.name!, flags.chenamespace)) {
             customCatalogSource.metadata.name = ctx.sourceName
             customCatalogSource.metadata.namespace = flags.chenamespace
             await kube.createCatalogSource(customCatalogSource)
@@ -134,6 +166,36 @@ export class OLMTasks {
         task: async (ctx: any, task: any) => {
           await kube.waitUntilOperatorIsInstalled(ctx.installPlanName, flags.chenamespace)
           task.title = `${task.title}...done.`
+        }
+      },
+      {
+        title: 'Set custom operator image',
+        enabled: () => !!flags['che-operator-image'],
+        task: async (_ctx: any, task: any) => {
+          const csvList = await kube.getClusterServiceVersions(flags.chenamespace)
+          if (csvList.items.length < 1) {
+            throw new Error('Failed to get CSV for Che operator')
+          }
+          const csv = csvList.items[0]
+          const jsonPatch = [{ op: 'replace', path: '/spec/install/spec/deployments/0/spec/template/spec/containers/0/image', value: flags['che-operator-image'] }]
+          await kube.patchClusterServiceVersion(csv.metadata.namespace!, csv.metadata.name!, jsonPatch)
+          task.title = `${task.title}... changed to ${flags['che-operator-image']}.`
+        }
+      },
+      {
+        title: 'Prepare CodeReady Workspaces cluster CR',
+        task: async (ctx: any, task: any) => {
+          const cheCluster = await kube.getCheCluster(flags.chenamespace)
+          if (cheCluster) {
+            task.title = `${task.title}...It already exists..`
+            return
+          }
+
+          if (!ctx.customCR) {
+            ctx.defaultCR = await this.getCRFromCSV(kube, flags.chenamespace)
+          }
+
+          task.title = `${task.title}...Done.`
         }
       },
       createEclipseCheCluster(flags, kube)
@@ -207,6 +269,7 @@ export class OLMTasks {
           task.title = `${task.title}...done.`
         }
       },
+      patchingEclipseCheCluster(flags, kube, command)
     ], { renderer: flags['listr-renderer'] as any })
   }
 
@@ -235,8 +298,8 @@ export class OLMTasks {
         enabled: ctx => ctx.isPreInstalledOLM,
         task: async (_ctx: any, task: any) => {
           const csvs = await kube.getClusterServiceVersions(flags.chenamespace)
-          const csvsToDelete = csvs.items.filter(csv => csv.metadata.name.startsWith(CVS_PREFIX))
-          csvsToDelete.forEach(csv => kube.deleteClusterServiceVersion(flags.chenamespace, csv.metadata.name))
+          const csvsToDelete = csvs.items.filter(csv => csv.metadata.name!.startsWith(CVS_PREFIX))
+          csvsToDelete.forEach(csv => kube.deleteClusterServiceVersion(flags.chenamespace, csv.metadata.name!))
           task.title = `${task.title}...OK`
         }
       },
@@ -267,7 +330,25 @@ export class OLMTasks {
           }
           task.title = `${task.title}...OK`
         }
-      }
+      },
+      {
+        title: `Delete role ${this.prometheusRoleName}`,
+        task: async (_ctx: any, task: any) => {
+          if (await kube.roleExist(this.prometheusRoleName, flags.chenamespace)) {
+            await kube.deleteRole(this.prometheusRoleName, flags.chenamespace)
+          }
+          task.title = await `${task.title}...OK`
+        }
+      },
+      {
+        title: `Delete role binding ${this.prometheusRoleName}`,
+        task: async (_ctx: any, task: any) => {
+          if (await kube.roleBindingExist(this.prometheusRoleName, flags.chenamespace)) {
+            await kube.deleteRoleBinding(this.prometheusRoleName, flags.chenamespace)
+          }
+          task.title = await `${task.title}...OK`
+        }
+      },
     ]
   }
 
@@ -322,5 +403,25 @@ export class OLMTasks {
         }
       }
     }
+  }
+
+  private async getCRFromCSV(kube: KubeHelper, cheNamespace: string): Promise<any> {
+    const subscription: Subscription = await kube.getOperatorSubscription(SUBSCRIPTION_NAME, cheNamespace)
+    const currentCSV = subscription.status!.currentCSV
+    const csv = await kube.getCSV(currentCSV, cheNamespace)
+    if (csv && csv.metadata.annotations) {
+      const CRRaw = csv.metadata.annotations!['alm-examples']
+      return (yaml.safeLoad(CRRaw) as Array<any>)[0]
+    } else {
+      throw new Error(`Unable to retrieve Che cluster CR definition from CSV: ${currentCSV}`)
+    }
+  }
+
+  private getOlmNamespaceLabels(flags: any): any {
+    //The label values must be strings
+    if (flags['cluster-monitoring'] && flags.platform === 'openshift') {
+      return { 'openshift.io/cluster-monitoring': 'true' }
+    }
+    return {}
   }
 }

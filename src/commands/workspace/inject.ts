@@ -19,12 +19,15 @@ import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
+import { getLoginData } from '../../api/che-login-manager'
+import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
-import { getClusterClientCommand, OPENSHIFT_CLI } from '../../util'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
+import { getClusterClientCommand, getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
 
 export default class Inject extends Command {
-  static description = 'inject configurations and tokens in a workspace'
+  static description = 'Inject configurations and tokens in a workspace'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
@@ -50,7 +53,8 @@ export default class Inject extends Command {
     [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
     chenamespace: cheNamespace,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    telemetry: CHE_TELEMETRY
   }
 
   // Holds cluster CLI tool name: kubectl or oc
@@ -58,30 +62,19 @@ export default class Inject extends Command {
 
   async run() {
     const { flags } = this.parse(Inject)
+    await ChectlContext.init(flags, this)
 
-    const notifier = require('node-notifier')
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Inject.id, flags })
+
     const cheHelper = new CheHelper(flags)
 
-    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
-    if (!cheApiEndpoint) {
-      const kube = new KubeHelper(flags)
-      if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
-        throw new Error(`CodeReady Workspaces API endpoint is required. Use flag --${CHE_API_ENDPOINT_KEY} to provide it.`)
-      }
-      cheApiEndpoint = await cheHelper.cheURL(flags.chenamespace) + '/api'
-    }
-
+    const { cheApiEndpoint, accessToken } = await getLoginData(flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
-    await cheApiClient.checkCheApiEndpointUrl()
-
-    if (!flags[ACCESS_TOKEN_KEY] && await cheApiClient.isAuthenticationEnabled()) {
-      cli.error('Authentication is enabled but \'access-token\' is not provided.\nSee more details with the --help flag.')
-    }
 
     let workspaceId = flags.workspace
     let workspaceNamespace = ''
     if (!workspaceId) {
-      const workspaces = await cheApiClient.getAllWorkspaces(flags[ACCESS_TOKEN_KEY])
+      const workspaces = await cheApiClient.getAllWorkspaces(accessToken)
       const runningWorkspaces = workspaces.filter(w => w.status === 'RUNNING')
       if (runningWorkspaces.length === 1) {
         workspaceId = runningWorkspaces[0].id
@@ -92,7 +85,7 @@ export default class Inject extends Command {
         cli.error('There are more than 1 running workspaces. Please, specify the workspace id by providing \'--workspace\' flag.\nSee more details with the --help flag.')
       }
     } else {
-      const workspace = await cheApiClient.getWorkspaceById(workspaceId, flags[ACCESS_TOKEN_KEY])
+      const workspace = await cheApiClient.getWorkspaceById(workspaceId, accessToken)
       if (workspace.status !== 'RUNNING') {
         cli.error(`Workspace '${workspaceId}' is not running. Please start workspace first.`)
       }
@@ -107,13 +100,8 @@ export default class Inject extends Command {
     try {
       await this.injectKubeconfig(flags, workspaceNamespace, workspacePodName, workspaceId!)
     } catch (err) {
-      this.error(err)
+      this.error(getCommandErrorMessage(err))
     }
-
-    notifier.notify({
-      title: 'crwctl',
-      message: `Command ${this.id} has completed.`
-    })
   }
 
   async injectKubeconfig(flags: any, workspaceNamespace: string, workspacePodName: string, workspaceId: string): Promise<void> {

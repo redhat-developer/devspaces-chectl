@@ -11,6 +11,7 @@ import { CoreV1Api } from '@kubernetes/client-node'
 import { expect, fancy } from 'fancy-test'
 
 import { CheHelper } from '../../src/api/che'
+import { ChectlContext } from '../../src/api/context'
 // import { CheApiClient } from '../../src/api/che-api-client'
 import { KubeHelper } from '../../src/api/kube'
 
@@ -22,14 +23,14 @@ const devfileEndpoint = '/api/workspace/devfile'
 // let cheApi = CheApiClient.getInstance(cheURL + '/api')
 let ch = new CheHelper({})
 let kube = ch.kube
+let ctx = ChectlContext
 let oc = ch.oc
 let k8sApi = new CoreV1Api()
 
 describe('CodeReady Workspaces helper', () => {
   describe('cheURL', () => {
     fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(kube, 'isOpenShift', () => false)
+      .stub(kube, 'getNamespace', () => ({}))
       .stub(kube, 'ingressExist', () => true)
       .stub(kube, 'getIngressProtocol', () => 'https')
       .stub(kube, 'getIngressHost', () => 'example.org')
@@ -38,15 +39,14 @@ describe('CodeReady Workspaces helper', () => {
         expect(cheURL).to.equals('https://example.org')
       })
     fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(kube, 'isOpenShift', () => false)
+      .stub(kube, 'getNamespace', () => ({}))
       .stub(kube, 'ingressExist', () => false)
       .do(() => ch.cheURL('che-namespace'))
       .catch(err => expect(err.message).to.match(/ERR_INGRESS_NO_EXIST/))
       .it('fails fetching CodeReady Workspaces URL when ingress does not exist')
     fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(kube, 'isOpenShift', () => true)
+      .stub(kube, 'getNamespace', () => ({}))
+      .stub(ctx, 'get', () => ({ isOpenShift: true }))
       .stub(oc, 'routeExist', () => true)
       .stub(oc, 'getRouteProtocol', () => 'https')
       .stub(oc, 'getRouteHost', () => 'example.org')
@@ -55,14 +55,14 @@ describe('CodeReady Workspaces helper', () => {
         expect(cheURL).to.equals('https://example.org')
       })
     fancy
-      .stub(ch, 'cheNamespaceExist', () => true)
-      .stub(kube, 'isOpenShift', () => true)
+      .stub(kube, 'getNamespace', () => ({}))
+      .stub(ctx, 'get', () => ({ isOpenShift: true }))
       .stub(oc, 'routeExist', () => false)
       .do(() => ch.cheURL('che-namespace'))
       .catch(/ERR_ROUTE_NO_EXIST/)
       .it('fails fetching CodeReady Workspaces URL when route does not exist')
     fancy
-      .stub(ch, 'cheNamespaceExist', () => false)
+      .stub(kube, 'getNamespace', () => undefined)
       .do(() => ch.cheURL('che-namespace'))
       .catch(err => expect(err.message).to.match(/ERR_NAMESPACE_NO_EXIST/))
       .it('fails fetching CodeReady Workspaces URL when namespace does not exist')
@@ -72,14 +72,14 @@ describe('CodeReady Workspaces helper', () => {
       .stub(KubeHelper.KUBE_CONFIG, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'readNamespace', jest.fn().mockImplementation(() => { throw new Error() }))
       .it('founds out that a namespace doesn\'t exist', async () => {
-        const res = await ch.cheNamespaceExist(namespace)
+        const res = !!await kube.getNamespace(namespace)
         expect(res).to.equal(false)
       })
     fancy
       .stub(KubeHelper.KUBE_CONFIG, 'makeApiClient', () => k8sApi)
       .stub(k8sApi, 'readNamespace', () => ({ response: '', body: { metadata: { name: `${namespace}` } } }))
       .it('founds out that a namespace does exist', async () => {
-        const res = await ch.cheNamespaceExist(namespace)
+        const res = !!await kube.getNamespace(namespace)
         expect(res).to.equal(true)
       })
   })

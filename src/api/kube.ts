@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
+import { ApiextensionsV1beta1Api, ApisApi, AppsV1Api, AuthorizationV1Api, BatchV1Api, CoreV1Api, CustomObjectsApi, ExtensionsV1beta1Api, ExtensionsV1beta1IngressList, KubeConfig, Log, PortForward, RbacAuthorizationV1Api, V1beta1CustomResourceDefinition, V1ClusterRole, V1ClusterRoleBinding, V1ConfigMap, V1ConfigMapEnvSource, V1Container, V1ContainerStateTerminated, V1ContainerStateWaiting, V1Deployment, V1DeploymentList, V1DeploymentSpec, V1EnvFromSource, V1Job, V1JobSpec, V1LabelSelector, V1Namespace, V1NamespaceList, V1ObjectMeta, V1PersistentVolumeClaimList, V1Pod, V1PodCondition, V1PodList, V1PodSpec, V1PodTemplateSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1SelfSubjectAccessReview, V1SelfSubjectAccessReviewSpec, V1Service, V1ServiceAccount, V1ServiceList, V1Subject, Watch } from '@kubernetes/client-node'
 import { Cluster, Context } from '@kubernetes/client-node/dist/config_types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { cli } from 'cli-ux'
@@ -20,11 +20,11 @@ import { merge } from 'lodash'
 import * as net from 'net'
 import { Writable } from 'stream'
 
-import { CHE_CLUSTER_CRD, DEFAULT_CHE_IMAGE, OLM_STABLE_CHANNEL_NAME } from '../constants'
+import { CHE_CLUSTER_CRD, DEFAULT_CHE_IMAGE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K8S_POD_WAIT_TIMEOUT, OLM_STABLE_CHANNEL_NAME } from '../constants'
 import { getClusterClientCommand, isKubernetesPlatformFamily } from '../util'
 
 import { V1alpha2Certificate } from './typings/cert-manager'
-import { CatalogSource, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './typings/olm'
+import { CatalogSource, ClusterServiceVersion, ClusterServiceVersionList, InstallPlan, OperatorGroup, PackageManifest, Subscription } from './typings/olm'
 import { IdentityProvider, OAuth } from './typings/openshift'
 
 const AWAIT_TIMEOUT_S = 30
@@ -42,18 +42,33 @@ export class KubeHelper {
   logHelper = new Log(KubeHelper.KUBE_CONFIG)
 
   podWaitTimeout: number
+  podDownloadImageTimeout: number
   podReadyTimeout: number
+  podErrorRecheckTimeout: number
 
   constructor(flags?: any) {
-    if (flags && flags.k8spodwaittimeout) {
-      this.podWaitTimeout = parseInt(flags.k8spodwaittimeout, 10)
-    } else {
-      this.podWaitTimeout = 300000
+    this.podWaitTimeout = (flags && flags.k8spodwaittimeout) ? parseInt(flags.k8spodwaittimeout, 10) : DEFAULT_K8S_POD_WAIT_TIMEOUT
+    this.podReadyTimeout = (flags && flags.k8spodreadytimeout) ? parseInt(flags.k8spodreadytimeout, 10) : DEFAULT_K8S_POD_WAIT_TIMEOUT
+    this.podDownloadImageTimeout = (flags && flags.k8spoddownloadimagetimeout) ? parseInt(flags.k8spoddownloadimagetimeout, 10) : DEFAULT_K8S_POD_WAIT_TIMEOUT
+    this.podErrorRecheckTimeout = (flags && flags.spoderrorrechecktimeout) ? parseInt(flags.spoderrorrechecktimeout, 10) : DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT
+  }
+
+  async createNamespace(namespaceName: string, labels: any): Promise<void> {
+    const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
+    const namespaceObject = {
+      apiVersion: 'v1',
+      kind: 'Namespace',
+      metadata: {
+        labels,
+        name: namespaceName
+      }
     }
-    if (flags && flags.k8spodreadytimeout) {
-      this.podReadyTimeout = parseInt(flags.k8spodreadytimeout, 10)
-    } else {
-      this.podReadyTimeout = 130000
+
+    try {
+      await k8sCoreApi.createNamespace(namespaceObject)
+
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -238,11 +253,7 @@ export class KubeHelper {
       const res = await k8sRbacAuthApi.createNamespacedRole(namespace, yamlRole)
       return res.response.statusCode
     } catch (e) {
-      if (e.response && e.response.statusCode && e.response.statusCode === 403) {
-        return e.response.statusCode
-      } else {
-        throw this.wrapK8sClientError(e)
-      }
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -257,11 +268,7 @@ export class KubeHelper {
       const res = await k8sRbacAuthApi.replaceNamespacedRole(yamlRole.metadata.name, namespace, yamlRole)
       return res.response.statusCode
     } catch (e) {
-      if (e.response && e.response.statusCode && e.response.statusCode === 403) {
-        return e.response.statusCode
-      } else {
-        throw this.wrapK8sClientError(e)
-      }
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -281,11 +288,7 @@ export class KubeHelper {
       const res = await k8sRbacAuthApi.createClusterRole(yamlRole)
       return res.response.statusCode
     } catch (e) {
-      if (e.response && e.response.statusCode && e.response.statusCode === 403) {
-        return e.response.statusCode
-      } else {
-        throw this.wrapK8sClientError(e)
-      }
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -305,11 +308,7 @@ export class KubeHelper {
       const res = await k8sRbacAuthApi.replaceClusterRole(yamlRole.metadata.name, yamlRole)
       return res.response.statusCode
     } catch (e) {
-      if (e.response && e.response.statusCode && e.response.statusCode === 403) {
-        return e.response.statusCode
-      } else {
-        throw this.wrapK8sClientError(e)
-      }
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -348,7 +347,7 @@ export class KubeHelper {
     }
   }
 
-  async getPodListByLabel(namespace= '', labelSelector: string): Promise<V1Pod[]> {
+  async getPodListByLabel(namespace: string, labelSelector: string): Promise<V1Pod[]> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
       const { body: podList } = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, labelSelector)
@@ -525,6 +524,18 @@ export class KubeHelper {
     }
   }
 
+  async getConfigMapValue(name: string, namespace: string, key: string): Promise<string | undefined> {
+    const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
+    try {
+      const { body } = await k8sCoreApi.readNamespacedConfigMap(name, namespace)
+      if (body.data) {
+        return body.data[key]
+      }
+    } catch {
+      return
+    }
+  }
+
   async createConfigMapFromFile(filePath: string, namespace = '') {
     const yamlConfigMap = this.safeLoadFromYamlFile(filePath) as V1ConfigMap
     return this.createNamespacedConfigMap(namespace, yamlConfigMap)
@@ -570,19 +581,12 @@ export class KubeHelper {
     }
   }
 
-  async namespaceExist(namespace: string) {
+  async getNamespace(namespace: string): Promise<V1Namespace | undefined> {
     const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     try {
-      const res = await k8sApi.readNamespace(namespace)
-      if (res && res.body &&
-        res.body.metadata && res.body.metadata.name
-        && res.body.metadata.name === namespace) {
-        return true
-      } else {
-        return false
-      }
+      const { body } = await k8sApi.readNamespace(namespace)
+      return body
     } catch {
-      return false
     }
   }
 
@@ -623,6 +627,26 @@ export class KubeHelper {
     }
   }
 
+  async patchCheClusterCustomResource(name: string, namespace: string, patch: any): Promise<any | undefined> {
+    const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+
+    // It is required to patch content-type, otherwise request will be rejected with 415 (Unsupported media type) error.
+    const requestOptions = {
+      headers: {
+        'content-type': 'application/merge-patch+json'
+      }
+    }
+
+    try {
+      const res = await k8sCoreApi.patchNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name, patch, undefined, undefined, undefined, requestOptions)
+      if (res && res.body) {
+        return res.body
+      }
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
   async patchNamespacedPod(name: string, namespace: string, patch: any): Promise<V1Pod | undefined> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
 
@@ -659,24 +683,71 @@ export class KubeHelper {
     return (res.body.items.length > 0)
   }
 
-  async getPodPhase(labelSelector: string, namespace = ''): Promise<string | undefined> {
+  /**
+   * Returns pod waiting state.
+   */
+  async getPodWaitingState(namespace: string, selector: string, desiredPhase: string): Promise<V1ContainerStateWaiting | undefined> {
+    const pods = await this.getPodListByLabel(namespace, selector)
+    if (!pods.length) {
+      return
+    }
+
+    for (const pod of pods) {
+      if (pod.status && pod.status.phase === desiredPhase && pod.status.containerStatuses) {
+        for (const status of pod.status.containerStatuses) {
+          if (status.state && status.state.waiting && status.state.waiting.message && status.state.waiting.reason) {
+            return status.state.waiting
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns pod last terminated state.
+   */
+  async getPodLastTerminatedState(namespace: string, selector: string): Promise<V1ContainerStateTerminated | undefined> {
+    const pods = await this.getPodListByLabel(namespace, selector)
+    if (!pods.length) {
+      return
+    }
+
+    for (const pod of pods) {
+      if (pod.status && pod.status.containerStatuses) {
+        for (const status of pod.status.containerStatuses) {
+          if (status.lastState) {
+            return status.lastState.terminated
+          }
+        }
+      }
+    }
+  }
+
+  async getPodCondition(namespace: string, selector: string, conditionType: string): Promise<V1PodCondition[]> {
     const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
     let res
     try {
-      res = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, labelSelector)
+      res = await k8sCoreApi.listNamespacedPod(namespace, undefined, undefined, undefined, undefined, selector)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
 
-    if (!res || !res.body || !res.body.items || res.body.items.length !== 1) {
-      return
+    if (!res || !res.body || !res.body.items) {
+      return []
     }
 
-    if (!res.body.items[0].status || !res.body.items[0].status.phase) {
-      return
+    const conditions: V1PodCondition[] = []
+    for (const pod of res.body.items) {
+      if (pod.status && pod.status.conditions) {
+        for (const condition of pod.status.conditions) {
+          if (condition.type === conditionType) {
+            conditions.push(condition)
+          }
+        }
+      }
     }
 
-    return res.body.items[0].status.phase
+    return conditions
   }
 
   async getPodReadyConditionStatus(selector: string, namespace = ''): Promise<string | undefined> {
@@ -712,37 +783,6 @@ export class KubeHelper {
         return condition.status
       }
     }
-  }
-
-  async waitForPodPhase(selector: string, targetPhase: string, namespace = '', intervalMs = 500, timeoutMs = this.podWaitTimeout) {
-    const iterations = timeoutMs / intervalMs
-    for (let index = 0; index < iterations; index++) {
-      let currentPhase = await this.getPodPhase(selector, namespace)
-      if (targetPhase === currentPhase) {
-        return
-      }
-      await cli.wait(intervalMs)
-    }
-    throw new Error(`ERR_TIMEOUT: Timeout set to pod wait timeout ${this.podWaitTimeout}`)
-  }
-
-  async waitForPodPending(selector: string, namespace = '', intervalMs = 500, timeoutMs = this.podWaitTimeout) {
-    const iterations = timeoutMs / intervalMs
-    let podExist
-    let currentPhase
-    for (let index = 0; index < iterations; index++) {
-      podExist = await this.podsExistBySelector(selector, namespace)
-      if (podExist) {
-        currentPhase = await this.getPodPhase(selector, namespace)
-        if (currentPhase === 'Pending' || currentPhase === 'Running') {
-          return
-        } else {
-          throw new Error(`ERR_UNEXPECTED_PHASE: ${currentPhase} (Pending expected) `)
-        }
-      }
-      await cli.wait(intervalMs)
-    }
-    throw new Error(`ERR_TIMEOUT: Timeout set to pod wait timeout ${this.podWaitTimeout}. podExist: ${podExist}, currentPhase: ${currentPhase}`)
   }
 
   async waitForPodReady(selector: string, namespace = '', intervalMs = 500, timeoutMs = this.podReadyTimeout) {
@@ -1246,7 +1286,7 @@ export class KubeHelper {
     }
   }
 
-  async getCrd(name = ''): Promise<V1beta1CustomResourceDefinition> {
+  async getCrd(name: string): Promise<V1beta1CustomResourceDefinition> {
     const k8sApiextensionsApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApiextensionsV1beta1Api)
     try {
       const { body } = await k8sApiextensionsApi.readCustomResourceDefinition(name)
@@ -1254,6 +1294,17 @@ export class KubeHelper {
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
+  }
+
+  async getCrdApiVersion(crdName: string): Promise<string> {
+    const crd = await this.getCrd(crdName)
+    if (!crd.spec.versions) {
+      // Should never happen
+      return 'v1'
+    }
+
+    const crdv = crd.spec.versions.find(version => version.storage)
+    return crdv ? crdv.name : 'v1'
   }
 
   async deleteCrd(name: string): Promise<void> {
@@ -1265,85 +1316,92 @@ export class KubeHelper {
     }
   }
 
-  async createCheClusterFromFile(filePath: string, flags: any, ctx: any, useDefaultCR: boolean): Promise<any> {
-    let yamlCr = this.safeLoadFromYamlFile(filePath)
-
+  async createCheCluster(cheClusterCR: any, flags: any, ctx: any, useDefaultCR: boolean): Promise<any> {
     const cheNamespace = flags.chenamespace
     if (useDefaultCR) {
       // If we don't use an explicitly provided CheCluster CR,
       // then let's modify the default example CR with values
       // derived from the other parameters
       const cheImage = flags.cheimage
-      const imageAndTag = cheImage.split(':', 2)
-      yamlCr.spec.server.cheImage = imageAndTag[0]
-      yamlCr.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
+      if (cheImage) {
+        const imageAndTag = cheImage.split(':', 2)
+        cheClusterCR.spec.server.cheImage = imageAndTag[0]
+        cheClusterCR.spec.server.cheImageTag = imageAndTag.length === 2 ? imageAndTag[1] : 'latest'
+      }
+
       if ((flags.installer === 'olm' && !flags['catalog-source-yaml']) || (flags['catalog-source-yaml'] && flags['olm-channel'] === OLM_STABLE_CHANNEL_NAME)) {
         // use default image tag for `olm` to install stable Che, because we don't have nightly channel for OLM catalog.
-        yamlCr.spec.server.cheImageTag = ''
+        cheClusterCR.spec.server.cheImageTag = ''
       }
-      yamlCr.spec.server.cheDebug = flags.debug ? flags.debug.toString() : 'false'
+      cheClusterCR.spec.server.cheDebug = flags.debug ? flags.debug.toString() : 'false'
 
-      if (isKubernetesPlatformFamily(flags.platform) || !yamlCr.spec.auth.openShiftoAuth) {
-        yamlCr.spec.auth.updateAdminPassword = true
+      if (isKubernetesPlatformFamily(flags.platform) || !cheClusterCR.spec.auth.openShiftoAuth) {
+        cheClusterCR.spec.auth.updateAdminPassword = true
       }
 
-      if (!yamlCr.spec.k8s) {
-        yamlCr.spec.k8s = {}
+      if (!cheClusterCR.spec.k8s) {
+        cheClusterCR.spec.k8s = {}
       }
       if (flags.tls) {
-        yamlCr.spec.server.tlsSupport = flags.tls
-        if (!yamlCr.spec.k8s.tlsSecretName) {
-          yamlCr.spec.k8s.tlsSecretName = 'che-tls'
+        cheClusterCR.spec.server.tlsSupport = flags.tls
+        if (!cheClusterCR.spec.k8s.tlsSecretName) {
+          cheClusterCR.spec.k8s.tlsSecretName = 'che-tls'
         }
       }
       if (flags.domain) {
-        yamlCr.spec.k8s.ingressDomain = flags.domain
+        cheClusterCR.spec.k8s.ingressDomain = flags.domain
       }
       const pluginRegistryUrl = flags['plugin-registry-url']
       if (pluginRegistryUrl) {
-        yamlCr.spec.server.pluginRegistryUrl = pluginRegistryUrl
-        yamlCr.spec.server.externalPluginRegistry = true
+        cheClusterCR.spec.server.pluginRegistryUrl = pluginRegistryUrl
+        cheClusterCR.spec.server.externalPluginRegistry = true
       }
       const devfileRegistryUrl = flags['devfile-registry-url']
       if (devfileRegistryUrl) {
-        yamlCr.spec.server.devfileRegistryUrl = devfileRegistryUrl
-        yamlCr.spec.server.externalDevfileRegistry = true
+        cheClusterCR.spec.server.devfileRegistryUrl = devfileRegistryUrl
+        cheClusterCR.spec.server.externalDevfileRegistry = true
       }
 
-      yamlCr.spec.storage.postgresPVCStorageClassName = flags['postgres-pvc-storage-class-name']
-      yamlCr.spec.storage.workspacePVCStorageClassName = flags['workspace-pvc-storage-class-name']
+      cheClusterCR.spec.storage.postgresPVCStorageClassName = flags['postgres-pvc-storage-class-name']
+      cheClusterCR.spec.storage.workspacePVCStorageClassName = flags['workspace-pvc-storage-class-name']
 
       if (flags.cheimage === DEFAULT_CHE_IMAGE &&
-        yamlCr.spec.server.cheImageTag !== 'nightly' &&
-        yamlCr.spec.server.cheImageTag !== 'latest') {
+        cheClusterCR.spec.server.cheImageTag !== 'nightly' &&
+        cheClusterCR.spec.server.cheImageTag !== 'latest') {
         // We obviously are using a release version of crwctl with the default `cheimage`
         // => We should use the operator defaults for docker images
-        yamlCr.spec.server.cheImage = ''
-        yamlCr.spec.server.cheImageTag = ''
-        yamlCr.spec.server.pluginRegistryImage = ''
-        yamlCr.spec.server.devfileRegistryImage = ''
-        yamlCr.spec.auth.identityProviderImage = ''
+        cheClusterCR.spec.server.cheImage = ''
+        cheClusterCR.spec.server.cheImageTag = ''
+        cheClusterCR.spec.server.pluginRegistryImage = ''
+        cheClusterCR.spec.server.devfileRegistryImage = ''
+        cheClusterCR.spec.auth.identityProviderImage = ''
       }
     }
-    yamlCr = this.overrideDefaultValues(yamlCr, flags['che-operator-cr-patch-yaml'])
-    // Back off some configuration properties(crwctl estimated them like not working or not desired)
-    merge(yamlCr, ctx.CROverrides)
+
+    cheClusterCR.spec.server.cheClusterRoles = ctx.namespaceEditorClusterRoleName
+
+    // override default values
+    if (ctx.crPatch) {
+      merge(cheClusterCR, ctx.crPatch)
+    }
 
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', cheNamespace, 'checlusters', yamlCr)
+      const { body } = await customObjectsApi.createNamespacedCustomObject('org.eclipse.che', 'v1', cheNamespace, 'checlusters', cheClusterCR)
       return body
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  overrideDefaultValues(yamlCr: any, filePath: string): any {
-    if (filePath) {
-      const patchCr = this.safeLoadFromYamlFile(filePath)
-      return merge(yamlCr, patchCr)
-    } else {
-      return yamlCr
+  async patchCheCluster(name: string, namespace: string, patch: any): Promise<any> {
+    try {
+      const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+
+      const { body } = await customObjectsApi.patchNamespacedCustomObject('org.eclipse.che', 'v1', namespace, 'checlusters', name, patch, undefined, undefined, undefined, { headers: { 'Content-Type': 'application/merge-patch+json' } })
+      return body
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
     }
   }
 
@@ -1368,7 +1426,7 @@ export class KubeHelper {
       return crs[0]
     } catch (e) {
       if (e.response.statusCode === 404) {
-        // There is no CRD 'checlusters`
+        // There is no CR 'checluster`
         return
       }
       throw this.wrapK8sClientError(e)
@@ -1378,7 +1436,7 @@ export class KubeHelper {
   /**
    * Returns all `checlusters.org.eclipse.che' resources
    */
-  async getAllCheCluster(): Promise<any[]> {
+  async getAllCheClusters(): Promise<any[]> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.listClusterCustomObject('org.eclipse.che', 'v1', 'checlusters')
@@ -1427,7 +1485,7 @@ export class KubeHelper {
     }
   }
 
-  async getAmoutUsers(): Promise<number> {
+  async getUsersNumber(): Promise<number> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     let amountOfUsers: number
     try {
@@ -1539,13 +1597,17 @@ export class KubeHelper {
   }
 
   readCatalogSourceFromFile(filePath: string): CatalogSource {
-    return this.safeLoadFromYamlFile(filePath) as CatalogSource
+    const catalogSource = this.safeLoadFromYamlFile(filePath) as CatalogSource
+    if (!catalogSource.metadata || !catalogSource.metadata.name) {
+      throw new Error(`CatalogSource from ${filePath} must have specified metadata and name`)
+    }
+    return catalogSource
   }
 
   async createCatalogSource(catalogSource: CatalogSource) {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const namespace = catalogSource.metadata.namespace
+      const namespace = catalogSource.metadata.namespace!
       const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'catalogsources', catalogSource)
       return body
     } catch (e) {
@@ -1625,9 +1687,11 @@ export class KubeHelper {
   }
 
   async createOperatorSubscription(subscription: Subscription) {
+    const namespace: string = subscription.metadata.namespace!
+
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
-      const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', subscription.metadata.namespace, 'subscriptions', subscription)
+      const { body } = await customObjectsApi.createNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'subscriptions', subscription)
       return body
     } catch (e) {
       throw this.wrapK8sClientError(e)
@@ -1705,17 +1769,27 @@ export class KubeHelper {
     }
   }
 
-  async waitUntilOperatorIsInstalled(installPlanName: string, namespace: string, timeout = 30) {
+  async waitUntilOperatorIsInstalled(installPlanName: string, namespace: string, timeout = 240) {
     return new Promise<InstallPlan>(async (resolve, reject) => {
       const watcher = new Watch(KubeHelper.KUBE_CONFIG)
       const request = await watcher.watch(`/apis/operators.coreos.com/v1alpha1/namespaces/${namespace}/installplans`,
         { fieldSelector: `metadata.name=${installPlanName}` },
         (_phase: string, obj: any) => {
           const installPlan = obj as InstallPlan
+          if (installPlan.status && installPlan.status.phase === 'Failed') {
+            const errorMessage = new Array()
+            for (const condition of installPlan.status.conditions) {
+              if (!condition.reason) {
+                errorMessage.push(`Reason: ${condition.reason}`)
+                errorMessage.push(!condition.message ? `Message: ${condition.message}` : '')
+              }
+            }
+            reject(errorMessage.join(' '))
+          }
           if (installPlan.status && installPlan.status.conditions) {
             for (const condition of installPlan.status.conditions) {
               if (condition.type === 'Installed' && condition.status === 'True') {
-                resolve()
+                resolve(installPlan)
               }
             }
           }
@@ -1733,11 +1807,32 @@ export class KubeHelper {
     })
   }
 
+  async getCSV(csvName: string, namespace: string): Promise<ClusterServiceVersion | undefined> {
+    const csvs = await this.getClusterServiceVersions(namespace)
+    return csvs.items.find(item => item.metadata.name === csvName)
+  }
+
   async getClusterServiceVersions(namespace: string): Promise<ClusterServiceVersionList> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
     try {
       const { body } = await customObjectsApi.listNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions')
       return body as ClusterServiceVersionList
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+  }
+
+  async patchClusterServiceVersion(namespace: string, name: string, jsonPatch: any[]): Promise<ClusterServiceVersion> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+
+    const requestOptions = {
+      headers: {
+        'content-type': 'application/json-patch+json'
+      }
+    }
+    try {
+      const response = await customObjectsApi.patchNamespacedCustomObject('operators.coreos.com', 'v1alpha1', namespace, 'clusterserviceversions', name, jsonPatch, undefined, undefined, undefined, requestOptions)
+      return response.body as ClusterServiceVersion
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1772,12 +1867,19 @@ export class KubeHelper {
     }
   }
 
-  async clusterIssuerExists(name: string): Promise<boolean> {
+  /**
+   * Returns CRD version of Cert Manager
+   */
+  async getCertManagerK8sApiVersion(): Promise<string> {
+    return this.getCrdApiVersion('certificates.cert-manager.io')
+  }
+
+  async clusterIssuerExists(name: string, version: string): Promise<boolean> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
     try {
       // If cluster issuers doesn't exist an exception will be thrown
-      await customObjectsApi.getClusterCustomObject('cert-manager.io', 'v1alpha2', 'clusterissuers', name)
+      await customObjectsApi.getClusterCustomObject('cert-manager.io', version, 'clusterissuers', name)
       return true
     } catch (e) {
       if (e.response.statusCode === 404) {
@@ -1788,30 +1890,40 @@ export class KubeHelper {
     }
   }
 
-  async createCheClusterIssuer(cheClusterIssuerYamlPath: string): Promise<void> {
+  async listClusterIssuers(version: string, labelSelector?: string): Promise<any[]> {
+    const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
+
+    let res
+    try {
+      res = await customObjectsApi.listClusterCustomObject('cert-manager.io', version, 'clusterissuers', undefined, undefined, undefined, labelSelector)
+    } catch (e) {
+      throw this.wrapK8sClientError(e)
+    }
+
+    if (!res || !res.body) {
+      throw new Error('Unable to get cluster issuers list')
+    }
+    const clusterIssuersList: {items?: any[]} = res.body
+
+    return clusterIssuersList.items || []
+  }
+
+  async createCheClusterIssuer(cheClusterIssuerYamlPath: string, version: string): Promise<void> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
     const cheClusterIssuer = this.safeLoadFromYamlFile(cheClusterIssuerYamlPath)
     try {
-      await customObjectsApi.createClusterCustomObject('cert-manager.io', 'v1alpha2', 'clusterissuers', cheClusterIssuer)
+      await customObjectsApi.createClusterCustomObject('cert-manager.io', version, 'clusterissuers', cheClusterIssuer)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
   }
 
-  async createCheClusterCertificate(certificateTemplatePath: string, domain: string, namespace: string): Promise<void> {
+  async createCheClusterCertificate(certificateYaml: V1alpha2Certificate, version: string): Promise<void> {
     const customObjectsApi = KubeHelper.KUBE_CONFIG.makeApiClient(CustomObjectsApi)
 
-    const certifiate = this.safeLoadFromYamlFile(certificateTemplatePath) as V1alpha2Certificate
-
-    const CN = '*.' + domain
-    certifiate.spec.commonName = CN
-    certifiate.spec.dnsNames = [domain, CN]
-
-    certifiate.metadata.namespace = namespace
-
     try {
-      await customObjectsApi.createNamespacedCustomObject('cert-manager.io', 'v1alpha2', certifiate.metadata.namespace, 'certificates', certifiate)
+      await customObjectsApi.createNamespacedCustomObject('cert-manager.io', version, certificateYaml.metadata.namespace, 'certificates', certificateYaml)
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -1917,23 +2029,15 @@ export class KubeHelper {
   }
 
   async isOpenShift(): Promise<boolean> {
-    const k8sApiApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApisApi)
-    let res
+    const k8sCoreApi = KubeHelper.KUBE_CONFIG.makeApiClient(ApisApi)
+
     try {
-      res = await k8sApiApi.getAPIVersions()
+      const res = await k8sCoreApi.getAPIVersions()
+      return res && res.body && res.body.groups &&
+        res.body.groups.some(group => group.name === 'apps.openshift.io')
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
-    if (!res || !res.body) {
-      throw new Error('Get API versions returned an invalid response')
-    }
-    const v1APIGroupList = res.body
-    for (const v1APIGroup of v1APIGroupList.groups) {
-      if (v1APIGroup.name === 'apps.openshift.io') {
-        return true
-      }
-    }
-    return false
   }
 
   async getIngressHost(name = '', namespace = ''): Promise<string> {
@@ -1987,12 +2091,9 @@ export class KubeHelper {
 
     try {
       const res = await k8sCoreApi.getAPIVersions()
-      if (res && res.body && res.body.groups) {
-        return res.body.groups.some(group => group.name === 'route.openshift.io')
-          && res.body.groups.some(group => group.name === 'config.openshift.io')
-      } else {
-        return false
-      }
+      return res && res.body && res.body.groups &&
+        res.body.groups.some(group => group.name === 'route.openshift.io') &&
+        res.body.groups.some(group => group.name === 'config.openshift.io')
     } catch (e) {
       throw this.wrapK8sClientError(e)
     }
@@ -2201,7 +2302,7 @@ export class KubeHelper {
     else return new Error(e)
   }
 
-  private safeLoadFromYamlFile(filePath: string): any {
+  public safeLoadFromYamlFile(filePath: string): any {
     return yaml.safeLoad(fs.readFileSync(filePath).toString())
   }
 }

@@ -10,31 +10,35 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
-import * as notifier from 'node-notifier'
 
 import { CheHelper } from '../../api/che'
+import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { cheNamespace } from '../../common-flags'
+import { cheNamespace, CHE_TELEMETRY } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
-export default class List extends Command {
+export default class Status extends Command {
   // Implementation-Version it is a property from Manifest.ml inside of che server pod which indicate CodeReady Workspaces build version.
-  static description = 'status CodeReady Workspaces server'
+  static description = 'Status CodeReady Workspaces server'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {
-    const { flags } = this.parse(List)
+    const { flags } = this.parse(Status)
+    const ctx = await ChectlContext.initAndGet(flags, this)
+
     const kube = new KubeHelper(flags)
     const che = new CheHelper(flags)
-
     let openshiftOauth = 'No'
 
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Status.id, flags })
     const cr = await kube.getCheCluster(flags.chenamespace)
-    if (cr && cr.spec && cr.spec.auth && cr.spec.auth.openShiftoAuth) {
+    if (ctx.isOpenShift && cr && cr.spec && cr.spec.auth && cr.spec.auth.openShiftoAuth) {
       openshiftOauth = 'Yes'
     }
 
@@ -44,9 +48,5 @@ export default class List extends Command {
     cli.log(`CodeReady Workspaces Url        : ${await che.cheURL(flags.chenamespace)}`)
     cli.log(`OpenShift OAuth enabled: ${openshiftOauth}\n`)
 
-    notifier.notify({
-      title: 'crwctl',
-      message: 'Command server:status has completed successfully.'
-    })
   }
 }

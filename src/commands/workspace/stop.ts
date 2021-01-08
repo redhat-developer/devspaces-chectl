@@ -10,12 +10,12 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
-import * as notifier from 'node-notifier'
 
-import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
-import { KubeHelper } from '../../api/kube'
-import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
+import { getLoginData } from '../../api/che-login-manager'
+import { ChectlContext } from '../../api/context'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
 export default class Stop extends Command {
   static description = 'Stop a running workspace'
@@ -25,7 +25,8 @@ export default class Stop extends Command {
     [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
     chenamespace: cheNamespace,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    telemetry: CHE_TELEMETRY
   }
 
   static args = [
@@ -37,32 +38,16 @@ export default class Stop extends Command {
   ]
 
   async run() {
-    const { flags } = this.parse(Stop)
-    const { args } = this.parse(Stop)
+    const { flags, args } = this.parse(Stop)
+    await ChectlContext.init(flags, this)
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Stop.id, flags })
 
     const workspaceId = args.workspace
 
-    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
-    if (!cheApiEndpoint) {
-      const kube = new KubeHelper(flags)
-      if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
-        throw new Error(`CodeReady Workspaces API endpoint is required. Use flag --${CHE_API_ENDPOINT_KEY} to provide it.`)
-      }
-
-      const cheHelper = new CheHelper(flags)
-      cheApiEndpoint = await cheHelper.cheURL(flags.chenamespace) + '/api'
-    }
-
+    const { cheApiEndpoint, accessToken } = await getLoginData(flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
-    await cheApiClient.checkCheApiEndpointUrl()
-
-    await cheApiClient.stopWorkspace(workspaceId, flags[ACCESS_TOKEN_KEY])
-    cli.log('Workspace successfully stopped.')
-
-    notifier.notify({
-      title: 'crwctl',
-      message: 'Command workspace:stop has completed successfully.'
-    })
+    await cheApiClient.stopWorkspace(workspaceId, accessToken)
+    cli.log(`Workspace ${workspaceId} successfully stopped.`)
 
     this.exit(0)
   }

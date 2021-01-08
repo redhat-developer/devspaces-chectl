@@ -8,10 +8,13 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-export const DEFAULT_CHE_IMAGE = 'registry.redhat.io/codeready-workspaces/server-rhel8:2.5'
-export const DEFAULT_CHE_OPERATOR_IMAGE = 'registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.5'
-export const DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE = 'quay.io/devfile/devworkspace-controller:sha-4ea0394'
+// labels
+export const CHE_RELATED_COMPONENT_LABEL = 'client/org.eclipse.che=true'
 
+ // images
+export const DEFAULT_CHE_IMAGE = 'registry.redhat.io/codeready-workspaces/server-rhel8:2.6'
+export const DEFAULT_CHE_OPERATOR_IMAGE = 'registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.6'
+export const DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE = 'quay.io/devfile/devworkspace-controller:sha-252745a'
 // This image should be updated manually when needed.
 // Repository location: https://github.com/che-dockerfiles/che-cert-manager-ca-cert-generator-image
 export const CA_CERT_GENERATION_JOB_IMAGE = 'quay.io/eclipse/che-cert-manager-ca-cert-generator:671342c'
@@ -22,6 +25,10 @@ export const CHE_ROOT_CA_SECRET_NAME = 'self-signed-certificate'
 export const DEFAULT_CA_CERT_FILE_NAME = 'cheCA.crt'
 export const CHE_CLUSTER_CR_NAME = 'codeready-workspaces'
 export const CHE_CLUSTER_CRD = 'checlusters.org.eclipse.che'
+
+// operator
+export const OPERATOR_DEPLOYMENT_NAME = 'codeready-operator'
+export const CHE_OPERATOR_SELECTOR = 'app=codeready-operator'
 
 // OLM
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'codeready-workspaces'
@@ -36,6 +43,7 @@ export const KUBERNETES_OLM_CATALOG = 'operatorhubio-catalog'
 export const OPENSHIFT_OLM_CATALOG = 'redhat-operators'
 export const CVS_PREFIX = 'crwoperator'
 export const NIGHTLY_CATALOG_SOURCE_NAME = 'eclipse-che-preview'
+export const DEFAULT_OLM_SUGGESTED_NAMESPACE = 'openshift-workspaces'
 
 // Documentation links
 export const DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.6/'
@@ -47,5 +55,14 @@ export const DOCS_LINK_HOW_TO_CREATE_USER_OS3 = 'https://docs.openshift.com/cont
 export const DOC_LINK_OBTAIN_ACCESS_TOKEN = 'https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_authenticating-to-the-che-server'
 export const DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH = 'https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-openshift-token-through-keycloak_authenticating-to-the-che-server'
 
+export const OUTPUT_SEPARATOR = '-------------------------------------------------------------------------------'
+
 // DevWorkspace
 export const DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE = 'devworkspace-controller'
+
+// HOOKS
+export const DEFAULT_ANALYTIC_HOOK_NAME = 'analytics'
+
+// Timeouts
+export const DEFAULT_K8S_POD_WAIT_TIMEOUT = 600000
+export const DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT = 15000

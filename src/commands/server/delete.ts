@@ -13,14 +13,16 @@ import { boolean } from '@oclif/command/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
 
+import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { cheDeployment, cheNamespace, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { assumeYes, cheDeployment, cheNamespace, CHE_TELEMETRY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
 import { OLMTasks } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { getCommandSuccessMessage, initializeContext } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Delete extends Command {
   static description = 'delete any CodeReady Workspaces related resource'
@@ -37,16 +39,24 @@ export default class Delete extends Command {
     'listr-renderer': listrRenderer,
     'skip-deletion-check': boolean({
       description: 'Skip user confirmation on deletion check',
-      default: false
+      default: false,
+      hidden: true,
     }),
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    yes: assumeYes,
+    telemetry: CHE_TELEMETRY
   }
 
   async run() {
-    const ctx = initializeContext()
     const { flags } = this.parse(Delete)
+    const ctx = await ChectlContext.initAndGet(flags, this)
 
-    const notifier = require('node-notifier')
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Delete.id, flags })
+
+    if (flags['skip-deletion-check']) {
+      this.warn('\'--skip-deletion-check\' flag is deprecated, use \'--yes\' instead.')
+      flags.yes = flags['skip-deletion-check']
+    }
 
     const apiTasks = new ApiTasks()
     const operatorTasks = new OperatorTasks()
@@ -54,9 +64,7 @@ export default class Delete extends Command {
     const cheTasks = new CheTasks(flags)
     const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
-    let tasks = new Listrq(undefined,
-      { renderer: flags['listr-renderer'] as any }
-    )
+    const tasks = new Listrq([], ctx.listrOptions)
 
     tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(operatorTasks.deleteTasks(flags))
@@ -68,30 +76,31 @@ export default class Delete extends Command {
       tasks.add(cheTasks.deleteNamespace(flags))
     }
 
+    if (await this.isDeletionConfirmed(flags)) {
+      try {
+        await tasks.run()
+        cli.log(getCommandSuccessMessage())
+      } catch (err) {
+        this.error(getCommandErrorMessage(err))
+      }
+    } else {
+      this.exit(0)
+    }
+
+    notifyCommandCompletedSuccessfully()
+    this.exit(0)
+  }
+
+  async isDeletionConfirmed(flags: any): Promise<boolean> {
     const cluster = KubeHelper.KUBE_CONFIG.getCurrentCluster()
     if (!cluster) {
-      throw new Error('Failed to get current Kubernetes cluster. Check if the current context is set via kubect/oc')
+      throw new Error('Failed to get current Kubernetes cluster. Check if the current context is set via kubectl/oc')
     }
 
-    if (!flags['skip-deletion-check']) {
-      const confirmed = await cli.confirm(`You're going to remove CodeReady Workspaces server in namespace '${flags.chenamespace}' on server '${cluster ? cluster.server : ''}'. If you want to continue - press Y`)
-      if (!confirmed) {
-        this.exit(0)
-      }
+    if (!flags.yes) {
+      return cli.confirm(`You're going to remove CodeReady Workspaces server in namespace '${flags.chenamespace}' on server '${cluster ? cluster.server : ''}'. If you want to continue - press Y`)
     }
 
-    try {
-      await tasks.run()
-      cli.log(getCommandSuccessMessage(this, ctx))
-    } catch (error) {
-      cli.error(error)
-    }
-
-    notifier.notify({
-      title: 'crwctl',
-      message: getCommandSuccessMessage(this, ctx)
-    })
-
-    this.exit(0)
+    return true
   }
 }

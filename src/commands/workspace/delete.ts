@@ -10,15 +10,16 @@
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
-import * as notifier from 'node-notifier'
 
-import { CheHelper } from '../../api/che'
 import { CheApiClient } from '../../api/che-api-client'
+import { getLoginData } from '../../api/che-login-manager'
+import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, skipKubeHealthzCheck } from '../../common-flags'
+import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 
 export default class Delete extends Command {
-  static description = 'delete a stopped workspace - use workspace:stop to stop the workspace before deleting it'
+  static description = 'Delete a stopped workspace - use workspace:stop to stop the workspace before deleting it'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
@@ -29,7 +30,8 @@ export default class Delete extends Command {
     }),
     [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
-    'skip-kubernetes-health-check': skipKubeHealthzCheck
+    'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    telemetry: CHE_TELEMETRY
   }
   static args = [
     {
@@ -40,39 +42,29 @@ export default class Delete extends Command {
   ]
 
   async run() {
-    const { flags } = this.parse(Delete)
-    const { args } = this.parse(Delete)
+    const { flags, args } = this.parse(Delete)
+    await ChectlContext.init(flags, this)
+
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Delete.id, flags })
 
     const workspaceId = args.workspace
 
-    let cheApiEndpoint = flags[CHE_API_ENDPOINT_KEY]
-    if (!cheApiEndpoint) {
-      const kube = new KubeHelper(flags)
-      if (!await kube.hasReadPermissionsForNamespace(flags.chenamespace)) {
-        throw new Error(`CodeReady Workspaces API endpoint is required. Use flag --${CHE_API_ENDPOINT_KEY} to provide it.`)
-      }
-
-      const cheHelper = new CheHelper(flags)
-      cheApiEndpoint = await cheHelper.cheURL(flags.chenamespace) + '/api'
-    }
-
+    const { cheApiEndpoint, accessToken } = await getLoginData(flags[CHE_API_ENDPOINT_KEY], flags[ACCESS_TOKEN_KEY], flags)
     const cheApiClient = CheApiClient.getInstance(cheApiEndpoint)
-    await cheApiClient.checkCheApiEndpointUrl()
-
-    const workspace = await cheApiClient.getWorkspaceById(workspaceId, flags[ACCESS_TOKEN_KEY])
-    const infrastructureNamespace = workspace!.attributes!.infrastructureNamespace
-
-    await cheApiClient.deleteWorkspaceById(workspaceId, flags[ACCESS_TOKEN_KEY])
+    await cheApiClient.deleteWorkspaceById(workspaceId, accessToken)
     cli.log(`Workspace with id '${workspaceId}' deleted.`)
 
     if (flags['delete-namespace']) {
+      const workspace = await cheApiClient.getWorkspaceById(workspaceId, accessToken)
+      const infrastructureNamespace = workspace!.attributes!.infrastructureNamespace
+
       if (infrastructureNamespace === flags.chenamespace) {
         cli.warn(`It is not possible to delete namespace '${infrastructureNamespace}' since it is used for CodeReady Workspaces deployment.`)
         return
       }
 
       const kube = new KubeHelper(flags)
-      if (await kube.namespaceExist(infrastructureNamespace)) {
+      if (await kube.getNamespace(infrastructureNamespace)) {
         try {
           await kube.deleteNamespace(infrastructureNamespace)
           cli.log(`Namespace '${infrastructureNamespace}' deleted.`)
@@ -81,11 +73,6 @@ export default class Delete extends Command {
         }
       }
     }
-
-    notifier.notify({
-      title: 'crwctl',
-      message: 'Command workspace:delete has completed successfully.'
-    })
 
     this.exit(0)
   }

@@ -9,32 +9,40 @@
  **********************************************************************/
 
 import { Command, flags } from '@oclif/command'
-import { boolean, string } from '@oclif/parser/lib/flags'
+import { string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as fs from 'fs-extra'
 import * as Listr from 'listr'
-import * as notifier from 'node-notifier'
+import { merge } from 'lodash'
 import * as path from 'path'
 
+import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { cheDeployment, cheNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_CHE_OPERATOR_IMAGE, SUBSCRIPTION_NAME } from '../../constants'
-import { CheTasks } from '../../tasks/che'
+import { assumeYes, cheDeployment, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE, SUBSCRIPTION_NAME } from '../../constants'
 import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { CommonPlatformTasks } from '../../tasks/platforms/common-platform-tasks'
-import { PlatformTasks } from '../../tasks/platforms/platform'
-import { getCommandSuccessMessage, getImageTag, initializeContext, isKubernetesPlatformFamily } from '../../util'
+import { getCommandErrorMessage, getCommandSuccessMessage, getImageTag, getLatestChectlVersion, getProjectlName, getProjectVersion, notifyCommandCompletedSuccessfully } from '../../util'
 
 export default class Update extends Command {
   static description = 'Update CodeReady Workspaces server.'
+
+  static examples = [
+    '# Update CodeReady Workspaces:\n' +
+    'crwctl server:update',
+    '\n# Update CodeReady Workspaces in \'eclipse-che\' namespace:\n' +
+    'crwctl server:update -n eclipse-che',
+    '\n# Update CodeReady Workspaces and update its configuration in the custom resource:\n' +
+    `crwctl server:update --${CHE_OPERATOR_CR_PATCH_YAML_KEY} patch.yaml`,
+  ]
 
   static flags: flags.Input<any> = {
     installer: string({
       char: 'a',
       description: 'Installer type. If not set, default is autodetected depending on previous installation.',
       options: ['operator', 'olm'],
+      hidden: true,
     }),
     platform: string({
       char: 'p',
@@ -53,14 +61,18 @@ export default class Update extends Command {
       description: 'Container image of the operator. This parameter is used only when the installer is the operator',
       default: DEFAULT_CHE_OPERATOR_IMAGE
     }),
-    'skip-version-check': boolean({
-      description: 'Skip user confirmation on version check',
-      default: false
+    'skip-version-check': flags.boolean({
+      description: 'Skip minimal versions check.',
+      default: false,
+      hidden: true,
     }),
     'deployment-name': cheDeployment,
     'listr-renderer': listrRenderer,
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
+    yes: assumeYes,
     help: flags.help({ char: 'h' }),
+    [CHE_OPERATOR_CR_PATCH_YAML_KEY]: cheOperatorCRPatchYaml,
+    telemetry: CHE_TELEMETRY
   }
 
   static getTemplatesDir(): string {
@@ -75,120 +87,165 @@ export default class Update extends Command {
     return path.join(__dirname, '../../../templates')
   }
 
-  async checkIfInstallerSupportUpdating(flags: any) {
+  async run() {
+    const { flags } = this.parse(Update)
+    const ctx = await ChectlContext.initAndGet(flags, this)
+
+    await this.setDomainFlag(flags)
     if (!flags.installer) {
       await this.setDefaultInstaller(flags)
       cli.info(`› Installer type is set to: '${flags.installer}'`)
     }
+    await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Update.id, flags })
 
-    if (flags.installer === 'operator' || flags.installer === 'olm') {
-      // operator already supports updating
-      return
-    }
-
-    if (flags.installer === 'olm' && flags.platform === 'minishift') {
-      this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
-    }
-  }
-
-  async run() {
-    const { flags } = this.parse(Update)
-    const ctx = initializeContext()
-    const listrOptions: Listr.ListrOptions = { renderer: (flags['listr-renderer'] as any), collapse: false } as Listr.ListrOptions
-    ctx.listrOptions = listrOptions
-
-    const cheTasks = new CheTasks(flags)
     const kubeHelper = new KubeHelper(flags)
-    const platformTasks = new PlatformTasks()
     const installerTasks = new InstallerTasks()
+
+    // pre update tasks
     const apiTasks = new ApiTasks()
+    const preUpdateTasks = new Listr([], ctx.listrOptions)
+    preUpdateTasks.add(apiTasks.testApiTasks(flags, this))
+    preUpdateTasks.add(installerTasks.preUpdateTasks(flags, this))
 
-    // Platform Checks
-    const platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), listrOptions)
-    platformCheckTasks.add(CommonPlatformTasks.oAuthProvidersExists(flags))
-
-    await this.checkIfInstallerSupportUpdating(flags)
-
-    // Checks if CodeReady Workspaces is already deployed
-    let preInstallTasks = new Listr(undefined, listrOptions)
-    preInstallTasks.add(apiTasks.testApiTasks(flags, this))
-    preInstallTasks.add({
-      title: '👀  Looking for an already existing CodeReady Workspaces instance',
-      task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
-    })
-
-    const preUpdateTasks = new Listr(installerTasks.preUpdateTasks(flags, this), listrOptions)
-
-    const updateTasks = new Listr(undefined, listrOptions)
+    // update tasks
+    const updateTasks = new Listr([], ctx.listrOptions)
     updateTasks.add({
       title: '↺  Updating...',
       task: () => new Listr(installerTasks.updateTasks(flags, this))
     })
 
-    const postUpdateTasks = new Listr(undefined, listrOptions)
+    // post update tasks
+    const postUpdateTasks = new Listr([], ctx.listrOptions)
     postUpdateTasks.add(getPrintHighlightedMessagesTask())
 
     try {
-      await preInstallTasks.run(ctx)
+      await preUpdateTasks.run(ctx)
+    } catch (err) {
+      this.error(getCommandErrorMessage(err))
+    }
 
-      if (!ctx.isCheDeployed) {
-        this.error('CodeReady Workspaces deployment is not found. Use `crwctl server:deploy` to initiate a new deployment.')
-      } else {
-        if (isKubernetesPlatformFamily(flags.platform!)) {
-          await this.setDomainFlag(flags)
-        }
-        await platformCheckTasks.run(ctx)
-        await preUpdateTasks.run(ctx)
+    if (flags.installer === 'operator') {
+      const existedOperatorImage = `${ctx.deployedCheOperatorImage}:${ctx.deployedCheOperatorTag}`
+      const newOperatorImage = `${ctx.newCheOperatorImage}:${ctx.newCheOperatorTag}`
+      cli.info(`Existed CodeReady Workspaces operator: ${existedOperatorImage}.`)
+      cli.info(`New CodeReady Workspaces operator    : ${newOperatorImage}.`)
 
-        if (!flags['skip-version-check'] && flags.installer === 'operator') {
-          cli.info(`Existed CodeReady Workspaces operator: ${ctx.deployedCheOperatorImage}:${ctx.deployedCheOperatorTag}.`)
-          cli.info(`New CodeReady Workspaces operator    : ${ctx.newCheOperatorImage}:${ctx.newCheOperatorTag}.`)
+      const defaultOperatorImageTag = getImageTag(DEFAULT_CHE_OPERATOR_IMAGE)
+      const crwctlChannel = defaultOperatorImageTag === 'nightly' ? 'next' : 'stable'
+      const currentChectlVersion = getProjectVersion()
+      const latestChectlVersion = await getLatestChectlVersion(crwctlChannel)
+      const crwctlName = getProjectlName()
 
-          if (flags['che-operator-image'] !== DEFAULT_CHE_OPERATOR_IMAGE) {
-            cli.warn(`This command updates CodeReady Workspaces to ${getImageTag(DEFAULT_CHE_OPERATOR_IMAGE)} version, but custom operator image is specified.`)
-            cli.warn('Make sure that the new version of the CodeReady Workspaces is corresponding to the version of the tool you use.')
-            cli.warn('Consider using \'crwctl update [stable|next]\' to update to the latest version of crwctl.')
+      // the same version is already installed
+      if (newOperatorImage === existedOperatorImage) {
+        if (crwctlName === 'crwctl' && latestChectlVersion) {
+          // suggest update crwctl first
+          if (currentChectlVersion !== latestChectlVersion) {
+            cli.warn(`It is not possible to update CodeReady Workspaces to a newer version
+using the current '${currentChectlVersion}' version of crwctl. Please, update 'crwctl'
+to a newer version '${latestChectlVersion}' with the command 'crwctl update ${crwctlChannel}'
+and then try again.`)
+          } else if (!flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]) {
+            // same version, no patch then nothing to update
+            cli.info('CodeReady Workspaces is already up to date.')
+            this.exit(0)
           }
-
-          const cheCluster = await kubeHelper.getCheCluster(flags.chenamespace)
-          if (cheCluster.spec.server.cheImage
-            || cheCluster.spec.server.devfileRegistryImage
-            || cheCluster.spec.database.postgresImage
-            || cheCluster.spec.server.pluginRegistryImage
-            || cheCluster.spec.auth.identityProviderImage) {
-            cli.warn(`CodeReady Workspaces operator won't update some components since their images are defined
-            in the '${cheCluster.metadata.name}' Custom Resource of the namespace '${flags.chenamespace}'
-            Please consider removing them from the Custom Resource when update is completed:`)
-            cheCluster.spec.server.cheImage && cli.warn(`CodeReady Workspaces server [${cheCluster.spec.server.cheImage}:${cheCluster.spec.server.cheImageTag}]`)
-            cheCluster.spec.database.postgresImage && cli.warn(`Database [${cheCluster.spec.database.postgresImage}]`)
-            cheCluster.spec.server.devfileRegistryImage && cli.warn(`Devfile registry [${cheCluster.spec.server.devfileRegistryImage}]`)
-            cheCluster.spec.server.pluginRegistryImage && cli.warn(`Plugin registry [${cheCluster.spec.server.pluginRegistryImage}]`)
-            cheCluster.spec.auth.identityProviderImage && cli.warn(`Identity provider [${cheCluster.spec.auth.identityProviderImage}]`)
-          }
-
-          const confirmed = await cli.confirm('If you want to continue - press Y')
-          if (!confirmed) {
+        } else {
+          // unknown project, no patch file then suggest to update
+          if (!flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]) {
+            cli.warn(`It is not possible to update CodeReady Workspaces to a newer version
+using the current '${currentChectlVersion}' version of '${getProjectlName()}'.
+Please, update '${getProjectlName()}' and then try again.`)
             this.exit(0)
           }
         }
-
-        await updateTasks.run(ctx)
-        await postUpdateTasks.run(ctx)
+        // custom operator image is used
+      } else if (newOperatorImage !== DEFAULT_CHE_OPERATOR_IMAGE) {
+        cli.warn(`CodeReady Workspaces operator deployment will be updated with the provided image,
+but other CodeReady Workspaces components will be updated to the ${defaultOperatorImageTag} version.
+Consider removing '--che-operator-image' to update CodeReady Workspaces operator to the same version.`)
       }
-      this.log(getCommandSuccessMessage(this, ctx))
-    } catch (err) {
-      this.error(err)
+
+      if (!flags.yes && !await cli.confirm('If you want to continue - press Y')) {
+        cli.info('Update cancelled by user.')
+        this.exit(0)
+      }
     }
 
-    notifier.notify({
-      title: 'crwctl',
-      message: getCommandSuccessMessage(this, ctx)
-    })
+    const cheCluster = await kubeHelper.getCheCluster(flags.chenamespace)
+    if (cheCluster.spec.server.cheImage
+      || cheCluster.spec.server.cheImageTag
+      || cheCluster.spec.server.devfileRegistryImage
+      || cheCluster.spec.database.postgresImage
+      || cheCluster.spec.server.pluginRegistryImage
+      || cheCluster.spec.auth.identityProviderImage) {
+      let imagesListMsg = ''
 
+      const crPatch = ctx[ChectlContext.CR_PATCH] || {}
+      if (cheCluster.spec.server.pluginRegistryImage
+        && (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.pluginRegistryImage)) {
+        imagesListMsg += `\n - Plugin registry image: ${cheCluster.spec.server.pluginRegistryImage}`
+        merge(crPatch, { spec: { server: { pluginRegistryImage: '' } } })
+      }
+
+      if (cheCluster.spec.server.devfileRegistryImage
+        && (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.devfileRegistryImage)) {
+        imagesListMsg += `\n - Devfile registry image: ${cheCluster.spec.server.devfileRegistryImage}`
+        merge(crPatch, { spec: { server: { devfileRegistryImage: '' } } })
+      }
+
+      if (cheCluster.spec.server.postgresImage
+        && (!crPatch.spec || !crPatch.spec.database || !crPatch.spec.database.postgresImage)) {
+        imagesListMsg += `\n - Postgres image: ${cheCluster.spec.database.postgresImage}`
+        merge(crPatch, { spec: { database: { postgresImage: '' } } })
+      }
+
+      if (cheCluster.spec.server.identityProviderImage
+        && (!crPatch.spec || !crPatch.spec.auth || !crPatch.spec.auth.identityProviderImage)) {
+        imagesListMsg += `\n - Identity provider image: ${cheCluster.spec.auth.identityProviderImage}`
+        merge(crPatch, { spec: { auth: { identityProviderImage: '' } } })
+      }
+
+      if (cheCluster.spec.server.cheImage
+        && (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.cheImage)) {
+        imagesListMsg += `\n - CodeReady Workspaces server image name: ${cheCluster.spec.server.cheImage}`
+        merge(crPatch, { spec: { server: { cheImage: '' } } })
+      }
+
+      if (cheCluster.spec.server.cheImageTag
+        && (!crPatch.spec || !crPatch.spec.server || !crPatch.spec.server.cheImageTag)) {
+        imagesListMsg += `\n - CodeReady Workspaces server image tag: ${cheCluster.spec.server.cheImageTag}`
+        merge(crPatch, { spec: { server: { cheImageTag: '' } } })
+      }
+      ctx[ChectlContext.CR_PATCH] = crPatch
+
+      if (imagesListMsg) {
+        cli.warn(`In order to update CodeReady Workspaces to a newer version the fields defining the images in the '${cheCluster.metadata.name}'
+Custom Resource in the '${flags.chenamespace}' namespace will be cleaned up:${imagesListMsg}`)
+        if (!flags.yes && !await cli.confirm('If you want to continue - press Y')) {
+          cli.info('Update cancelled by user.')
+          this.exit(0)
+        }
+      }
+    }
+
+    try {
+      await updateTasks.run(ctx)
+      await postUpdateTasks.run(ctx)
+
+      this.log(getCommandSuccessMessage())
+    } catch (err) {
+      this.error(getCommandErrorMessage(err))
+    }
+
+    notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
 
-  async setDomainFlag(flags: any): Promise<void> {
+  /**
+   * Copies spec.k8s.ingressDomain. It is needed later for updates.
+   */
+  private async setDomainFlag(flags: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
     const cheCluster = await kubeHelper.getCheCluster(flags.chenamespace)
     if (cheCluster && cheCluster.spec.k8s && cheCluster.spec.k8s.ingressDomain) {
@@ -196,7 +253,10 @@ export default class Update extends Command {
     }
   }
 
-  async setDefaultInstaller(flags: any): Promise<void> {
+  /**
+   * Sets installer type depending on the previous installation.
+   */
+  private async setDefaultInstaller(flags: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
     try {
       await kubeHelper.getOperatorSubscription(SUBSCRIPTION_NAME, flags.chenamespace)

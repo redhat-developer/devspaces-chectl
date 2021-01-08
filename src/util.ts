@@ -8,9 +8,16 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { Command } from '@oclif/command'
+import axios from 'axios'
 import * as commandExists from 'command-exists'
+import * as fs from 'fs-extra'
+import * as https from 'https'
+import * as yaml from 'js-yaml'
+import * as notifier from 'node-notifier'
 
+const pkjson = require('../package.json')
+
+import { ChectlContext } from './api/context'
 import { DEFAULT_CHE_OPERATOR_IMAGE } from './constants'
 
 export const KUBERNETES_CLI = 'kubectl'
@@ -98,31 +105,114 @@ export function sleep(ms: number): Promise<void> {
 }
 
 /**
- * Initialize command context.
+ * Returns CR file content. Throws an error, if file doesn't exist.
+ * @param flags - parent command flags
+ * @param CRKey - key for CR file flag
+ * @param command - parent command
  */
-export function initializeContext(): any {
-  const ctx: any = {}
-  ctx.highlightedMessages = [] as string[]
-  ctx.starTime = Date.now()
-  return ctx
+export function readCRFile(flags: any, CRKey: string): any {
+  const CRFilePath = flags[CRKey]
+  if (!CRFilePath) {
+    return
+  }
+
+  if (fs.existsSync(CRFilePath)) {
+    return yaml.safeLoad(fs.readFileSync(CRFilePath).toString())
+  }
+
+  throw new Error(`Unable to find file defined in the flag '--${CRKey}'`)
 }
 
 /**
  * Returns command success message with execution time.
  */
-export function getCommandSuccessMessage(command: Command, ctx: any): string {
-  if (ctx.starTime) {
-    if (!ctx.endTime) {
-      ctx.endTime = Date.now()
+export function getCommandSuccessMessage(): string {
+  const ctx = ChectlContext.get()
+
+  if (ctx[ChectlContext.START_TIME]) {
+    if (!ctx[ChectlContext.END_TIME]) {
+      ctx[ChectlContext.END_TIME] = Date.now()
     }
 
-    const workingTimeInSeconds = Math.round((ctx.endTime - ctx.starTime) / 1000)
+    const workingTimeInSeconds = Math.round((ctx[ChectlContext.END_TIME] - ctx[ChectlContext.START_TIME]) / 1000)
     const minutes = Math.floor(workingTimeInSeconds / 60)
     const seconds = (workingTimeInSeconds - minutes * 60) % 60
     const minutesToStr = minutes.toLocaleString([], { minimumIntegerDigits: 2 })
     const secondsToStr = seconds.toLocaleString([], { minimumIntegerDigits: 2 })
-    return `Command ${command.id} has completed successfully in ${minutesToStr}:${secondsToStr}.`
+    return `Command ${ctx[ChectlContext.COMMAND_ID]} has completed successfully in ${minutesToStr}:${secondsToStr}.`
   }
 
-  return `Command ${command.id} has completed successfully.`
+  return `Command ${ctx[ChectlContext.COMMAND_ID]} has completed successfully.`
+}
+
+export function notifyCommandCompletedSuccessfully(): void {
+  notifier.notify({
+    title: 'crwctl',
+    message: getCommandSuccessMessage()
+  })
+}
+
+/**
+ * Determine if a directory is empty.
+ */
+export function isDirEmpty(dirname: string): boolean {
+  try {
+    return fs.readdirSync(dirname).length === 0
+    // Fails in case if directory doesn't exist
+  } catch {
+    return true
+  }
+}
+
+/**
+ * Returns command success message with execution time.
+ */
+export function getCommandErrorMessage(err: Error): string {
+  const ctx = ChectlContext.get()
+  const logDirectory = ctx[ChectlContext.LOGS_DIRECTORY]
+
+  let message = `${err}\nCommand ${ctx[ChectlContext.COMMAND_ID]} failed. Error log: ${ctx[ChectlContext.ERROR_LOG]}`
+  if (logDirectory && isDirEmpty(logDirectory)) {
+    message += ` CodeReady Workspaces logs: ${logDirectory}`
+  }
+
+  return message
+}
+
+/**
+ * Returns current crwctl version defined in package.json.
+ */
+export function getProjectVersion(): string {
+  return pkjson.version
+}
+
+/**
+ * Returns current crwctl version defined in package.json.
+ */
+export function getProjectlName(): string {
+  return pkjson.name
+}
+
+export function readPackageJson(): any {
+  return JSON.parse(fs.readFileSync('../package.json').toString())
+}
+
+/**
+ * Returns latest crwctl version for the given channel.
+ */
+export async function getLatestChectlVersion(channel: string): Promise<string | undefined> {
+  if (getProjectlName() !== 'crwctl') {
+    return
+  }
+
+  const axiosInstance = axios.create({
+    httpsAgent: new https.Agent({})
+  })
+
+  try {
+    const { data } = await axiosInstance.get(`https://che-incubator.github.io/crwctl/channels/${channel}/linux-x64`)
+    return data.version
+  } catch {
+    return
+  }
 }

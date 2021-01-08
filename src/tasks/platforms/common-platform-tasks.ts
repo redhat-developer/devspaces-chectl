@@ -8,16 +8,9 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import ansi = require('ansi-colors')
-import * as fs from 'fs-extra'
 import * as http from 'http'
 import * as https from 'https'
-import * as yaml from 'js-yaml'
 import * as Listr from 'listr'
-
-import { KubeHelper } from '../../api/kube'
-import { DOCS_LINK_HOW_TO_ADD_IDENTITY_PROVIDER_OS4, DOCS_LINK_HOW_TO_CREATE_USER_OS3 } from '../../constants'
-import { isOpenshiftPlatformFamily } from '../../util'
 
 export namespace CommonPlatformTasks {
   /**
@@ -77,56 +70,5 @@ export namespace CommonPlatformTasks {
         resolve(false)
       })
     })
-  }
-
-  export function oAuthProvidersExists(flags: any): Listr.ListrTask {
-    let kube = new KubeHelper(flags)
-    return {
-      title: 'Verify Openshift oauth.',
-      enabled: () => isOpenshiftPlatformFamily(flags.platform) && isOAuthEnabled(flags),
-      task: async (ctx: any, task: any) => {
-        if (await kube.isOpenShift4()) {
-          const providers = await kube.getOpenshiftAuthProviders()
-          if (!providers || providers.length === 0) {
-            ctx.highlightedMessages.push(`❗ ${ansi.yellow('[WARNING]')} OpenShift OAuth is turned off, because there is no any identity providers configured. ${DOCS_LINK_HOW_TO_ADD_IDENTITY_PROVIDER_OS4}`)
-            ctx.CROverrides = { spec: { auth: { openShiftoAuth: false } } }
-          }
-        } else {
-          if (await kube.getAmoutUsers() === 0) {
-            ctx.highlightedMessages.push(`❗ ${ansi.yellow('[WARNING]')} OpenShift OAuth is turned off, because there are no any users added. See: "${DOCS_LINK_HOW_TO_CREATE_USER_OS3}"`)
-            ctx.CROverrides = { spec: { auth: { openShiftoAuth: false } } }
-          }
-        }
-        task.title = `${task.title}...done.`
-      }
-    }
-  }
-
-  /**
-   * Checks if Openshift oAuth enabled in Che configuration.
-   * Returns true if Openshift oAuth is enabled (or omitted) and false if it is explicitly disabled.
-   */
-  function isOAuthEnabled(flags: any): boolean {
-    if (flags['che-operator-cr-patch-yaml']) {
-      const cheOperatorCrPatchYamlPath = flags['che-operator-cr-patch-yaml']
-      if (fs.existsSync(cheOperatorCrPatchYamlPath)) {
-        const crPatch: any = yaml.safeLoad(fs.readFileSync(cheOperatorCrPatchYamlPath).toString())
-        if (crPatch && crPatch.spec && crPatch.spec.auth && typeof crPatch.spec.auth.openShiftoAuth === 'boolean') {
-          return crPatch.spec.auth.openShiftoAuth
-        }
-      }
-    }
-
-    if (flags['che-operator-cr-yaml']) {
-      const cheOperatorCrYamlPath = flags['che-operator-cr-yaml']
-      if (fs.existsSync(cheOperatorCrYamlPath)) {
-        const cr: any = yaml.safeLoad(fs.readFileSync(cheOperatorCrYamlPath).toString())
-        if (cr && cr.spec && cr.spec.auth && typeof cr.spec.auth.openShiftoAuth === 'boolean') {
-          return cr.spec.auth.openShiftoAuth
-        }
-      }
-    }
-
-    return true
   }
 }
