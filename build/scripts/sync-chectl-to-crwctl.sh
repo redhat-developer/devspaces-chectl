@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2020 Red Hat, Inc.
+# Copyright (c) 2020-2021 Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -14,12 +14,12 @@
 
 set -e
 
-MIDSTM_BRANCH="crw-2.5-rhel-8"
+MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 DEFAULT_TAG=${MIDSTM_BRANCH#*-}; DEFAULT_TAG=${DEFAULT_TAG%%-*};
 
 usage () {
 	echo "Usage:   $0 -b MIDSTM_BRANCH -s SOURCEDIR -t TARGETDIR"
-	echo "Example: $0 -b crw-2.5-rhel-8 -s /path/to/chectl -t /path/to/crwctl"
+	echo "Example: $0 -b ${MIDSTM_BRANCH} -s /path/to/chectl -t /path/to/crwctl"
 	echo ""
 	echo "Options:
 	--server-tag ${DEFAULT_TAG}-xx   (instead of default ${DEFAULT_TAG})
