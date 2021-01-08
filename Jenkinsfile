@@ -52,6 +52,10 @@ def CTL_path = "codeready-workspaces-chectl"
 def SHA_CTL = "SHA_CTL"
 def GITHUB_RELEASE_NAME=""
 
+environment {
+    SEGMENT_WRITE_KEY = credentials('segment-write-key')
+}
+
 timeout(20) {
     node("${buildNode}"){
         stage "Checkout crw-operator deploy"
@@ -145,6 +149,7 @@ timeout(20) {
 			git diff -u package.json
 			git tag -f "''' + CUSTOM_TAG + '''-redhat"
 			rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/
+			sed -i "s|INSERT-KEY-HERE|$SEGMENT_WRITE_KEY|g" src/hooks/analytics/analytics.ts
 			yarn && npx oclif-dev pack -t ''' + platforms + '''
 			# move from *-redhat/ (specific folder, generic name) to redhat/ (generic folder, specific name)
 			mv dist/channels/*redhat dist/channels/redhat
