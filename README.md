@@ -499,7 +499,7 @@ OPTIONS
       [default: codeready] CodeReady Workspaces deployment name
 
   --dev-workspace-controller-image=dev-workspace-controller-image
-      [default: quay.io/devfile/devworkspace-controller:sha-252745a] Container image of the dev workspace controller. This 
+      [default: quay.io/devfile/devworkspace-controller:sha-2b0293f] Container image of the dev workspace controller. This 
       parameter is used only when the workspace engine is the DevWorkspace
 
   --dev-workspace-controller-namespace=dev-workspace-controller-namespace
