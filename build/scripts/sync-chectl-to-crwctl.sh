@@ -97,6 +97,8 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|(const OPERATOR_GROUP_NAME =).+|\1 'codeready-operator-group'|g" \
 			-e "s|(const OPENSHIFT_OLM_CATALOG =).+|\1 'redhat-operators'|g" \
 			-e "s|(const DEFAULT_OLM_SUGGESTED_NAMESPACE =).+|\1 'openshift-workspaces'|g" \
+			-e "s|(const DEFAULT_CHE_NAMESPACE =).+|\1 'openshift-workspaces'|g" \
+			-e "s|(const LEGACY_CHE_NAMESPACE =).+|\1 'workspaces'|g" \
 			-e "s|(CVS_PREFIX =).+|\1 'crwoperator'|g" \
 			\
 			-e "s|\"CodeReady Workspaces will be deployed in Multi-User mode.+mode.\"|'CodeReady Workspaces can only be deployed in Multi-User mode.'|" \
@@ -166,7 +168,6 @@ pushd "${TARGETDIR}" >/dev/null
 	sed -r \
 		`# replace line after specified one with new default` \
 		-e "s|Kubernetes namespace|Openshift Project|g" \
-		-e "/description: 'Openshift Project/{n;s/.+/  default: 'workspaces',/}" \
 		-e "/description: .+ deployment name.+/{n;s/.+/  default: 'codeready',/}" \
 		-i "${TARGETDIR}/${d}"
 popd >/dev/null
