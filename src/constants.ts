@@ -29,6 +29,8 @@ export const CHE_CLUSTER_CRD = 'checlusters.org.eclipse.che'
 // operator
 export const OPERATOR_DEPLOYMENT_NAME = 'codeready-operator'
 export const CHE_OPERATOR_SELECTOR = 'app=codeready-operator'
+export const DEFAULT_CHE_NAMESPACE = 'openshift-workspaces'
+export const LEGACY_CHE_NAMESPACE = 'workspaces'
 
 // OLM
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'codeready-workspaces'
