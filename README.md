@@ -103,7 +103,7 @@ EXAMPLES
   crwctl auth:delete che-che.apps-crc.testing
 ```
 
-_See code: [src/commands/auth/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/auth/delete.ts)_
+_See code: [src/commands/auth/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/auth/delete.ts)_
 
 ## `crwctl auth:get`
 
@@ -118,7 +118,7 @@ OPTIONS
   --telemetry=on|off  Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/auth/get.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/auth/get.ts)_
+_See code: [src/commands/auth/get.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/auth/get.ts)_
 
 ## `crwctl auth:list`
 
@@ -133,7 +133,7 @@ OPTIONS
   --telemetry=on|off  Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/auth/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/auth/list.ts)_
+_See code: [src/commands/auth/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/auth/list.ts)_
 
 ## `crwctl auth:login [CHE-API-ENDPOINT]`
 
@@ -148,16 +148,10 @@ ARGUMENTS
 
 OPTIONS
   -h, --help                         show CLI help
-
-  -n, --chenamespace=chenamespace    [default: workspaces] Openshift Project where CodeReady Workspaces server is
-                                     supposed to be deployed
-
+  -n, --chenamespace=chenamespace    CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
   -p, --password=password            CodeReady Workspaces user password
-
   -t, --refresh-token=refresh-token  Keycloak refresh token
-
   -u, --username=username            CodeReady Workspaces username
-
   --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 
 EXAMPLES
@@ -177,7 +171,7 @@ EXAMPLES
   crwctl auth:login che.my.server.net
 ```
 
-_See code: [src/commands/auth/login.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/auth/login.ts)_
+_See code: [src/commands/auth/login.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/auth/login.ts)_
 
 ## `crwctl auth:logout`
 
@@ -192,7 +186,7 @@ OPTIONS
   --telemetry=on|off  Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/auth/logout.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/auth/logout.ts)_
+_See code: [src/commands/auth/logout.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/auth/logout.ts)_
 
 ## `crwctl auth:use [CHE-API-ENDPOINT]`
 
@@ -228,7 +222,7 @@ EXAMPLES
   crwctl auth:use -i
 ```
 
-_See code: [src/commands/auth/use.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/auth/use.ts)_
+_See code: [src/commands/auth/use.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/auth/use.ts)_
 
 ## `crwctl autocomplete [SHELL]`
 
@@ -275,7 +269,7 @@ OPTIONS
       show CLI help
 
   -n, --chenamespace=chenamespace
-      [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed to be deployed
+      CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
@@ -284,7 +278,7 @@ OPTIONS
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/cacert/export.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/cacert/export.ts)_
 
 ## `crwctl dashboard:open`
 
@@ -296,14 +290,11 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-
-  -n, --chenamespace=chenamespace  [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed
-                                   to be deployed
-
+  -n, --chenamespace=chenamespace  CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/dashboard/open.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/dashboard/open.ts)_
 
 ## `crwctl devfile:generate`
 
@@ -337,7 +328,7 @@ OPTIONS
   --telemetry=on|off         Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/devfile/generate.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/devfile/generate.ts)_
+_See code: [src/commands/devfile/generate.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/devfile/generate.ts)_
 
 ## `crwctl help [COMMAND]`
 
@@ -366,18 +357,13 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-
-  -n, --chenamespace=chenamespace  [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed
-                                   to be deployed
-
+  -n, --chenamespace=chenamespace  CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
   --debug-port=debug-port          [default: 8000] CodeReady Workspaces server debug port
-
   --skip-kubernetes-health-check   Skip Kubernetes health check
-
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/server/debug.ts)_
 
 ## `crwctl server:delete`
 
@@ -390,9 +376,8 @@ USAGE
 OPTIONS
   -h, --help                                                               show CLI help
 
-  -n, --chenamespace=chenamespace                                          [default: workspaces] Openshift Project where
-                                                                           CodeReady Workspaces server is supposed to be
-                                                                           deployed
+  -n, --chenamespace=chenamespace                                          CodeReady Workspaces Openshift Project.
+                                                                           Default to 'openshift-workspaces'
 
   -y, --yes                                                                Automatic yes to prompts; assume "yes" as
                                                                            answer to all prompts and run
@@ -415,7 +400,7 @@ OPTIONS
                                                                            a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/server/delete.ts)_
 
 ## `crwctl server:deploy`
 
@@ -443,7 +428,7 @@ OPTIONS
         		                Note, this option is turned on by default.
 
   -n, --chenamespace=chenamespace
-      [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed to be deployed
+      CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
 
   -o, --cheboottimeout=cheboottimeout
       (required) [default: 40000] CodeReady Workspaces server bootstrap timeout (in milliseconds)
@@ -574,7 +559,7 @@ OPTIONS
       persistent volume(s) storage class name to use to store CodeReady Workspaces workspaces data
 ```
 
-_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/server/deploy.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/server/deploy.ts)_
 
 ## `crwctl server:logs`
 
@@ -587,18 +572,13 @@ USAGE
 OPTIONS
   -d, --directory=directory          Directory to store logs into
   -h, --help                         show CLI help
-
-  -n, --chenamespace=chenamespace    [default: workspaces] Openshift Project where CodeReady Workspaces server is
-                                     supposed to be deployed
-
+  -n, --chenamespace=chenamespace    CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
   --deployment-name=deployment-name  [default: codeready] CodeReady Workspaces deployment name
-
   --skip-kubernetes-health-check     Skip Kubernetes health check
-
   --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/server/logs.ts)_
 
 ## `crwctl server:start`
 
@@ -612,8 +592,8 @@ OPTIONS
   -d, --directory=directory                                Directory to store logs into
   -h, --help                                               show CLI help
 
-  -n, --chenamespace=chenamespace                          [default: workspaces] Openshift Project where CodeReady
-                                                           Workspaces server is supposed to be deployed
+  -n, --chenamespace=chenamespace                          CodeReady Workspaces Openshift Project. Default to
+                                                           'openshift-workspaces'
 
   --deployment-name=deployment-name                        [default: codeready] CodeReady Workspaces deployment name
 
@@ -632,7 +612,7 @@ OPTIONS
   --skip-kubernetes-health-check                           Skip Kubernetes health check
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/server/start.ts)_
 
 ## `crwctl server:status`
 
@@ -644,14 +624,11 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-
-  -n, --chenamespace=chenamespace  [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed
-                                   to be deployed
-
+  -n, --chenamespace=chenamespace  CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/server/status.ts)_
+_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/server/status.ts)_
 
 ## `crwctl server:stop`
 
@@ -666,7 +643,7 @@ OPTIONS
       show CLI help
 
   -n, --chenamespace=chenamespace
-      [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed to be deployed
+      CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
 
   --access-token=access-token
       CodeReady Workspaces OIDC Access Token. See the documentation how to obtain token: 
@@ -692,7 +669,7 @@ OPTIONS
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/server/stop.ts)_
 
 ## `crwctl server:update`
 
@@ -705,8 +682,8 @@ USAGE
 OPTIONS
   -h, --help                                               show CLI help
 
-  -n, --chenamespace=chenamespace                          [default: workspaces] Openshift Project where CodeReady
-                                                           Workspaces server is supposed to be deployed
+  -n, --chenamespace=chenamespace                          CodeReady Workspaces Openshift Project. Default to
+                                                           'openshift-workspaces'
 
   -p, --platform=openshift|crc                             [default: openshift] Type of OpenShift platform. Valid values
                                                            are "openshift", "crc (for CodeReady Containers)".
@@ -743,7 +720,7 @@ EXAMPLES
   crwctl server:update --che-operator-cr-patch-yaml patch.yaml
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/server/update.ts)_
 
 ## `crwctl update [CHANNEL]`
 
@@ -776,7 +753,7 @@ OPTIONS
       show CLI help
 
   -n, --chenamespace=chenamespace
-      [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed to be deployed
+      CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
 
   -s, --start
       Starts the workspace after creation
@@ -801,7 +778,7 @@ OPTIONS
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/workspace/create.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/workspace/create.ts)_
+_See code: [src/commands/workspace/create.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/workspace/create.ts)_
 
 ## `crwctl workspace:delete WORKSPACE`
 
@@ -819,7 +796,7 @@ OPTIONS
       show CLI help
 
   -n, --chenamespace=chenamespace
-      [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed to be deployed
+      CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
 
   --access-token=access-token
       CodeReady Workspaces OIDC Access Token. See the documentation how to obtain token: 
@@ -841,7 +818,7 @@ OPTIONS
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/workspace/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/workspace/delete.ts)_
+_See code: [src/commands/workspace/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/workspace/delete.ts)_
 
 ## `crwctl workspace:inject`
 
@@ -862,7 +839,7 @@ OPTIONS
       (required) Inject the local Kubernetes configuration
 
   -n, --chenamespace=chenamespace
-      [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed to be deployed
+      CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
 
   -w, --workspace=workspace
       The workspace id to inject configuration into. It can be omitted if the only one running workspace exists.
@@ -888,7 +865,7 @@ OPTIONS
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/workspace/inject.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/workspace/inject.ts)_
+_See code: [src/commands/workspace/inject.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/workspace/inject.ts)_
 
 ## `crwctl workspace:list`
 
@@ -903,7 +880,7 @@ OPTIONS
       show CLI help
 
   -n, --chenamespace=chenamespace
-      [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed to be deployed
+      CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
 
   --access-token=access-token
       CodeReady Workspaces OIDC Access Token. See the documentation how to obtain token: 
@@ -922,7 +899,7 @@ OPTIONS
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/workspace/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/workspace/list.ts)_
+_See code: [src/commands/workspace/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/workspace/list.ts)_
 
 ## `crwctl workspace:logs`
 
@@ -946,7 +923,7 @@ OPTIONS
   --telemetry=on|off              Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/workspace/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/workspace/logs.ts)_
+_See code: [src/commands/workspace/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/workspace/logs.ts)_
 
 ## `crwctl workspace:start WORKSPACE`
 
@@ -967,7 +944,7 @@ OPTIONS
       show CLI help
 
   -n, --chenamespace=chenamespace
-      [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed to be deployed
+      CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
 
   --access-token=access-token
       CodeReady Workspaces OIDC Access Token. See the documentation how to obtain token: 
@@ -986,7 +963,7 @@ OPTIONS
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/workspace/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/workspace/start.ts)_
+_See code: [src/commands/workspace/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/workspace/start.ts)_
 
 ## `crwctl workspace:stop WORKSPACE`
 
@@ -1004,7 +981,7 @@ OPTIONS
       show CLI help
 
   -n, --chenamespace=chenamespace
-      [default: workspaces] Openshift Project where CodeReady Workspaces server is supposed to be deployed
+      CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
 
   --access-token=access-token
       CodeReady Workspaces OIDC Access Token. See the documentation how to obtain token: 
@@ -1023,7 +1000,7 @@ OPTIONS
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/workspace/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-ER-01-13-redhat/src/commands/workspace/stop.ts)_
+_See code: [src/commands/workspace/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.6.0-20210114-1030-redhat/src/commands/workspace/stop.ts)_
 <!-- commandsstop -->
 
 # Contributing
