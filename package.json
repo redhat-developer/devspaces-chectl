@@ -1,6 +1,6 @@
 {
   "name": "crwctl",
-  "version": "2.6.0-RC-01-25-redhat",
+  "version": "2.6.0-CI-redhat",
   "description": "CodeReady Workspaces CLI",
   "keywords": [
     "oclif"
