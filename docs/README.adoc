@@ -63,8 +63,8 @@ If you need to swap out a default image for a custom one, eg., for testing a cha
 
 ```
 # run deployment using custom-resource.yaml to override Che defaults with CRW defaults
-/path/to/crwctl server:start -n crw2custom \
-  --che-operator-image=quay.io/crw/operator-rhel8:latest \
+/path/to/crwctl server:deploy -n crw2custom \
+  --che-operator-image=quay.io/crw/crw-2-rhel8-operator:latest \
   --che-operator-cr-yaml=custom-resource.yaml 
 ```
 
