@@ -8,13 +8,20 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
+export const CHECTL_PROJECT_NAME = 'crwctl'
+export const OPERATOR_TEMPLATE_DIR = 'codeready-operator'
+
+// minimal installable versions by current crwctl
+export const MIN_OLM_INSTALLER_VERSION = '7.17.0'
+export const MIN_CHE_OPERATOR_INSTALLER_VERSION = '7.13.1'
+export const MIN_HELM_INSTALLER_VERSION = '7.10.0'
+
 // labels
 export const CHE_RELATED_COMPONENT_LABEL = 'client/org.eclipse.che=true'
 
- // images
-export const DEFAULT_CHE_IMAGE = 'registry.redhat.io/codeready-workspaces/server-rhel8:2.6'
-export const DEFAULT_CHE_OPERATOR_IMAGE = 'registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:2.6'
-export const DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE = 'quay.io/devfile/devworkspace-controller:sha-b434f12'
+// images
+export const DEFAULT_CHE_OPERATOR_IMAGE_NAME = 'quay.io/eclipse/codeready-operator'
+export const DEFAULT_DEV_WORKSPACE_CONTROLLER_IMAGE = 'quay.io/devfile/devworkspace-controller:sha-c7cbda9'
 // This image should be updated manually when needed.
 // Repository location: https://github.com/che-dockerfiles/che-cert-manager-ca-cert-generator-image
 export const CA_CERT_GENERATION_JOB_IMAGE = 'quay.io/eclipse/che-cert-manager-ca-cert-generator:671342c'
@@ -48,10 +55,10 @@ export const NIGHTLY_CATALOG_SOURCE_NAME = 'eclipse-che-preview'
 export const DEFAULT_OLM_SUGGESTED_NAMESPACE = 'openshift-workspaces'
 
 // Documentation links
-export const DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.6/'
-export const DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.6/html/release_notes_and_known_issues/index'
-export const DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY = 'https://www.eclipse.org/che/docs/che-7/overview/running-che-locally/'
-export const DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER = 'https://www.eclipse.org/che/docs/che-7/overview/importing-certificates-to-browsers/'
+export const DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.7/'
+export const DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.7/html/release_notes_and_known_issues/index'
+export const DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY = 'https://www.eclipse.org/che/docs/che-7/installation-guide/installing-che-locally/'
+export const DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER = 'https://www.eclipse.org/che/docs/che-7/end-user-guide/importing-certificates-to-browsers/'
 export const DOCS_LINK_HOW_TO_ADD_IDENTITY_PROVIDER_OS4 = 'https://docs.openshift.com/container-platform/latest/authentication/understanding-identity-provider.html#identity-provider-overview_understanding-identity-provider'
 export const DOCS_LINK_HOW_TO_CREATE_USER_OS3 = 'https://docs.openshift.com/container-platform/3.11/install_config/configuring_authentication.html'
 export const DOC_LINK_OBTAIN_ACCESS_TOKEN = 'https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_authenticating-to-the-che-server'

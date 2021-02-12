@@ -25,7 +25,6 @@ export class InstallerTasks {
     let title: string
     let task: any
 
-    // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the CodeReady Workspaces operator Update'
       task = () => {
@@ -54,7 +53,6 @@ export class InstallerTasks {
     let title: string
     let task: any
 
-    // let task: Listr.ListrTask
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the CodeReady Workspaces operator Update'
       task = () => {
@@ -83,8 +81,6 @@ export class InstallerTasks {
     let title: string
     let task: any
 
-    // let task: Listr.ListrTask
-
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the CodeReady Workspaces operator'
       task = () => {
@@ -93,7 +89,7 @@ export class InstallerTasks {
           flags.multiuser = true
         }
 
-        return operatorTasks.startTasks(flags, command)
+        return operatorTasks.deployTasks(flags, command)
       }
     } else if (flags.installer === 'olm') {
       title = '🏃‍  Running Olm installaion CodeReady Workspaces'

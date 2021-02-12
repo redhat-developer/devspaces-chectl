@@ -15,7 +15,7 @@ import * as Listrq from 'listr'
 
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { assumeYes, cheDeployment, cheNamespace, CHE_TELEMETRY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { assumeYes, batch, cheDeployment, cheNamespace, CHE_TELEMETRY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
@@ -30,6 +30,7 @@ export default class Delete extends Command {
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
+    batch,
     'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,
     'delete-namespace': boolean({
       description: 'Indicates that a CodeReady Workspaces namespace will be deleted as well',
@@ -77,7 +78,7 @@ export default class Delete extends Command {
       tasks.add(cheTasks.deleteNamespace(flags))
     }
 
-    if (await this.isDeletionConfirmed(flags)) {
+    if (flags.batch || await this.isDeletionConfirmed(flags)) {
       try {
         await tasks.run()
         cli.log(getCommandSuccessMessage())
@@ -98,7 +99,7 @@ export default class Delete extends Command {
       throw new Error('Failed to get current Kubernetes cluster. Check if the current context is set via kubectl/oc')
     }
 
-    if (!flags.yes) {
+    if (!flags.batch && !flags.yes) {
       return cli.confirm(`You're going to remove CodeReady Workspaces server in namespace '${flags.chenamespace}' on server '${cluster ? cluster.server : ''}'. If you want to continue - press Y`)
     }
 
