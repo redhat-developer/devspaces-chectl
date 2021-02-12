@@ -188,9 +188,6 @@ pushd "${TARGETDIR}" >/dev/null
 	mkdir -p "${TARGETDIR}/${d%/*}"
 	perl -0777 -p -i -e 's|(export class OperatorTasks.*?  resourcesPath = )|  ${1} =~ /.+che-operator.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
 	sed -r -e "s#INSERT-CONTENT-HERE.+#${operatorTasksString}#" -i "${TARGETDIR}/${d}"
-
-	# Set correct template dir name
-	sed -r -e "s#INSERT-CONTENT-HERE.+#${operatorTasksString}#" -i "${TARGETDIR}/${d}"
 popd >/dev/null
 
 # remove if blocks
