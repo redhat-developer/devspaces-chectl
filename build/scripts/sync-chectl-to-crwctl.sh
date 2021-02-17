@@ -85,8 +85,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "/    const (minishiftAddonTasks|msAddonTasks) = new MinishiftAddonTasks\(\)/d" \
 			-e '/.+tasks.add\(helmTasks.+/d' \
 			-e '/.+tasks.add\((minishiftAddonTasks|msAddonTasks).+/d' \
-			-e "s|(const DEFAULT_CHE_IMAGE =).+|\1 'registry.redhat.io/codeready-workspaces/server-rhel8:${CRW_SERVER_TAG}'|g" \
-			-e "s|(const DEFAULT_CHE_OPERATOR_IMAGE =).+|\1 'registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator:${CRW_OPERATOR_TAG}'|g" \
+			-e "s|(const DEFAULT_CHE_OPERATOR_IMAGE_NAME =).+|\1 'registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator'|g" \
 			\
 			-e "s|(const CHE_CLUSTER_CR_NAME =).+|\1 'codeready-workspaces'|g" \
 			\
@@ -168,6 +167,7 @@ pushd "${TARGETDIR}" >/dev/null
 	sed -r \
 		`# replace line after specified one with new default` \
 		-e "s|Kubernetes namespace|Openshift Project|g" \
+		-e "s|env: 'CHE_DEPLOY_VERSION'|env: 'CHE_DEPLOY_VERSION',\n  hidden: true|g" \
 		-e "/description: .+ deployment name.+/{n;s/.+/  default: 'codeready',/}" \
 		-i "${TARGETDIR}/${d}"
 popd >/dev/null
@@ -206,6 +206,11 @@ pushd "${TARGETDIR}" >/dev/null
 	mkdir -p "${TARGETDIR}/${d%/*}"
 	sed -r -e "s#DOC_LINK =.+#DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/${CRW_VERSION}/'#" -i "${TARGETDIR}/${d}"
 	sed -r -e "s#DOC_LINK_RELEASE_NOTES.+#DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/${CRW_VERSION}/html/release_notes_and_known_issues/index'#" -i "${TARGETDIR}/${d}"
+
+	# Restore replaced upstream project
+	sed -r -e "s#CHECTL_PROJECT_NAME =.+#CHECTL_PROJECT_NAME = 'chectl'#" -i "${TARGETDIR}/${d}"
+	# Fix correct templates directory
+	sed -r -e "s#OPERATOR_TEMPLATE_DIR =.+#OPERATOR_TEMPLATE_DIR = 'codeready-workspaces-operator'#" -i "${TARGETDIR}/${d}"
 popd >/dev/null
 
 replaceVar()
