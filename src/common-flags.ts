@@ -23,6 +23,12 @@ export const devWorkspaceControllerNamespace = string({
   env: 'DEV_WORKSPACE_OPERATOR_NAMESPACE',
 })
 
+export const batch = boolean({
+  description: 'Batch mode. Running a command without end user interaction.',
+  default: false,
+  required: false,
+})
+
 export const cheDeployment = string({
   description: 'CodeReady Workspaces deployment name',
   default: 'codeready',
@@ -65,6 +71,7 @@ export const assumeYes = boolean({
   char: 'y',
   default: false,
   required: false,
+  exclusive: ['batch'],
 })
 
 export const CHE_OPERATOR_CR_YAML_KEY = 'che-operator-cr-yaml'
@@ -115,4 +122,18 @@ export const logsDirectory = string({
 export const CHE_TELEMETRY = string({
   description: 'Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry',
   options: ['on', 'off']
+})
+
+export const DEPLOY_VERSION_KEY = 'version'
+export const cheDeployVersion = string({
+  char: 'v',
+  description: 'Version to deploy (e.g. 7.15.2). Defaults to the same as crwctl.',
+  env: 'CHE_DEPLOY_VERSION',
+  hidden: true,
+})
+
+export const FOLLOW_LOGS = boolean({
+  description: 'Indicate if logs should be streamed',
+  default: false,
+  required: false,
 })

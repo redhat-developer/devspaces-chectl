@@ -12,10 +12,11 @@ import { Command, flags } from '@oclif/command'
 import { boolean } from '@oclif/command/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listrq from 'listr'
+import Listr = require('listr')
 
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { assumeYes, cheDeployment, cheNamespace, CHE_TELEMETRY, devWorkspaceControllerNamespace, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
+import { assumeYes, batch, cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
@@ -30,7 +31,7 @@ export default class Delete extends Command {
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
-    'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,
+    batch,
     'delete-namespace': boolean({
       description: 'Indicates that a CodeReady Workspaces namespace will be deleted as well',
       default: false
@@ -50,6 +51,7 @@ export default class Delete extends Command {
   async run() {
     const { flags } = this.parse(Delete)
     const ctx = await ChectlContext.initAndGet(flags, this)
+
     flags.chenamespace = await findWorkingNamespace(flags)
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Delete.id, flags })
@@ -60,24 +62,35 @@ export default class Delete extends Command {
     }
 
     const apiTasks = new ApiTasks()
+    const kube = new KubeHelper(flags)
     const operatorTasks = new OperatorTasks()
     const olmTasks = new OLMTasks()
     const cheTasks = new CheTasks(flags)
     const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
     const tasks = new Listrq([], ctx.listrOptions)
-
     tasks.add(apiTasks.testApiTasks(flags, this))
     tasks.add(operatorTasks.deleteTasks(flags))
     tasks.add(olmTasks.deleteTasks(flags))
     tasks.add(cheTasks.deleteTasks(flags))
-    tasks.add(devWorkspaceTasks.getUninstallTasks())
     tasks.add(cheTasks.waitPodsDeletedTasks())
+
+    // Remove devworkspace controller only if there are no more cheClusters after olm/operator tasks
+    tasks.add({
+      title: 'Uninstall DevWorkspace Controller',
+      task: async (_ctx: any, task: any) => {
+        const checlusters = await kube.getAllCheClusters()
+        if (checlusters.length === 0) {
+          return new Listr(devWorkspaceTasks.getUninstallTasks())
+        }
+        task.title = `${task.title}...Skipped: another CodeReady Workspaces deployment found.`
+      }})
+
     if (flags['delete-namespace']) {
       tasks.add(cheTasks.deleteNamespace(flags))
     }
 
-    if (await this.isDeletionConfirmed(flags)) {
+    if (flags.batch || await this.isDeletionConfirmed(flags)) {
       try {
         await tasks.run()
         cli.log(getCommandSuccessMessage())
@@ -93,12 +106,14 @@ export default class Delete extends Command {
   }
 
   async isDeletionConfirmed(flags: any): Promise<boolean> {
-    const cluster = KubeHelper.KUBE_CONFIG.getCurrentCluster()
+    const kc = new KubeHelper(flags)
+    const cluster = kc.kubeConfig.getCurrentCluster()
+
     if (!cluster) {
       throw new Error('Failed to get current Kubernetes cluster. Check if the current context is set via kubectl/oc')
     }
 
-    if (!flags.yes) {
+    if (!flags.batch && !flags.yes) {
       return cli.confirm(`You're going to remove CodeReady Workspaces server in namespace '${flags.chenamespace}' on server '${cluster ? cluster.server : ''}'. If you want to continue - press Y`)
     }
 

@@ -8,12 +8,13 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
+import * as fs from 'fs-extra'
 import * as Listr from 'listr'
 import * as path from 'path'
 
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
-import { V1alpha2Certificate } from '../../api/typings/cert-manager'
+import { V1Certificate } from '../../api/typings/cert-manager'
 import { CA_CERT_GENERATION_JOB_IMAGE, CERT_MANAGER_NAMESPACE_NAME, CHE_RELATED_COMPONENT_LABEL, CHE_ROOT_CA_SECRET_NAME, CHE_TLS_SECRET_NAME } from '../../constants'
 import { base64Decode } from '../../util'
 import { getMessageImportCaCertIntoBrowser } from '../installers/common-tasks'
@@ -29,17 +30,16 @@ export class CertManagerTasks {
     this.kubeHelper = new KubeHelper(flags)
     this.cheHelper = new CheHelper(flags)
   }
-
   /**
-   * Returns list of tasks which perform cert-manager checks and deploy and requests self-signed certificate for Che.
+   * Verify if cert-manager is installed in cluster
    */
-  getTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+  getDeployCertManagerTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Check Cert Manager deployment',
         task: async (ctx: any, task: any) => {
           // Check only one CRD of cert-manager assuming that it is installed or not.
-          ctx.certManagerInstalled = await this.kubeHelper.getNamespace(CERT_MANAGER_NAMESPACE_NAME) && await this.kubeHelper.crdExist('certificates.cert-manager.io')
+          ctx.certManagerInstalled = await this.kubeHelper.getNamespace(CERT_MANAGER_NAMESPACE_NAME) && await this.kubeHelper.isCrdV1Exists('certificates.cert-manager.io')
           if (ctx.certManagerInstalled) {
             task.title = `${task.title}...already deployed`
           } else {
@@ -51,7 +51,12 @@ export class CertManagerTasks {
         title: 'Deploy cert-manager',
         enabled: ctx => !ctx.certManagerInstalled,
         task: async (ctx: any, task: any) => {
-          const yamlPath = path.join(flags.templates, '..', 'installers', 'cert-manager.yml')
+          let yamlPath = path.join(flags.templates, 'cert-manager', 'cert-manager.yaml')
+          if (! await fs.pathExists(yamlPath)) {
+            // Older Che versions don't have Cert Manager install yaml in templates
+            // Try to use embedded in crwctl version
+            yamlPath = path.join(__dirname, '../../../installers/cert-manager.yml')
+          }
           // Apply additional --validate=false flag to be able to deploy Cert Manager on Kubernetes v1.15.4 or below
           await this.kubeHelper.applyResource(yamlPath, '--validate=false')
           ctx.certManagerInstalled = true
@@ -77,6 +82,13 @@ export class CertManagerTasks {
           task.title = `${task.title}...ready`
         }
       },
+    ]
+  }
+  /**
+   * Returns list of tasks which perform cert-manager checks and requests self-signed certificate for Che.
+   */
+  getGenerateCertificatesTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+    return [
       {
         title: 'Check Cert Manager CA certificate',
         task: async (ctx: any, task: any) => {
@@ -176,7 +188,7 @@ export class CertManagerTasks {
           }
 
           const certificateTemplatePath = path.join(flags.templates, '/cert-manager/che-certificate.yml')
-          const certifiateYaml = this.kubeHelper.safeLoadFromYamlFile(certificateTemplatePath) as V1alpha2Certificate
+          const certifiateYaml = this.kubeHelper.safeLoadFromYamlFile(certificateTemplatePath) as V1Certificate
 
           const CN = '*.' + flags.domain
           certifiateYaml.spec.commonName = CN

@@ -20,13 +20,14 @@ import * as yaml from 'js-yaml'
 import * as nodeforge from 'node-forge'
 import * as os from 'os'
 import * as path from 'path'
+import * as rimraf from 'rimraf'
+import * as unzipper from 'unzipper'
 
 import { OpenShiftHelper } from '../api/openshift'
-import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../constants'
-import { base64Decode } from '../util'
+import { CHE_ROOT_CA_SECRET_NAME, DEFAULT_CA_CERT_FILE_NAME, OPERATOR_TEMPLATE_DIR } from '../constants'
+import { base64Decode, downloadFile } from '../util'
 
 import { CheApiClient } from './che-api-client'
-import { ChectlContext } from './context'
 import { Devfile } from './devfile'
 import { KubeHelper } from './kube'
 
@@ -54,7 +55,7 @@ export class CheHelper {
    * or if workspace ID wasn't specified but more than one workspace is found.
    */
   async getWorkspacePodName(namespace: string, cheWorkspaceId: string): Promise<string> {
-    const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
+    const k8sApi = this.kube.kubeConfig.makeApiClient(CoreV1Api)
 
     const res = await k8sApi.listNamespacedPod(namespace)
     const pods = res.body.items
@@ -78,7 +79,7 @@ export class CheHelper {
   }
 
   async getWorkspacePodContainers(namespace: string, cheWorkspaceId?: string): Promise<string[]> {
-    const k8sApi = KubeHelper.KUBE_CONFIG.makeApiClient(CoreV1Api)
+    const k8sApi = this.kube.kubeConfig.makeApiClient(CoreV1Api)
 
     const res = await k8sApi.listNamespacedPod(namespace)
     const pods = res.body.items
@@ -106,8 +107,7 @@ export class CheHelper {
       throw new Error(`ERR_NAMESPACE_NO_EXIST - No namespace ${namespace} is found`)
     }
 
-    const ctx = ChectlContext.get()
-    if (ctx.isOpenShift) {
+    if (await this.kube.isOpenShift()) {
       return this.cheOpenShiftURL(namespace)
     } else {
       return this.cheK8sURL(namespace)
@@ -125,8 +125,7 @@ export class CheHelper {
     }
 
     // grab URL
-    const ctx = ChectlContext.get()
-    if (ctx.isOpenShift) {
+    if (await this.kube.isOpenShift()) {
       return this.chePluginRegistryOpenShiftURL(namespace)
     } else {
       return this.chePluginRegistryK8sURL(namespace)
@@ -314,27 +313,11 @@ export class CheHelper {
   /**
    * Finds workspace pods and reads logs from it.
    */
-  async readWorkspacePodLog(namespace: string, workspaceId: string, directory: string): Promise<boolean> {
+  async readWorkspacePodLog(namespace: string, workspaceId: string, directory: string, follow: boolean): Promise<void> {
     const podLabelSelector = `che.workspace_id=${workspaceId}`
 
-    let workspaceIsRun = false
-
-    const pods = await this.kube.listNamespacedPod(namespace, undefined, podLabelSelector)
-    if (pods.items.length) {
-      workspaceIsRun = true
-    }
-
-    for (const pod of pods.items) {
-      for (const containerStatus of pod.status!.containerStatuses!) {
-        workspaceIsRun = workspaceIsRun && !!containerStatus.state && !!containerStatus.state.running
-      }
-    }
-
-    const follow = !workspaceIsRun
     await this.readPodLog(namespace, podLabelSelector, directory, follow)
     await this.readNamespaceEvents(namespace, directory, follow)
-
-    return workspaceIsRun
   }
 
   /**
@@ -389,7 +372,7 @@ export class CheHelper {
   async watchNamespacedPods(namespace: string, podLabelSelector: string | undefined, directory: string): Promise<void> {
     const processedContainers = new Map<string, Set<string>>()
 
-    const watcher = new Watch(KubeHelper.KUBE_CONFIG)
+    const watcher = new Watch(this.kube.kubeConfig)
     return watcher.watch(`/api/v1/namespaces/${namespace}/pods`, {},
       async (_phase: string, obj: any) => {
         const pod = obj as V1Pod
@@ -482,6 +465,71 @@ export class CheHelper {
     fs.ensureFileSync(fileName)
 
     return fileName
+  }
+
+  /**
+   * Gets install templates for given installer.
+   * @param installer Che installer
+   * @param url link to zip archive with sources of Che operator
+   * @param destDir destination directory into which the templates should be unpacked
+   */
+  async downloadAndUnpackTemplates(installer: string, url: string, destDir: string): Promise<void> {
+    // Add codeready-operator folder for operator templates
+    if (installer === 'operator') {
+      destDir = path.join(destDir, OPERATOR_TEMPLATE_DIR)
+    }
+    // No need to add kubernetes folder for Helm installer as it already present in the archive
+
+    const tempDir = path.join(os.tmpdir(), Date.now().toString())
+    await fs.mkdirp(tempDir)
+    const zipFile = path.join(tempDir, `che-templates-${installer}.zip`)
+    await downloadFile(url, zipFile)
+    await this.unzipTemplates(zipFile, destDir)
+    // Clean up zip. Do not wait when finishes.
+    rimraf(tempDir, () => {})
+  }
+
+  /**
+   * Unpacks repository deploy templates into specified folder
+   * @param zipFile path to zip archive with source code
+   * @param destDir target directory into which templates should be unpacked
+   */
+  private async unzipTemplates(zipFile: string, destDir: string) {
+    // Gets path from: repo-name/deploy/path
+    const deployDirRegex = new RegExp('(?:^[\\\w-]*\\\/deploy\\\/)(.*)')
+
+    const zip = fs.createReadStream(zipFile).pipe(unzipper.Parse({ forceStream: true }))
+    for await (const entry of zip) {
+      const entryPathInZip: string = entry.path
+      const templatesPathMatch = entryPathInZip.match(deployDirRegex)
+      if (templatesPathMatch && templatesPathMatch.length > 1 && templatesPathMatch[1]) {
+        // Remove prefix from in-zip path
+        const entryPathWhenExtracted = templatesPathMatch[1]
+        // Path to the item in target location
+        const dest = path.join(destDir, entryPathWhenExtracted)
+
+        // Extract item
+        if (entry.type === 'File') {
+          const parentDirName = path.dirname(dest)
+          if (!fs.existsSync(parentDirName)) {
+            await fs.mkdirp(parentDirName)
+          }
+          entry.pipe(fs.createWriteStream(dest))
+        } else if (entry.type === 'Directory') {
+          if (!fs.existsSync(dest)) {
+            await fs.mkdirp(dest)
+          }
+          // The folder is created above
+          entry.autodrain()
+        } else {
+          // Ignore the item as we do not need to handle links and etc.
+          entry.autodrain()
+        }
+      } else {
+        // No need to extract this item
+        entry.autodrain()
+      }
+    }
   }
 
 }

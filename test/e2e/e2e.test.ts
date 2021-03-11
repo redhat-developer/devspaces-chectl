@@ -16,12 +16,12 @@ import * as execa from 'execa'
 import { DEFAULT_OLM_SUGGESTED_NAMESPACE } from '../../src/constants'
 import { isKubernetesPlatformFamily } from '../../src/util'
 
-import { E2eHelper } from './util'
+import { E2eHelper, LOGS_DIR, WORKSPACE_NAMESPACE } from './util'
 
 const helper = new E2eHelper()
 jest.setTimeout(1000000)
 
-const binChectl = `${process.cwd()}/bin/run`
+const binChectl = E2eHelper.getChectlBinaries()
 
 const NAMESPACE = DEFAULT_OLM_SUGGESTED_NAMESPACE
 
@@ -36,6 +36,8 @@ const PLATFORM_MINIKUBE = 'minikube'
 const INSTALLER_OPERATOR = 'operator'
 const INSTALLER_HELM = 'helm'
 const INSTALLER_OLM = 'olm'
+
+const DEVFILE_URL = 'https://raw.githubusercontent.com/eclipse/che-devfile-registry/master/devfiles/quarkus/devfile.yaml'
 
 function getDeployCommand(): string {
   let command: string
@@ -148,7 +150,7 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
     it('Testing workspace:create command', async () => {
       console.log('>>> Testing workspace:create command')
 
-      const { exitCode, stdout, stderr, } = await execa(binChectl, ['workspace:create', '--devfile=test/e2e/resources/devfile-example.yaml', '--telemetry=off', `-n ${NAMESPACE}`], { shell: true })
+      const { exitCode, stdout, stderr, } = await execa(binChectl, ['workspace:create', `--devfile=${DEVFILE_URL}`, '--telemetry=off', `-n ${NAMESPACE}`], { shell: true })
       console.log(`stdout: ${stdout}`)
       console.log(`stderr: ${stderr}`)
       expect(exitCode).equal(0)
@@ -161,15 +163,26 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
 
       const workspaceId = await helper.getWorkspaceId()
       const { exitCode, stdout, stderr, } = await execa(binChectl, ['workspace:start', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'], { shell: true })
-
       console.log(`stdout: ${stdout}`)
       console.log(`stderr: ${stderr}`)
       expect(exitCode).equal(0)
 
-      // Sleep time to wait to workspace to be running
-      await helper.sleep(200000)
-      const workspaceStatus = await helper.getWorkspaceStatus()
-      expect(workspaceStatus).to.contain('RUNNING')
+      // Wait for workspace start 7 minutes.
+      // NOTE: Put 7 minutes because in GH actions minikube cluster we have lower memory and workspace creation can take some time
+      const desiredStatus = await helper.waitWorkspaceStatus('RUNNING', 450000)
+      expect(desiredStatus).to.be.true
+    })
+  })
+
+  describe('Get workspace logs', () => {
+    it('Testing workspace:logs command', async () => {
+      console.log('>>> Testing workspace:logs command')
+      const workspaceId = await helper.getWorkspaceId()
+      const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:logs', `--workspace ${workspaceId}`, `-n ${WORKSPACE_NAMESPACE}`, `-d ${LOGS_DIR}`, '--telemetry=off'], { shell: true })
+
+      console.log(`stdout: ${stdout}`)
+      console.log(`stderr: ${stderr}`)
+      expect(exitCode).equal(0)
     })
   })
 
@@ -237,6 +250,18 @@ describe('Workspace creation, list, start, inject, delete. Support stop and dele
 
       const workspaceId = await helper.getWorkspaceId()
       const { exitCode, stdout, stderr } = await execa(binChectl, ['workspace:delete', workspaceId, `-n ${NAMESPACE}`, '--telemetry=off'], { shell: true })
+
+      console.log(`stdout: ${stdout}`)
+      console.log(`stderr: ${stderr}`)
+      expect(exitCode).equal(0)
+    })
+  })
+
+  describe('Get CodeReady Workspaces server logs', () => {
+    it('Testing server:logs command', async () => {
+      console.log('>>> Testing server:logs command')
+
+      const { exitCode, stdout, stderr } = await execa(binChectl, ['server:logs', `-d ${LOGS_DIR}`, '--telemetry=off'], { shell: true })
 
       console.log(`stdout: ${stdout}`)
       console.log(`stderr: ${stderr}`)
