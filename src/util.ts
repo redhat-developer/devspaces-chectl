@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
+import UpdateCommand from '@oclif/plugin-update/lib/commands/update'
 import axios from 'axios'
 import { cli } from 'cli-ux'
 import * as commandExists from 'command-exists'
@@ -168,9 +169,10 @@ export function notifyCommandCompletedSuccessfully(): void {
 export async function askForChectlUpdateIfNeeded(): Promise<void> {
   const ctx = ChectlContext.get()
   if (await VersionHelper.isChectlUpdateAvailable(ctx[ChectlContext.CACHE_DIR])) {
-    cli.info('A newer version of crwctl is available.')
-    if (await cli.confirm('To deploy the latest version of CodeReady Workspaces you have to update crwctl first [y/n]')) {
-      cli.info('Please run "crwctl update" and then repeat "server:deploy" command.')
+    cli.info('A more recent version of crwctl is available. To deploy the latest version of CodeReady Workspaces, update the crwctl tool first.')
+    if (await cli.confirm('Do you want to update crwctl now? [y/n]')) {
+      // Update crwctl
+      await UpdateCommand.run([])
       cli.exit(0)
     }
   }
