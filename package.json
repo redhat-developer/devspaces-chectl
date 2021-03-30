@@ -1,6 +1,6 @@
 {
   "name": "crwctl",
-  "version": "2.0-CI-redhat",
+  "version": "2.8.0-CI-redhat",
   "description": "CodeReady Workspaces CLI",
   "keywords": [
     "oclif"
@@ -83,7 +83,7 @@
     "ansi-colors": "4.1.1",
     "axios": "^0.21.1",
     "cli-ux": "^5.4.5",
-    "codeready-workspaces-operator": "git://github.com/redhat-developer/codeready-workspaces-operator#crw-2-rhel-8",
+    "codeready-workspaces-operator": "git://github.com/redhat-developer/codeready-workspaces-operator#crw-2.8-rhel-8",
     "command-exists": "^1.2.9",
     "countries-and-timezones": "^2.3.1",
     "debug": "^4.3.1",
