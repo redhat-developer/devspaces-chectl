@@ -1,6 +1,6 @@
 {
   "name": "crwctl",
-  "version": "2.9.0-20210331-1459-redhat",
+  "version": "2.0-CI-redhat",
   "description": "CodeReady Workspaces CLI",
   "keywords": [
     "oclif"
@@ -23,12 +23,11 @@
     "/oclif.manifest.json"
   ],
   "scripts": {
-    "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-cert-manager && npm run -s postinstall-operator && npm run -s postinstall-devfile-api && npm run -s postinstall-dev-workspace && npm run -s postinstall-cleanup",
+    "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-cert-manager && npm run -s postinstall-operator && npm run -s postinstall-dev-workspace && npm run -s postinstall-cleanup",
     "postinstall-cert-manager": "rimraf templates/cert-manager && cpx 'node_modules/eclipse-che/deploy/cert-manager/**' 'templates/cert-manager'",
-    "postinstall-devfile-api": "rimraf templates/devfile-api && cpx 'node_modules/eclipse-che-devfile-api/deploy/**' 'templates/devfile-api'",
     "postinstall-dev-workspace": "rimraf templates/devworkspace && cpx 'node_modules/eclipse-che-devfile-workspace-operator/deploy/**' 'templates/devworkspace'",
     "postinstall-operator": "rimraf templates/codeready-workspaces-operator && cpx 'node_modules/codeready-workspaces-operator/deploy/**' 'templates/codeready-workspaces-operator'",
-    "postinstall-repositories": "yarn upgrade eclipse-che codeready-workspaces-operator eclipse-che-devfile-api eclipse-che-devfile-workspace-operator",
+    "postinstall-repositories": "yarn upgrade eclipse-che codeready-workspaces-operator eclipse-che-devfile-workspace-operator",
     "postinstall-cleanup": "rimraf node_modules/eclipse-che && rimraf node_modules/codeready-workspaces-operator",
     "test": "jest --collect-coverage",
     "posttest": "tslint -p test -t stylish",
@@ -88,7 +87,6 @@
     "countries-and-timezones": "^2.3.1",
     "debug": "^4.3.1",
     "eclipse-che": "git://github.com/eclipse/che#master",
-    "eclipse-che-devfile-api": "git://github.com/devfile/api#v1alpha1",
     "eclipse-che-devfile-workspace-operator": "git://github.com/devfile/devworkspace-operator#main",
     "esprima": "^4.0.1",
     "execa": "^4.0.3",
