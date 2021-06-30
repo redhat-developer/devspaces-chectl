@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 import Command from '@oclif/command'
 import * as Listr from 'listr'
 
@@ -26,22 +28,26 @@ export class PlatformTasks {
     if (!flags.platform) {
       task = {
         title: '✈️  Platform preflight checklist',
-        task: () => { command.error('Platform is required ¯\\_(ツ)_/¯') }
+        task: () => {
+          command.error('Platform is required ¯\\_(ツ)_/¯')
+        },
       }
     } else if (flags.platform === 'openshift') {
       task = {
         title: '✈️  Openshift preflight checklist',
-        task: () => openshiftTasks.preflightCheckTasks(flags, command)
+        task: () => openshiftTasks.preflightCheckTasks(flags, command),
       }
     } else if (flags.platform === 'crc') {
       task = {
         title: '✈️  CodeReady Containers preflight checklist',
-        task: () => crc.preflightCheckTasks(flags, command)
+        task: () => crc.preflightCheckTasks(flags, command),
       }
     } else {
       task = {
         title: '✈️  Platform preflight checklist',
-        task: () => { command.error(`Platform ${flags.platform} is not supported yet ¯\\_(ツ)_/¯`) }
+        task: () => {
+          command.error(`Platform ${flags.platform} is not supported yet ¯\\_(ツ)_/¯`)
+        },
       }
     }
 

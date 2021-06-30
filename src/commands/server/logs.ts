@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
@@ -17,7 +19,7 @@ import { cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHeal
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage } from '../../util'
+import { findWorkingNamespace, getCommandSuccessMessage, wrapCommandError } from '../../util'
 
 export default class Logs extends Command {
   static description = 'Collect CodeReady Workspaces logs'
@@ -30,10 +32,10 @@ export default class Logs extends Command {
     directory: string({
       char: 'd',
       description: 'Directory to store logs into',
-      env: 'CHE_LOGS'
+      env: 'CHE_LOGS',
     }),
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   async run() {
@@ -46,7 +48,7 @@ export default class Logs extends Command {
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Logs.id, flags })
-    tasks.add(apiTasks.testApiTasks(flags, this))
+    tasks.add(apiTasks.testApiTasks(flags))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.serverLogsTasks(flags, false))
 
@@ -55,7 +57,7 @@ export default class Logs extends Command {
       await tasks.run(ctx)
       this.log(getCommandSuccessMessage())
     } catch (err) {
-      this.error(getCommandErrorMessage(err))
+      this.error(wrapCommandError(err))
     }
 
     this.exit(0)

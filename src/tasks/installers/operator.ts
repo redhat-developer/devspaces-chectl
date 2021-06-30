@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 import { V1ClusterRole, V1ClusterRoleBinding, V1Deployment, V1Role, V1RoleBinding } from '@kubernetes/client-node'
 import { Command } from '@oclif/command'
 import { cli } from 'cli-ux'
@@ -17,17 +19,21 @@ import * as path from 'path'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { CHE_CLUSTER_CRD, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME, OPERATOR_TEMPLATE_DIR } from '../../constants'
-import { safeLoadFromYamlFile } from '../../util'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_CRD, CHE_CLUSTER_KIND_PLURAL, CHE_OPERATOR_SELECTOR, OPERATOR_DEPLOYMENT_NAME, OPERATOR_TEMPLATE_DIR } from '../../constants'
+import { getImageNameAndTag, safeLoadFromYamlFile } from '../../util'
 import { KubeTasks } from '../kube'
 
 import { createEclipseCheCluster, createNamespaceTask, patchingEclipseCheCluster } from './common-tasks'
 
 export class OperatorTasks {
   operatorServiceAccount = 'codeready-operator'
+
   cheClusterCrd = 'checlusters.org.eclipse.che'
-  cheManagerCRD = 'chemanagers.che.eclipse.org'
-  dwRoutingCRD = 'devworkspaceroutings.controller.devfile.io'
+
+  cheClusterBackupCrd = 'checlusterbackups.org.eclipse.che'
+
+  cheClusterRestoreCrd = 'checlusterrestores.org.eclipse.che'
+
   legacyClusterResourcesName = 'codeready-operator'
 
   private getReadRolesAndBindingsTask(kube: KubeHelper): Listr.ListrTask {
@@ -75,7 +81,7 @@ export class OperatorTasks {
         }
 
         task.title = `${task.title}...done.`
-      }
+      },
     }
   }
 
@@ -139,19 +145,19 @@ export class OperatorTasks {
         }
 
         task.title = `${task.title}...done.`
-      }
+      },
     }
   }
 
   /**
    * Returns tasks list which perform preflight platform checks.
    */
-  deployTasks(flags: any, command: Command): Listr {
+  async deployTasks(flags: any, command: Command): Promise<Listr> {
     const kube = new KubeHelper(flags)
     const kubeTasks = new KubeTasks(flags)
     const ctx = ChectlContext.get()
     ctx.resourcesPath = path.join(flags.templates, OPERATOR_TEMPLATE_DIR)
-    if (VersionHelper.isDeployingStableVersion(flags)) {
+    if (VersionHelper.isDeployingStableVersion(flags) && !await kube.isOpenShift3()) {
       command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of CodeReady Workspaces (--installer=olm).')
     }
     return new Listr([
@@ -167,7 +173,7 @@ export class OperatorTasks {
             await kube.createServiceAccountFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       this.getReadRolesAndBindingsTask(kube),
       this.getCreateOrUpdateRolesAndBindingsTask(flags, 'Creating Roles and Bindings', false),
@@ -182,60 +188,45 @@ export class OperatorTasks {
             await kube.createCrdFromFile(newCRDPath)
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
-        title: `Create CRD ${this.cheManagerCRD}`,
+        title: 'Create backup and restore CRDs',
         task: async (ctx: any, task: any) => {
-          if (! await kube.IsAPIExtensionSupported('v1')) {
-            task.title = `${task.title}...Skipped.`
+          const backupCrdExist = await kube.getCrd(this.cheClusterBackupCrd)
+          const restoreCrdExist = await kube.getCrd(this.cheClusterRestoreCrd)
+          if (backupCrdExist && restoreCrdExist) {
+            task.title = `${task.title}...already exist.`
             return
           }
 
-          const existedCRD = await kube.getCrd(this.cheManagerCRD)
-          if (existedCRD) {
-            task.title = `${task.title}...It already exists.`
-          } else {
-            const newCRDPath = path.join(ctx.resourcesPath, 'crds', 'chemanagers.che.eclipse.org.CustomResourceDefinition.yaml')
-            if (!fs.existsSync(newCRDPath)) {
-              task.title = `${task.title}...Skipped.`
-              return
-            }
+          let done = false
+          const [backupCrdFileName, restoreCrdFileName] = await this.getBackupRestoreCrdFilesNames(kube)
+          const backupCrdPath = path.join(ctx.resourcesPath, 'crds', backupCrdFileName)
+          if (!backupCrdExist && fs.existsSync(backupCrdPath)) {
+            await kube.createCrdFromFile(backupCrdPath)
+            done = true
+          }
 
-            await kube.createCrdFromFile(newCRDPath)
+          const restoreCrdPath = path.join(ctx.resourcesPath, 'crds', restoreCrdFileName)
+          if (!restoreCrdExist && fs.existsSync(restoreCrdPath)) {
+            await kube.createCrdFromFile(restoreCrdPath)
+            done = true
+          }
+
+          if (done) {
             task.title = `${task.title}...done.`
-          }
-        }
-      },
-      {
-        title: `Create CRD ${this.dwRoutingCRD}`,
-        task: async (ctx: any, task: any) => {
-          if (! await kube.IsAPIExtensionSupported('v1')) {
-            task.title = `${task.title}...Skipped.`
-            return
-          }
-
-          const existedCRD = await kube.getCrd(this.dwRoutingCRD)
-          if (existedCRD) {
-            task.title = `${task.title}...It already exists.`
           } else {
-            const newCRDPath = path.join(ctx.resourcesPath, 'crds', 'devworkspaceroutings.controller.devfile.io.CustomResourceDefinition.yaml')
-            if (!fs.existsSync(newCRDPath)) {
-              task.title = `${task.title}...Skipped.`
-              return
-            }
-
-            await kube.createCrdFromFile(newCRDPath)
-            task.title = `${task.title}...done.`
+            task.title = `${task.title}...skipped.`
           }
-        }
+        },
       },
       {
         title: 'Waiting 5 seconds for the new Kubernetes resources to get flushed',
         task: async (_ctx: any, task: any) => {
           await cli.wait(5000)
           task.title = `${task.title}...done.`
-        }
+        },
       },
       {
         title: `Create deployment ${OPERATOR_DEPLOYMENT_NAME} in namespace ${flags.chenamespace}`,
@@ -249,11 +240,11 @@ export class OperatorTasks {
             await kube.createDeploymentFrom(operatorDeployment)
             task.title = `${task.title}...done.`
           }
-        }
+        },
       },
       {
         title: 'Operator pod bootstrap',
-        task: () => kubeTasks.podStartTasks(CHE_OPERATOR_SELECTOR, flags.chenamespace)
+        task: () => kubeTasks.podStartTasks(CHE_OPERATOR_SELECTOR, flags.chenamespace),
       },
       {
         title: 'Prepare CodeReady Workspaces cluster CR',
@@ -270,9 +261,9 @@ export class OperatorTasks {
           }
 
           task.title = `${task.title}...Done.`
-        }
+        },
       },
-      createEclipseCheCluster(flags, kube)
+      createEclipseCheCluster(flags, kube),
     ], { renderer: flags['listr-renderer'] as any })
   }
 
@@ -288,16 +279,15 @@ export class OperatorTasks {
           }
           ctx.deployedCheOperatorYaml = operatorDeployment
           task.title = `${task.title}...done`
-        }
+        },
       },
       {
         title: 'Detecting existing version...',
         task: async (ctx: any, task: any) => {
           ctx.deployedCheOperatorImage = this.retrieveContainerImage(ctx.deployedCheOperatorYaml)
-          const deployedCheOperatorImageAndTag = ctx.deployedCheOperatorImage.split(':', 2)
-          ctx.deployedCheOperatorImageName = deployedCheOperatorImageAndTag[0]
-          ctx.deployedCheOperatorImageTag = deployedCheOperatorImageAndTag.length === 2 ? deployedCheOperatorImageAndTag[1] : 'latest'
-          ctx.deployedCheOperatorImage = ctx.deployedCheOperatorImageName + ':' + ctx.deployedCheOperatorImageTag
+          const [deployedImage, deployedTag] = getImageNameAndTag(ctx.deployedCheOperatorImage)
+          ctx.deployedCheOperatorImageName = deployedImage
+          ctx.deployedCheOperatorImageTag = deployedTag
 
           if (flags['che-operator-image']) {
             ctx.newCheOperatorImage = flags['che-operator-image']
@@ -306,14 +296,14 @@ export class OperatorTasks {
             const newCheOperatorYaml = safeLoadFromYamlFile(path.join(flags.templates, OPERATOR_TEMPLATE_DIR, 'operator.yaml')) as V1Deployment
             ctx.newCheOperatorImage = this.retrieveContainerImage(newCheOperatorYaml)
           }
-          const newCheOperatorImageAndTag = ctx.newCheOperatorImage.split(':', 2)
-          ctx.newCheOperatorImageName = newCheOperatorImageAndTag[0]
-          ctx.newCheOperatorImageTag = newCheOperatorImageAndTag.length === 2 ? newCheOperatorImageAndTag[1] : 'latest'
-          ctx.newCheOperatorImage = ctx.newCheOperatorImageName + ':' + ctx.newCheOperatorImageTag
+          const [newImage, newTag] = getImageNameAndTag(ctx.newCheOperatorImage)
+          ctx.newCheOperatorImageName = newImage
+          ctx.newCheOperatorImageTag = newTag
 
           task.title = `${task.title} ${ctx.deployedCheOperatorImageTag} -> ${ctx.newCheOperatorImageTag}`
-        }
-      }])
+        },
+      },
+    ])
   }
 
   updateTasks(flags: any, command: Command): Listr {
@@ -333,7 +323,7 @@ export class OperatorTasks {
             await kube.createServiceAccountFromFile(yamlFilePath, flags.chenamespace)
             task.title = `${task.title}...created new one.`
           }
-        }
+        },
       },
       this.getReadRolesAndBindingsTask(kube),
       this.getCreateOrUpdateRolesAndBindingsTask(flags, 'Updating Roles and Bindings', true),
@@ -354,62 +344,49 @@ export class OperatorTasks {
             await kube.createCrdFromFile(newCRDPath)
             task.title = `${task.title}...created new one.`
           }
-        }
+        },
       },
       {
-        title: `Updating CRD ${this.cheManagerCRD}`,
+        title: 'Updating backup and restore CRDs',
         task: async (ctx: any, task: any) => {
-          if (! await kube.IsAPIExtensionSupported('v1')) {
-            task.title = `${task.title}...Skipped.`
-            return
+          const [backupCrdFileName, restoreCrdFileName] = await this.getBackupRestoreCrdFilesNames(kube)
+          const existedBackupCRD = await kube.getCrd(this.cheClusterBackupCrd)
+          const newBackupCRDPath = path.join(ctx.resourcesPath, 'crds', backupCrdFileName)
+          if (fs.existsSync(newBackupCRDPath)) {
+            if (existedBackupCRD) {
+              if (!existedBackupCRD.metadata || !existedBackupCRD.metadata.resourceVersion) {
+                throw new Error(`Fetched CRD ${this.cheClusterBackupCrd} without resource version`)
+              }
+              await kube.replaceCrdFromFile(newBackupCRDPath, existedBackupCRD.metadata.resourceVersion)
+            } else {
+              await kube.createCrdFromFile(newBackupCRDPath)
+            }
           }
 
-          const newCRDPath = path.join(ctx.resourcesPath, 'crds', 'chemanagers.che.eclipse.org.CustomResourceDefinition.yaml')
-          if (!fs.existsSync(newCRDPath)) {
-            task.title = `${task.title}...Skipped.`
-            return
-          }
-
-          const existedCRD = await kube.getCrd(this.cheManagerCRD)
-          if (existedCRD) {
-            await kube.replaceCrdFromFile(newCRDPath, existedCRD.metadata.resourceVersion)
-            task.title = `${task.title}...updated.`
+          const existedRestoreCRD = await kube.getCrd(this.cheClusterRestoreCrd)
+          const newRestoreCRDPath = path.join(ctx.resourcesPath, 'crds', restoreCrdFileName)
+          if (fs.existsSync(newRestoreCRDPath)) {
+            if (existedRestoreCRD) {
+              if (!existedRestoreCRD.metadata || !existedRestoreCRD.metadata.resourceVersion) {
+                throw new Error(`Fetched CRD ${this.cheClusterRestoreCrd} without resource version`)
+              }
+              await kube.replaceCrdFromFile(newRestoreCRDPath, existedRestoreCRD.metadata.resourceVersion)
+              task.title = `${task.title}...updated.`
+            } else {
+              await kube.createCrdFromFile(newRestoreCRDPath)
+              task.title = `${task.title}...created new one.`
+            }
           } else {
-            await kube.createCrdFromFile(newCRDPath)
-            task.title = `${task.title}...created new one.`
+            task.title = `${task.title}...skipped.`
           }
-        }
-      },
-      {
-        title: `Updating CRD ${this.dwRoutingCRD}`,
-        task: async (ctx: any, task: any) => {
-          if (! await kube.IsAPIExtensionSupported('v1')) {
-            task.title = `${task.title}...Skipped.`
-            return
-          }
-
-          const newCRDPath = path.join(ctx.resourcesPath, 'crds', 'devworkspaceroutings.controller.devfile.io.CustomResourceDefinition.yaml')
-          if (!fs.existsSync(newCRDPath)) {
-            task.title = `${task.title}...Skipped.`
-            return
-          }
-
-          const existedCRD = await kube.getCrd(this.dwRoutingCRD)
-          if (existedCRD) {
-            await kube.replaceCrdFromFile(newCRDPath, existedCRD.metadata.resourceVersion)
-            task.title = `${task.title}...updated.`
-          } else {
-            await kube.createCrdFromFile(newCRDPath)
-            task.title = `${task.title}...created new one.`
-          }
-        }
+        },
       },
       {
         title: 'Waiting 5 seconds for the new Kubernetes resources to get flushed',
         task: async (_ctx: any, task: any) => {
           await cli.wait(5000)
           task.title = `${task.title}...done.`
-        }
+        },
       },
       {
         title: `Updating deployment ${OPERATOR_DEPLOYMENT_NAME} in namespace ${flags.chenamespace}`,
@@ -424,14 +401,14 @@ export class OperatorTasks {
             await kube.createDeploymentFrom(operatorDeployment)
             task.title = `${task.title}...created new one.`
           }
-        }
+        },
       },
       {
         title: 'Waiting newer operator to be run',
         task: async (_ctx: any, _task: any) => {
           await cli.wait(1000)
           await kube.waitLatestReplica(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
-        }
+        },
       },
       patchingEclipseCheCluster(flags, kube, command),
     ], { renderer: flags['listr-renderer'] as any })
@@ -441,7 +418,7 @@ export class OperatorTasks {
    * Returns list of tasks which remove CodeReady Workspaces operator related resources
    */
   deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
-    let kh = new KubeHelper(flags)
+    const kh = new KubeHelper(flags)
     return [{
       title: 'Delete oauthClientAuthorizations',
       task: async (_ctx: any, task: any) => {
@@ -451,7 +428,7 @@ export class OperatorTasks {
           await kh.deleteOAuthClientAuthorizations(oAuthClientAuthorizations)
         }
         task.title = `${task.title}...OK`
-      }
+      },
     },
     {
       title: `Delete the Custom Resource of type ${CHE_CLUSTER_CRD}`,
@@ -471,7 +448,7 @@ export class OperatorTasks {
         const checluster = await kh.getCheCluster(flags.chenamespace)
         if (checluster) {
           try {
-            await kh.patchCheClusterCustomResource(checluster.metadata.name, flags.chenamespace, { metadata: { finalizers: null } })
+            await kh.patchCustomResource(checluster.metadata.name, flags.chenamespace, { metadata: { finalizers: null } }, CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION, CHE_CLUSTER_KIND_PLURAL)
           } catch (error) {
             if (await kh.getCheCluster(flags.chenamespace)) {
               task.title = `${task.title}...OK`
@@ -489,19 +466,21 @@ export class OperatorTasks {
         } else {
           task.title = `${task.title}...Failed`
         }
-      }
+      },
     },
     {
-      title: `Delete CRD ${this.cheClusterCrd}`,
+      title: 'Delete CRDs',
       task: async (_ctx: any, task: any) => {
         const checlusters = await kh.getAllCheClusters()
         if (checlusters.length > 0) {
           task.title = `${task.title}...Skipped: another CodeReady Workspaces deployment found.`
         } else {
           await kh.deleteCrd(this.cheClusterCrd)
+          await kh.deleteCrd(this.cheClusterBackupCrd)
+          await kh.deleteCrd(this.cheClusterRestoreCrd)
           task.title = `${task.title}...OK`
         }
-      }
+      },
     },
     {
       title: 'Delete Roles and Bindings',
@@ -543,23 +522,22 @@ export class OperatorTasks {
         }
 
         task.title = `${task.title}...OK`
-      }
+      },
     },
     {
       title: `Delete service accounts ${this.operatorServiceAccount}`,
       task: async (_ctx: any, task: any) => {
         await kh.deleteServiceAccount(this.operatorServiceAccount, flags.chenamespace)
         task.title = `${task.title}...OK`
-      }
+      },
     },
     {
       title: 'Delete PVC codeready-operator',
       task: async (_ctx: any, task: any) => {
         await kh.deletePersistentVolumeClaim('codeready-operator', flags.chenamespace)
         task.title = `${task.title}...OK`
-      }
-    },
-    ]
+      },
+    }]
   }
 
   retrieveContainerImage(deployment: V1Deployment) {
@@ -582,7 +560,7 @@ export class OperatorTasks {
     let newCRDFilePath: string
 
     const kube = new KubeHelper(flags)
-    if (! await kube.IsAPIExtensionSupported('v1')) {
+    if (!await kube.IsAPIExtensionSupported('v1')) {
       // try to get CRD v1beta1 if platform doesn't support v1
       newCRDFilePath = path.join(ctx.resourcesPath, 'crds', 'org_v1_che_crd-v1beta1.yaml')
       if (fs.existsSync(newCRDFilePath)) {
@@ -591,6 +569,21 @@ export class OperatorTasks {
     }
 
     return path.join(ctx.resourcesPath, 'crds', 'org_v1_che_crd.yaml')
+  }
+
+  // Delete this method and use default v1 CRDs when Openshift 3.x support dropped
+  private async getBackupRestoreCrdFilesNames(kube: KubeHelper): Promise<[string, string]> {
+    let backupCrdFileName: string
+    let restoreCrdFileName: string
+    if (!await kube.IsAPIExtensionSupported('v1')) {
+      // Needed for Openshift 3.x
+      backupCrdFileName = 'org.eclipse.che_checlusterbackups_crd-v1beta1.yaml'
+      restoreCrdFileName = 'org.eclipse.che_checlusterrestores_crd-v1beta1.yaml'
+    } else {
+      backupCrdFileName = 'org.eclipse.che_checlusterbackups_crd.yaml'
+      restoreCrdFileName = 'org.eclipse.che_checlusterrestores_crd.yaml'
+    }
+    return [backupCrdFileName, restoreCrdFileName]
   }
 
   /**
@@ -620,7 +613,7 @@ export class OperatorTasks {
     }
 
     const kube = new KubeHelper(flags)
-    if (! await kube.IsAPIExtensionSupported('v1')) {
+    if (!await kube.IsAPIExtensionSupported('v1')) {
       const containers = operatorDeployment.spec!.template.spec!.containers || []
       operatorDeployment.spec!.template.spec!.containers = containers.filter(c => c.name === 'codeready-operator')
     }

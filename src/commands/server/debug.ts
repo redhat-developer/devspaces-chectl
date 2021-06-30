@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Command, flags } from '@oclif/command'
 import { integer } from '@oclif/parser/lib/flags'
@@ -17,7 +19,7 @@ import { cheNamespace, CHE_TELEMETRY, listrRenderer, skipKubeHealthzCheck } from
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { findWorkingNamespace, getCommandErrorMessage } from '../../util'
+import { findWorkingNamespace, wrapCommandError } from '../../util'
 
 export default class Debug extends Command {
   static description = 'Enable local debug of CodeReady Workspaces server'
@@ -28,10 +30,10 @@ export default class Debug extends Command {
     'listr-renderer': listrRenderer,
     'debug-port': integer({
       description: 'CodeReady Workspaces server debug port',
-      default: 8000
+      default: 8000,
     }),
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   async run() {
@@ -44,7 +46,7 @@ export default class Debug extends Command {
     const apiTasks = new ApiTasks()
     const tasks = new Listr([], { renderer: flags['listr-renderer'] as any })
 
-    tasks.add(apiTasks.testApiTasks(flags, this))
+    tasks.add(apiTasks.testApiTasks(flags))
     tasks.add(cheTasks.verifyCheNamespaceExistsTask(flags, this))
     tasks.add(cheTasks.debugTask(flags))
 
@@ -53,7 +55,7 @@ export default class Debug extends Command {
       this.log(`CodeReady Workspaces server debug is available on localhost:${flags['debug-port']}.`)
       this.log('The program keeps running to enable port forwarding.')
     } catch (err) {
-      this.error(getCommandErrorMessage(err))
+      this.error(wrapCommandError(err))
     }
   }
 }

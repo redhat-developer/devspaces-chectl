@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2020 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
@@ -16,7 +18,7 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { cheNamespace, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../../constants'
-import { findWorkingNamespace, getCommandErrorMessage } from '../../util'
+import { findWorkingNamespace, wrapCommandError } from '../../util'
 
 export default class Export extends Command {
   static description = 'Retrieves CodeReady Workspaces self-signed certificate'
@@ -31,10 +33,10 @@ export default class Export extends Command {
                     If the destination is a directory, then ${DEFAULT_CA_CERT_FILE_NAME} file will be created there with Che certificate in PEM format.
                     If this option is omitted, then Che certificate will be stored in a user's temporary directory as ${DEFAULT_CA_CERT_FILE_NAME}.`,
       env: 'CHE_CA_CERT_LOCATION',
-      default: ''
+      default: '',
     }),
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   async run() {
@@ -62,7 +64,7 @@ export default class Export extends Command {
         this.log('Self signed certificate secret not found. Is commonly trusted certificate used?')
       }
     } catch (err) {
-      this.error(getCommandErrorMessage(err))
+      this.error(wrapCommandError(err))
     }
   }
 }

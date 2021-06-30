@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Context } from '@kubernetes/client-node/dist/config_types'
 import { Command, flags } from '@oclif/command'
@@ -24,7 +26,7 @@ import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { accessToken, ACCESS_TOKEN_KEY, cheApiEndpoint, cheNamespace, CHE_API_ENDPOINT_KEY, CHE_TELEMETRY, skipKubeHealthzCheck } from '../../common-flags'
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
-import { getClusterClientCommand, getCommandErrorMessage, OPENSHIFT_CLI } from '../../util'
+import { getClusterClientCommand, OPENSHIFT_CLI, wrapCommandError } from '../../util'
 
 export default class Inject extends Command {
   static description = 'Inject configurations and tokens in a workspace'
@@ -34,27 +36,27 @@ export default class Inject extends Command {
     kubeconfig: flags.boolean({
       char: 'k',
       description: 'Inject the local Kubernetes configuration',
-      required: true
+      required: true,
     }),
     workspace: string({
       char: 'w',
       description: `The workspace id to inject configuration into. It can be omitted if the only one running workspace exists.
-                    Use workspace:list command to get all workspaces and their statuses.`
+                    Use workspace:list command to get all workspaces and their statuses.`,
     }),
     container: string({
       char: 'c',
       description: 'The container name. If not specified, configuration files will be injected in all containers of the workspace pod',
-      required: false
+      required: false,
     }),
     'kube-context': string({
       description: 'Kubeconfig context to inject',
-      required: false
+      required: false,
     }),
     [CHE_API_ENDPOINT_KEY]: cheApiEndpoint,
     [ACCESS_TOKEN_KEY]: accessToken,
     chenamespace: cheNamespace,
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   // Holds cluster CLI tool name: kubectl or oc
@@ -100,7 +102,7 @@ export default class Inject extends Command {
     try {
       await this.injectKubeconfig(flags, workspaceNamespace, workspacePodName, workspaceId!)
     } catch (err) {
-      this.error(getCommandErrorMessage(err))
+      this.error(wrapCommandError(err))
     }
   }
 
@@ -143,7 +145,11 @@ export default class Inject extends Command {
    */
   private async canInject(namespace: string, pod: string, container: string): Promise<boolean> {
     const { exitCode } = await execa(`${this.command} exec ${pod} -n ${namespace} -c ${container} -- tar --version `, { timeout: 10000, reject: false, shell: true })
-    if (exitCode === 0) { return true } else { return false }
+    if (exitCode === 0) {
+      return true
+    } else {
+      return false
+    }
   }
 
   /**
@@ -212,7 +218,11 @@ export default class Inject extends Command {
 
   private async fileExists(namespace: string, pod: string, container: string, file: string): Promise<boolean> {
     const { exitCode } = await execa(`${this.command} exec ${pod} -n ${namespace} -c ${container} -- test -e ${file}`, { timeout: 10000, reject: false, shell: true })
-    if (exitCode === 0) { return true } else { return false }
+    if (exitCode === 0) {
+      return true
+    } else {
+      return false
+    }
   }
 
   private async containerExists(namespace: string, pod: string, container: string): Promise<boolean> {

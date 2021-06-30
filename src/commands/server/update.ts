@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
@@ -22,7 +24,7 @@ import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, MIN_CHE_OP
 import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { askForChectlUpdateIfNeeded, findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, getProjectVersion, notifyCommandCompletedSuccessfully } from '../../util'
+import { askForChectlUpdateIfNeeded, findWorkingNamespace, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, getProjectVersion, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Update extends Command {
   static description = 'Update CodeReady Workspaces server.'
@@ -126,7 +128,7 @@ export default class Update extends Command {
     // pre update tasks
     const apiTasks = new ApiTasks()
     const preUpdateTasks = new Listr([], ctx.listrOptions)
-    preUpdateTasks.add(apiTasks.testApiTasks(flags, this))
+    preUpdateTasks.add(apiTasks.testApiTasks(flags))
     preUpdateTasks.add(checkChectlAndCheVersionCompatibility(flags))
     preUpdateTasks.add(downloadTemplates(flags))
     preUpdateTasks.add(installerTasks.preUpdateTasks(flags, this))
@@ -135,7 +137,7 @@ export default class Update extends Command {
     const updateTasks = new Listr([], ctx.listrOptions)
     updateTasks.add({
       title: '↺  Updating...',
-      task: () => new Listr(installerTasks.updateTasks(flags, this))
+      task: () => new Listr(installerTasks.updateTasks(flags, this)),
     })
 
     // post update tasks
@@ -158,7 +160,7 @@ export default class Update extends Command {
 
       this.log(getCommandSuccessMessage())
     } catch (err) {
-      this.error(getCommandErrorMessage(err))
+      this.error(wrapCommandError(err))
     }
 
     notifyCommandCompletedSuccessfully()
@@ -171,12 +173,12 @@ export default class Update extends Command {
   private async checkComponentImages(flags: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
     const cheCluster = await kubeHelper.getCheCluster(flags.chenamespace)
-    if (cheCluster.spec.server.cheImage
-      || cheCluster.spec.server.cheImageTag
-      || cheCluster.spec.server.devfileRegistryImage
-      || cheCluster.spec.database.postgresImage
-      || cheCluster.spec.server.pluginRegistryImage
-      || cheCluster.spec.auth.identityProviderImage) {
+    if (cheCluster.spec.server.cheImage ||
+      cheCluster.spec.server.cheImageTag ||
+      cheCluster.spec.server.devfileRegistryImage ||
+      cheCluster.spec.database.postgresImage ||
+      cheCluster.spec.server.pluginRegistryImage ||
+      cheCluster.spec.auth.identityProviderImage) {
       let imagesListMsg = ''
 
       const resetImagesCrPatch: { [key: string]: any } = {}

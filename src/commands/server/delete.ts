@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Command, flags } from '@oclif/command'
 import { boolean } from '@oclif/command/lib/flags'
@@ -23,7 +25,7 @@ import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-work
 import { OLMTasks } from '../../tasks/installers/olm'
 import { OperatorTasks } from '../../tasks/installers/operator'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
+import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Delete extends Command {
   static description = 'delete any CodeReady Workspaces related resource'
@@ -34,7 +36,7 @@ export default class Delete extends Command {
     batch,
     'delete-namespace': boolean({
       description: 'Indicates that a CodeReady Workspaces namespace will be deleted as well',
-      default: false
+      default: false,
     }),
     'deployment-name': cheDeployment,
     'listr-renderer': listrRenderer,
@@ -45,7 +47,7 @@ export default class Delete extends Command {
     }),
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
     yes: assumeYes,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   async run() {
@@ -69,7 +71,7 @@ export default class Delete extends Command {
     const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
     const tasks = new Listrq([], ctx.listrOptions)
-    tasks.add(apiTasks.testApiTasks(flags, this))
+    tasks.add(apiTasks.testApiTasks(flags))
     tasks.add(operatorTasks.deleteTasks(flags))
     tasks.add(olmTasks.deleteTasks(flags))
     tasks.add(cheTasks.deleteTasks(flags))
@@ -77,7 +79,7 @@ export default class Delete extends Command {
 
     // Remove devworkspace controller only if there are no more cheClusters after olm/operator tasks
     tasks.add({
-      title: 'Uninstall DevWorkspace Controller',
+      title: 'Uninstall DevWorkspace Controller and DevWorkspace Che Controller',
       task: async (_ctx: any, task: any) => {
         const checlusters = await kube.getAllCheClusters()
         if (checlusters.length === 0) {
@@ -95,7 +97,7 @@ export default class Delete extends Command {
         await tasks.run()
         cli.log(getCommandSuccessMessage())
       } catch (err) {
-        this.error(getCommandErrorMessage(err))
+        this.error(wrapCommandError(err))
       }
     } else {
       this.exit(0)

@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Command, flags } from '@oclif/command'
 import { string } from '@oclif/parser/lib/flags'
@@ -17,7 +19,7 @@ import { accessToken, cheDeployment, cheNamespace, CHE_TELEMETRY, listrRenderer,
 import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
+import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Stop extends Command {
   static description = 'stop CodeReady Workspaces server'
@@ -29,12 +31,12 @@ export default class Stop extends Command {
     'che-selector': string({
       description: 'Selector for CodeReady Workspaces server resources',
       default: 'app=codeready,component=codeready',
-      env: 'CHE_SELECTOR'
+      env: 'CHE_SELECTOR',
     }),
     'access-token': accessToken,
     'listr-renderer': listrRenderer,
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
-    telemetry: CHE_TELEMETRY
+    telemetry: CHE_TELEMETRY,
   }
 
   async run() {
@@ -48,33 +50,33 @@ export default class Stop extends Command {
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Stop.id, flags })
 
-    let tasks = new Listr(undefined,
+    const tasks = new Listr(undefined,
       {
         renderer: flags['listr-renderer'] as any,
-        collapse: false
+        collapse: false,
       }
     )
 
-    tasks.add(apiTasks.testApiTasks(flags, this))
-    tasks.add(cheTasks.checkIfCheIsInstalledTasks(flags, this))
+    tasks.add(apiTasks.testApiTasks(flags))
+    tasks.add(cheTasks.checkIfCheIsInstalledTasks(flags))
     tasks.add([
       {
         title: 'Deployment doesn\'t exist',
         enabled: (ctx: any) => !ctx.isCheDeployed,
         task: async () => {
           await this.error(`E_BAD_DEPLOY - Deployment do not exist.\nA Deployment named "${flags['deployment-name']}" exist in namespace \"${flags.chenamespace}\", CodeReady Workspaces server cannot be stopped.\nFix with: verify the namespace where CodeReady Workspaces is running (oc get projects)\nhttps://github.com/eclipse/che`, { code: 'E_BAD_DEPLOY' })
-        }
-      }
+        },
+      },
     ],
-      { renderer: flags['listr-renderer'] as any }
+    { renderer: flags['listr-renderer'] as any }
     )
-    tasks.add(cheTasks.scaleCheDownTasks(this))
+    tasks.add(cheTasks.scaleCheDownTasks())
     tasks.add(cheTasks.waitPodsDeletedTasks())
     try {
       await tasks.run()
       cli.log(getCommandSuccessMessage())
     } catch (err) {
-      this.error(getCommandErrorMessage(err))
+      this.error(wrapCommandError(err))
     }
 
     notifyCommandCompletedSuccessfully()

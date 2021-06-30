@@ -1,19 +1,21 @@
-/*********************************************************************
- * Copyright (c) 2019-2020 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { che as chetypes } from '@eclipse-che/api'
 import axios, { AxiosInstance } from 'axios'
 import { cli } from 'cli-ux'
 import * as https from 'https'
 
-import { sleep } from '../util'
+import { newError, sleep } from '../util'
 
 /**
  * Singleton responsible for calls to Che API.
@@ -21,6 +23,7 @@ import { sleep } from '../util'
 let instance: CheApiClient | undefined
 export class CheApiClient {
   public defaultCheResponseTimeoutMs = 3000
+
   public readonly cheApiEndpoint: string
 
   private readonly axios: AxiosInstance
@@ -32,7 +35,7 @@ export class CheApiClient {
     const httpsAgent = new https.Agent({ rejectUnauthorized: false })
 
     this.axios = axios.create({
-      httpsAgent
+      httpsAgent,
     })
   }
 
@@ -124,7 +127,7 @@ export class CheApiClient {
   async waitUntilCheServerReadyToShutdown(intervalMs = 500, timeoutMs = 60000): Promise<void> {
     const iterations = timeoutMs / intervalMs
     for (let index = 0; index < iterations; index++) {
-      let status = await this.getCheServerStatus()
+      const status = await this.getCheServerStatus()
       if (status === 'READY_TO_SHUTDOWN') {
         return
       }
@@ -344,28 +347,26 @@ export class CheApiClient {
     if (error.response) {
       const status = error.response.status
       if (status === 403) {
-        return new Error(`E_CHE_API_FORBIDDEN - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data.message)}`)
+        return newError(`E_CHE_API_FORBIDDEN - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data.message)}`, error)
       } else if (status === 401) {
-        return new Error(`E_CHE_API_UNAUTHORIZED - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
+        return newError(`E_CHE_API_UNAUTHORIZED - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`, error)
       } else if (status === 404) {
-        return new Error(`E_CHE_API_NOTFOUND - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`)
+        return newError(`E_CHE_API_NOTFOUND - Endpoint: ${endpoint} - Message: ${JSON.stringify(error.response.data)}`, error)
       } else if (status === 503) {
-        return new Error(`E_CHE_API_UNAVAIL - Endpoint: ${endpoint} returned 503 code`)
+        return newError(`E_CHE_API_UNAVAIL - Endpoint: ${endpoint} returned 503 code`, error)
       } else {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
-        return new Error(`E_CHE_API_UNKNOWN_ERROR - Endpoint: ${endpoint} -Status: ${error.response.status}`)
+        return newError(`E_CHE_API_UNKNOWN_ERROR - Endpoint: ${endpoint} -Status: ${error.response.status}`, error)
       }
-
     } else if (error.request) {
       // The request was made but no response was received
       // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
       // http.ClientRequest in node.js
-      return new Error(`E_CHE_API_NO_RESPONSE - Endpoint: ${endpoint} - Error message: ${error.message}`)
+      return newError(`E_CHE_API_NO_RESPONSE - Endpoint: ${endpoint} - Error message: ${error.message}`, error)
     } else {
       // Something happened in setting up the request that triggered an Error
-      return new Error(`E_CHECTL_UNKNOWN_ERROR - Endpoint: ${endpoint} - Message: ${error.message}`)
+      return newError(`E_CHECTL_UNKNOWN_ERROR - Endpoint: ${endpoint} - Message: ${error.message}`, error)
     }
   }
-
 }

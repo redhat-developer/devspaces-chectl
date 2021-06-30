@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2020 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import UpdateCommand from '@oclif/plugin-update/lib/commands/update'
 import axios from 'axios'
@@ -62,7 +64,7 @@ export function generatePassword(passwodLength: number, charactersSet = '') {
     const ranges = [[ZERO_CHAR_CODE, NINE_CHAR_CODE], [A_CHAR_CODE, Z_CHAR_CODE], [a_CHAR_CODE, z_CHAR_CODE]]
 
     dictionary = []
-    for (let range of ranges) {
+    for (const range of ranges) {
       for (let charCode = range[0]; charCode <= range[1]; charCode++) {
         dictionary.push(String.fromCharCode(charCode))
       }
@@ -81,6 +83,44 @@ export function generatePassword(passwodLength: number, charactersSet = '') {
 
 export function base64Decode(arg: string): string {
   return Buffer.from(arg, 'base64').toString('ascii')
+}
+
+/**
+ * Separates docker image repository and tag.
+ * @param image string with image and tag separated by a colon
+ * @returns image name (including registry and account) and image tag correspondingly
+ */
+export function getImageNameAndTag(image: string): [string, string] {
+  let deployedCheOperatorImageName: string
+  let deployedCheOperatorImageTag: string
+
+  if (image.includes('@')) {
+    // Image is referenced via a digest
+    const index = image.indexOf('@')
+    deployedCheOperatorImageName = image.substring(0, index)
+    deployedCheOperatorImageTag = image.substring(index + 1)
+  } else {
+    // Image is referenced via a tag
+    const lastColonIndex = image.lastIndexOf(':')
+    if (lastColonIndex === -1) {
+      // Image name without a tag
+      deployedCheOperatorImageName = image
+      deployedCheOperatorImageTag = 'latest'
+    } else {
+      const beforeLastColon = image.substring(0, lastColonIndex)
+      const afterLastColon = image.substring(lastColonIndex + 1)
+      if (afterLastColon.includes('/')) {
+        // The colon is for registry port and not for a tag
+        deployedCheOperatorImageName = image
+        deployedCheOperatorImageTag = 'latest'
+      } else {
+        // The colon separates image name from the tag
+        deployedCheOperatorImageName = beforeLastColon
+        deployedCheOperatorImageTag = afterLastColon
+      }
+    }
+  }
+  return [deployedCheOperatorImageName, deployedCheOperatorImageTag]
 }
 
 /**
@@ -145,24 +185,30 @@ export function getCommandSuccessMessage(): string {
 }
 
 /**
- * Returns command error message.
+ * Wraps error into command error.
  */
-export function getCommandErrorMessage(err: Error): string {
+export function wrapCommandError(error: Error): Error {
   const ctx = ChectlContext.get()
   const logDirectory = ctx[ChectlContext.LOGS_DIR]
 
-  let message = `${err}\nCommand ${ctx[ChectlContext.COMMAND_ID]} failed. Error log: ${ctx[ChectlContext.ERROR_LOG]}`
+  let commandErrorMessage = `Command ${ctx[ChectlContext.COMMAND_ID]} failed. Error log: ${ctx[ChectlContext.ERROR_LOG]}.`
   if (logDirectory && isDirEmpty(logDirectory)) {
-    message += ` CodeReady Workspaces logs: ${logDirectory}`
+    commandErrorMessage += ` CodeReady Workspaces logs: ${logDirectory}.`
   }
 
-  return message
+  return newError(commandErrorMessage, error)
+}
+
+export function newError(message: string, cause: Error): Error {
+  const error = new Error(message)
+  error.stack += `\nCause: ${cause.stack}`
+  return error
 }
 
 export function notifyCommandCompletedSuccessfully(): void {
   notifier.notify({
     title: 'crwctl',
-    message: getCommandSuccessMessage()
+    message: getCommandSuccessMessage(),
   })
 }
 
@@ -232,7 +278,7 @@ export async function downloadFile(url: string, dest: string): Promise<void> {
  */
 export async function downloadYaml(url: string): Promise<any> {
   const axiosInstance = axios.create({
-    httpsAgent: new https.Agent({})
+    httpsAgent: new https.Agent({}),
   })
   const response = await axiosInstance.get(url)
   return yaml.safeLoad(response.data)

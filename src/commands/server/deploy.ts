@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Command, flags } from '@oclif/command'
 import { boolean, string } from '@oclif/parser/lib/flags'
@@ -24,7 +26,7 @@ import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighl
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { askForChectlUpdateIfNeeded, getCommandErrorMessage, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, isKubernetesPlatformFamily, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully } from '../../util'
+import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, isKubernetesPlatformFamily, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Deploy extends Command {
   static description = 'Deploy CodeReady Workspaces server'
@@ -38,7 +40,7 @@ export default class Deploy extends Command {
     cheimage: string({
       char: 'i',
       description: 'CodeReady Workspaces server container image',
-      env: 'CHE_CONTAINER_IMAGE'
+      env: 'CHE_CONTAINER_IMAGE',
     }),
     templates: string({
       char: 't',
@@ -48,18 +50,18 @@ export default class Deploy extends Command {
     }),
     'devfile-registry-url': string({
       description: 'The URL of the external Devfile registry.',
-      env: 'CHE_WORKSPACE_DEVFILE__REGISTRY__URL'
+      env: 'CHE_WORKSPACE_DEVFILE__REGISTRY__URL',
     }),
     'plugin-registry-url': string({
       description: 'The URL of the external plugin registry.',
-      env: 'CHE_WORKSPACE_PLUGIN__REGISTRY__URL'
+      env: 'CHE_WORKSPACE_PLUGIN__REGISTRY__URL',
     }),
     cheboottimeout: string({
       char: 'o',
       description: 'CodeReady Workspaces server bootstrap timeout (in milliseconds)',
       default: '40000',
       required: true,
-      env: 'CHE_SERVER_BOOT_TIMEOUT'
+      env: 'CHE_SERVER_BOOT_TIMEOUT',
     }),
     [K8SPODWAITTIMEOUT_KEY]: k8sPodWaitTimeout,
     [K8SPODREADYTIMEOUT_KEY]: k8sPodReadyTimeout,
@@ -70,7 +72,7 @@ export default class Deploy extends Command {
       char: 'm',
       description: `Deploys CodeReady Workspaces in multi-user mode.
  		                Note, this option is turned on by default.`,
-      default: false
+      default: false,
     }),
     tls: flags.boolean({
       char: 's',
@@ -80,12 +82,12 @@ export default class Deploy extends Command {
                     In case of providing own self-signed certificate 'self-signed-certificate' secret should be also created.
                     For OpenShift, router will use default cluster certificates.
                     Please see the docs how to deploy CodeReady Workspaces on different infrastructures: ${DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY}`,
-      hidden: true
+      hidden: true,
     }),
     'self-signed-cert': flags.boolean({
       description: 'Deprecated. The flag is ignored. Self signed certificates usage is autodetected now.',
       default: false,
-      hidden: true
+      hidden: true,
     }),
     platform: string({
       char: 'p',
@@ -100,7 +102,7 @@ export default class Deploy extends Command {
     }),
     debug: boolean({
       description: 'Enables the debug mode for CodeReady Workspaces server. To debug CodeReady Workspaces server from localhost use \'server:debug\' command.',
-      default: false
+      default: false,
     }),
     'che-operator-image': string({
       description: 'Container image of the operator. This parameter is used only when the installer is the operator',
@@ -116,19 +118,19 @@ export default class Deploy extends Command {
     'workspace-pvc-storage-class-name': string({
       description: 'persistent volume(s) storage class name to use to store CodeReady Workspaces workspaces data',
       env: 'CHE_INFRA_KUBERNETES_PVC_STORAGE__CLASS__NAME',
-      default: ''
+      default: '',
     }),
     'postgres-pvc-storage-class-name': string({
       description: 'persistent volume storage class name to use to store CodeReady Workspaces postgres database',
-      default: ''
+      default: '',
     }),
     'skip-version-check': flags.boolean({
       description: 'Skip minimal versions check.',
-      default: false
+      default: false,
     }),
     'skip-cluster-availability-check': flags.boolean({
       description: 'Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.',
-      default: false
+      default: false,
     }),
     'auto-update': flags.boolean({
       description: `Auto update approval strategy for installation CodeReady Workspaces.
@@ -136,7 +138,7 @@ export default class Deploy extends Command {
                     By default this flag is enabled.
                     This parameter is used only when the installer is 'olm'.`,
       allowNo: true,
-      exclusive: ['starting-csv']
+      exclusive: ['starting-csv'],
     }),
     'starting-csv': flags.string({
       description: `Starting cluster service version(CSV) for installation CodeReady Workspaces.
@@ -144,7 +146,7 @@ export default class Deploy extends Command {
                     For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
                     Then OLM will install CodeReady Workspaces with version 7.10.0.
                     Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known version.
-                    This parameter is used only when the installer is 'olm'.`
+                    This parameter is used only when the installer is 'olm'.`,
     }),
     'olm-channel': string({
       description: `Olm channel to install CodeReady Workspaces, f.e. stable.
@@ -163,11 +165,11 @@ export default class Deploy extends Command {
     }),
     'catalog-source-name': string({
       description: `OLM catalog source to install CodeReady Workspaces operator.
-                    This parameter is used only when the installer is the 'olm'.`
+                    This parameter is used only when the installer is the 'olm'.`,
     }),
     'catalog-source-namespace': string({
       description: `Namespace for OLM catalog source to install CodeReady Workspaces operator.
-                    This parameter is used only when the installer is the 'olm'.`
+                    This parameter is used only when the installer is the 'olm'.`,
     }),
     'cluster-monitoring': boolean({
       default: false,
@@ -180,7 +182,7 @@ export default class Deploy extends Command {
       allowNo: true,
       description: `Indicate to deploy CodeReady Workspaces in OLM suggested namespace: '${DEFAULT_OLM_SUGGESTED_NAMESPACE}'.
                     Flag 'chenamespace' is ignored in this case
-                    This parameter is used only when the installer is 'olm'.`
+                    This parameter is used only when the installer is 'olm'.`,
     }),
     'skip-kubernetes-health-check': skipK8sHealthCheck,
     'workspace-engine': string({
@@ -383,29 +385,29 @@ export default class Deploy extends Command {
     const devWorkspaceTasks = new DevWorkspaceTasks(flags)
 
     // Platform Checks
-    let platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), ctx.listrOptions)
+    const platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), ctx.listrOptions)
 
     // Checks if CodeReady Workspaces is already deployed
-    let preInstallTasks = new Listr(undefined, ctx.listrOptions)
-    preInstallTasks.add(apiTasks.testApiTasks(flags, this))
+    const preInstallTasks = new Listr(undefined, ctx.listrOptions)
+    preInstallTasks.add(apiTasks.testApiTasks(flags))
     preInstallTasks.add({
       title: '👀  Looking for an already existing CodeReady Workspaces instance',
-      task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
+      task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags)),
     })
     preInstallTasks.add(checkChectlAndCheVersionCompatibility(flags))
     preInstallTasks.add(downloadTemplates(flags))
     preInstallTasks.add({
       title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
       enabled: () => (this.isDevWorkspaceEnabled(ctx) || flags['workspace-engine'] === 'dev-workspace') && !ctx.isOpenShift,
-      task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags))
+      task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags)),
     })
-    let installTasks = new Listr(installerTasks.installTasks(flags, this), ctx.listrOptions)
+    const installTasks = new Listr(installerTasks.installTasks(flags, this), ctx.listrOptions)
 
     // Post Install Checks
     const postInstallTasks = new Listr([
       {
         title: '✅  Post installation checklist',
-        task: () => new Listr(cheTasks.waitDeployedChe())
+        task: () => new Listr(cheTasks.waitDeployedChe()),
       },
       getRetrieveKeycloakCredentialsTask(flags),
       retrieveCheCaCertificateTask(flags),
@@ -415,7 +417,7 @@ export default class Deploy extends Command {
 
     const logsTasks = new Listr([{
       title: 'Following CodeReady Workspaces logs',
-      task: () => new Listr(cheTasks.serverLogsTasks(flags, true))
+      task: () => new Listr(cheTasks.serverLogsTasks(flags, true)),
     }], ctx.listrOptions)
 
     try {
@@ -436,7 +438,7 @@ export default class Deploy extends Command {
         this.log(getCommandSuccessMessage())
       }
     } catch (err) {
-      this.error(getCommandErrorMessage(err))
+      this.error(wrapCommandError(err))
     }
 
     notifyCommandCompletedSuccessfully()

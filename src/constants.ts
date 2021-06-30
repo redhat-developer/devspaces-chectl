@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2020 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 export const CHECTL_PROJECT_NAME = 'chectl'
 export const OPERATOR_TEMPLATE_DIR = 'codeready-workspaces-operator'
@@ -30,7 +32,6 @@ export const CHE_TLS_SECRET_NAME = 'che-tls'
 export const CHE_ROOT_CA_SECRET_NAME = 'self-signed-certificate'
 export const DEFAULT_CA_CERT_FILE_NAME = 'cheCA.crt'
 export const CHE_CLUSTER_CR_NAME = 'codeready-workspaces'
-export const CHE_CLUSTER_CRD = 'checlusters.org.eclipse.che'
 
 // operator
 export const OPERATOR_DEPLOYMENT_NAME = 'codeready-operator'
@@ -77,3 +78,9 @@ export const DEFAULT_ANALYTIC_HOOK_NAME = 'analytics'
 // Timeouts
 export const DEFAULT_K8S_POD_WAIT_TIMEOUT = 600000
 export const DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT = 15000
+
+// Custom Resources names
+export const CHE_CLUSTER_CRD = 'checlusters.org.eclipse.che'
+export const CHE_CLUSTER_API_GROUP = 'org.eclipse.che'
+export const CHE_CLUSTER_API_VERSION = 'v1'
+export const CHE_CLUSTER_KIND_PLURAL = 'checlusters'

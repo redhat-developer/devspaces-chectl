@@ -1,12 +1,14 @@
-/*********************************************************************
- * Copyright (c) 2019 Red Hat, Inc.
- *
+/**
+ * Copyright (c) 2019-2021 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- **********************************************************************/
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
 
 import { Command, flags } from '@oclif/command'
 import { cli } from 'cli-ux'
@@ -16,7 +18,7 @@ import { ChectlContext } from '../../api/context'
 import { cheDeployment, cheNamespace, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck } from '../../common-flags'
 import { CheTasks } from '../../tasks/che'
 import { ApiTasks } from '../../tasks/platforms/api'
-import { findWorkingNamespace, getCommandErrorMessage, getCommandSuccessMessage, notifyCommandCompletedSuccessfully } from '../../util'
+import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Start extends Command {
   static description = 'Start CodeReady Workspaces server'
@@ -44,20 +46,21 @@ export default class Start extends Command {
 
     // Checks if CodeReady Workspaces is already deployed
     const preInstallTasks = new Listr([
-      apiTasks.testApiTasks(flags, this),
+      apiTasks.testApiTasks(flags),
       {
         title: '👀  Looking for an already existing CodeReady Workspaces instance',
-        task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags, this))
-      }], ctx.listrOptions)
+        task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags)),
+      },
+    ], ctx.listrOptions)
 
     const logsTasks = new Listr([{
       title: 'Following CodeReady Workspaces logs',
-      task: () => new Listr(cheTasks.serverLogsTasks(flags, true))
+      task: () => new Listr(cheTasks.serverLogsTasks(flags, true)),
     }], ctx.listrOptions)
 
     const startCheTasks = new Listr([{
       title: 'Starting CodeReady Workspaces',
-      task: () => new Listr(cheTasks.scaleCheUpTasks())
+      task: () => new Listr(cheTasks.scaleCheUpTasks()),
     }], ctx.listrOptions)
 
     try {
@@ -73,11 +76,10 @@ export default class Start extends Command {
         this.log(getCommandSuccessMessage())
       }
     } catch (err) {
-      this.error(getCommandErrorMessage(err))
+      this.error(wrapCommandError(err))
     }
 
     notifyCommandCompletedSuccessfully()
     this.exit(0)
   }
-
 }
