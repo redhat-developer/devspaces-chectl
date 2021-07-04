@@ -13,4 +13,4 @@ bin/crwctl-*
 tsconfig.tsbuildinfo
 # templates are added at post-install step
 templates
-
+.eslintcache

@@ -103,7 +103,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|\"CodeReady Workspaces will be deployed in Multi-User mode.+mode.\"|'CodeReady Workspaces can only be deployed in Multi-User mode.'|" \
 			-e "s|che-incubator/crwctl|redhat-developer/codeready-workspaces-chectl|g" \
 		"$d" > "${TARGETDIR}/${d}"
-	done <   <(find src test installers package.json .ci/obfuscate/gnirts.js -type f -name "*" -print0) # include package.json in here too
+	done <   <(find src test installers configs package.json .ci/obfuscate/gnirts.js .eslintrc.js  -type f -name "*" -print0) # include package.json in here too
 popd >/dev/null
 
 # Remove files
@@ -120,7 +120,7 @@ platformString="    platform: string({\n\
       char: 'p',\n\
       description: 'Type of OpenShift platform. Valid values are \\\\\"openshift\\\\\", \\\\\"crc (for CodeReady Containers)\\\\\".',\n\
       options: ['openshift', 'crc'],\n\
-      default: 'openshift'\n\
+      default: 'openshift',\n\
     }),"; # echo -e "$platformString"
 installerString="    installer: string({\n\
       char: 'a',\n\
@@ -131,7 +131,7 @@ clusterMonitoringString="    'cluster-monitoring': boolean({\n\
       default: false,\n\
       hidden: false,\n\
       description: \`Enable cluster monitoring to scrape CodeReady Workspaces metrics in Prometheus.\n\
-	                  This parameter is used only when the platform is 'openshift'.\`\n\
+	                  This parameter is used only when the platform is 'openshift'.\`,\n\
     }),"; # echo -e "$clusterMonitoringString"
 
 # set -x
