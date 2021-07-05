@@ -49,7 +49,7 @@ export default class Update extends Command {
       char: 'p',
       description: 'Type of OpenShift platform. Valid values are \"openshift\", \"crc (for CodeReady Containers)\".',
       options: ['openshift', 'crc'],
-      default: 'openshift'
+      default: 'openshift',
     }),
     chenamespace: cheNamespace,
     batch,

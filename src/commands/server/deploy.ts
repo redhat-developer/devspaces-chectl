@@ -93,7 +93,7 @@ export default class Deploy extends Command {
       char: 'p',
       description: 'Type of OpenShift platform. Valid values are \"openshift\", \"crc (for CodeReady Containers)\".',
       options: ['openshift', 'crc'],
-      default: 'openshift'
+      default: 'openshift',
     }),
     installer: string({
       char: 'a',
@@ -175,7 +175,7 @@ export default class Deploy extends Command {
       default: false,
       hidden: false,
       description: `Enable cluster monitoring to scrape CodeReady Workspaces metrics in Prometheus.
-	                  This parameter is used only when the platform is 'openshift'.`
+	                  This parameter is used only when the platform is 'openshift'.`,
     }),
     'olm-suggested-namespace': boolean({
       default: true,
