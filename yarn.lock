@@ -2435,9 +2435,9 @@ code-point-at@^1.0.0:
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
   integrity sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=
 
-"codeready-workspaces-operator@git://github.com/redhat-developer/codeready-workspaces-operator#crw-2-rhel-8":
+"codeready-workspaces-operator@git://github.com/redhat-developer/codeready-workspaces-operator#crw-2.10-rhel-8":
   version "0.0.0"
-  resolved "git://github.com/redhat-developer/codeready-workspaces-operator#fe1e5d7228b5ac03a6529ded03ae7cd119e2dee4"
+  resolved "git://github.com/redhat-developer/codeready-workspaces-operator#f50097d3ce93fc25c738ef827b6111f996079a09"
 
 collect-v8-coverage@^1.0.0:
   version "1.0.1"
@@ -2843,13 +2843,13 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
-"eclipse-che-devfile-workspace-operator@git://github.com/devfile/devworkspace-operator#v0.6.1":
+"eclipse-che-devfile-workspace-operator@git://github.com/devfile/devworkspace-operator#v0.6.2":
   version "0.0.0"
-  resolved "git://github.com/devfile/devworkspace-operator#d5357c490a126392cb6b98b64aebebef50e1eba6"
+  resolved "git://github.com/devfile/devworkspace-operator#9e6216c7050e00f630453bd1f8ef96e4535a631e"
 
-"eclipse-che-server@git://github.com/eclipse-che/che-server#7.32.1":
+"eclipse-che-server@git://github.com/eclipse-che/che-server#7.32.2":
   version "0.0.0"
-  resolved "git://github.com/eclipse-che/che-server#f7570ad7e8c61a4d087e1be20fe4a82a90a46183"
+  resolved "git://github.com/eclipse-che/che-server#ea0aeb4f5d911a4aca8e5d8a9e82c7b347e03369"
 
 editorconfig@^0.15.0:
   version "0.15.3"
