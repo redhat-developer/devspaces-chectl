@@ -39,7 +39,7 @@ while [[ "$#" -gt 0 ]]; do
 	# optional tag overrides
 	'--server-tag') CRW_SERVER_TAG="$2"; shift 1;;
 	'--operator-tag') CRW_OPERATOR_TAG="$2"; shift 1;;
-	'--crw-version') CRW_VERSION="$2"; shift 1;;
+	'--crw-version') CRW_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
   esac
   shift 1
 done
