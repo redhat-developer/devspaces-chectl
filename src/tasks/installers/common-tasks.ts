@@ -59,7 +59,7 @@ export function checkChectlAndCheVersionCompatibility(flags: any): Listr.ListrTa
       ctx.versionInfo = verInfo
       flags.version = VersionHelper.removeVPrefix(verInfo.name, true)
 
-      if (!ctx.isNightly && semver.lt(getProjectVersion(), flags.version)) {
+      if (!ctx.isDevVersion && semver.lt(getProjectVersion(), flags.version)) {
         throw new Error(`To deploy CodeReady Workspaces ${flags.version}, please update your crwctl first by running "crwctl update".`)
       }
 
@@ -189,7 +189,7 @@ export function retrieveCheCaCertificateTask(flags: any): Listr.ListrTask {
       if (cheCaCert) {
         const targetFile = await che.saveCheCaCert(cheCaCert)
 
-        task.title = `${task.title}... done`
+        task.title = `${task.title}...OK`
         const serverStrategy = await kube.getConfigMapValue('che', flags.chenamespace, 'CHE_INFRA_KUBERNETES_SERVER__STRATEGY')
         if (serverStrategy !== 'single-host') {
           ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(targetFile))

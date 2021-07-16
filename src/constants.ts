@@ -27,6 +27,8 @@ export const DEFAULT_CHE_OPERATOR_IMAGE_NAME = 'registry.redhat.io/codeready-wor
 // Repository location: https://github.com/che-dockerfiles/che-cert-manager-ca-cert-generator-image
 export const CA_CERT_GENERATION_JOB_IMAGE = 'quay.io/eclipse/che-cert-manager-ca-cert-generator:671342c'
 
+export const NEXT_TAG = 'next'
+
 export const CERT_MANAGER_NAMESPACE_NAME = 'cert-manager'
 export const CHE_TLS_SECRET_NAME = 'che-tls'
 export const CHE_ROOT_CA_SECRET_NAME = 'self-signed-certificate'
@@ -55,8 +57,8 @@ export const NIGHTLY_CATALOG_SOURCE_NAME = 'eclipse-che-preview'
 export const DEFAULT_OLM_SUGGESTED_NAMESPACE = 'openshift-workspaces'
 
 // Documentation links
-export const DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2/'
-export const DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2/html/release_notes_and_known_issues/index'
+export const DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.11/'
+export const DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.11/html/release_notes_and_known_issues/index'
 export const DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY = 'https://www.eclipse.org/che/docs/che-7/installation-guide/installing-che-locally/'
 export const DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER = 'https://www.eclipse.org/che/docs/che-7/end-user-guide/importing-certificates-to-browsers/'
 export const DOCS_LINK_HOW_TO_ADD_IDENTITY_PROVIDER_OS4 = 'https://docs.openshift.com/container-platform/latest/authentication/understanding-identity-provider.html#identity-provider-overview_understanding-identity-provider'
@@ -68,9 +70,6 @@ export const OUTPUT_SEPARATOR = '-----------------------------------------------
 
 // DevWorkspace
 export const DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE = 'devworkspace-controller'
-
-// DevWorkspace Che
-export const DEFAULT_DEV_WORKSPACE_CHE_NAMESPACE = 'devworkspace-che'
 
 // HOOKS
 export const DEFAULT_ANALYTIC_HOOK_NAME = 'analytics'
@@ -84,3 +83,10 @@ export const CHE_CLUSTER_CRD = 'checlusters.org.eclipse.che'
 export const CHE_CLUSTER_API_GROUP = 'org.eclipse.che'
 export const CHE_CLUSTER_API_VERSION = 'v1'
 export const CHE_CLUSTER_KIND_PLURAL = 'checlusters'
+
+export const CHE_BACKUP_SERVER_CONFIG_CRD = 'chebackupserverconfigurations.org.eclipse.che'
+export const CHE_BACKUP_SERVER_CONFIG_KIND_PLURAL = 'chebackupserverconfigurations'
+export const CHE_CLUSTER_BACKUP_CRD = 'checlusterbackups.org.eclipse.che'
+export const CHE_CLUSTER_BACKUP_KIND_PLURAL = 'checlusterbackups'
+export const CHE_CLUSTER_RESTORE_CRD = 'checlusterrestores.org.eclipse.che'
+export const CHE_CLUSTER_RESTORE_KIND_PLURAL = 'checlusterrestores'
