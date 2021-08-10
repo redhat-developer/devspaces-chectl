@@ -67,6 +67,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|/codeready-workspaces-crwctl|/codeready-workspaces-chectl|g" \
 			-e "s|app=che|app=codeready|g" \
 			-e "s|app=codeready,component=che|app=codeready,component=codeready|" \
+			-e "s|eclipse-che-operator|codeready-workspaces-operator|g" \
 			-e "s|che-operator|codeready-operator|g" \
 			-e "s|/codeready-operator/|/codeready-workspaces-operator/|g" \
 			\
@@ -103,7 +104,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|\"CodeReady Workspaces will be deployed in Multi-User mode.+mode.\"|'CodeReady Workspaces can only be deployed in Multi-User mode.'|" \
 			-e "s|che-incubator/crwctl|redhat-developer/codeready-workspaces-chectl|g" \
 		"$d" > "${TARGETDIR}/${d}"
-	done <   <(find src test installers configs package.json .ci/obfuscate/gnirts.js .eslintrc.js  -type f -name "*" -print0) # include package.json in here too
+	done <   <(find src test installers configs prepare-che-operator-templates.js package.json .ci/obfuscate/gnirts.js .eslintrc.js  -type f -name "*" -print0) # include package.json in here too
 popd >/dev/null
 
 # Remove files
@@ -113,6 +114,14 @@ pushd "${TARGETDIR}" >/dev/null
 		rm -f "$d"
 		#
 	done <   <(find . -regextype posix-extended -iregex '.+/(helm|minishift|minishift-addon|minikube|microk8s|k8s|docker-desktop)(.test|).ts' -print0)
+popd >/dev/null
+
+# Rename files
+pushd "${TARGETDIR}" >/dev/null
+	while IFS= read -r -d '' d; do
+		echo "[INFO] Rename ${d#./}"
+		mv -f "$d" $(echo $d | sed -e "s|che-operator|codeready-workspaces-operator|g")
+	done <   <(find prepare-che-operator-templates.js -print0)
 popd >/dev/null
 
 # per-file changes:
