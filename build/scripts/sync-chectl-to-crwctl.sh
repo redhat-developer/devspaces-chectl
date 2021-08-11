@@ -117,10 +117,10 @@ pushd "${TARGETDIR}" >/dev/null
 popd >/dev/null
 
 # Update prepare-che-operator-templates.js
-# to copy resourcves from https://github.com/redhat-developer/codeready-workspaces-images/tree/crw-2-rhel-8/codeready-workspaces-operator
+# to copy resources from https://github.com/redhat-developer/codeready-workspaces-images/tree/crw-2-rhel-8/codeready-workspaces-operator
 pushd "${TARGETDIR}" >/dev/null
 	while IFS= read -r -d '' d; do
-		echo "[INFO] Convert ${d}"
+		echo "[INFO] Convert ${d} - use subfolder"
 		sed -r -e "s#'node_modules', 'codeready-workspaces-operator'#'node_modules', 'codeready-workspaces-operator', 'codeready-workspaces-operator'#" -i "${TARGETDIR}/${d}"
 	done <   <(find prepare-che-operator-templates.js -print0)
 popd >/dev/null
