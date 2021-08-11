@@ -116,7 +116,7 @@ pushd "${TARGETDIR}" >/dev/null
 	done <   <(find . -regextype posix-extended -iregex '.+/(helm|minishift|minishift-addon|minikube|microk8s|k8s|docker-desktop)(.test|).ts' -print0)
 popd >/dev/null
 
-# @since CRW-2150 - 2.11 sources have moved to https://github.com/redhat-developer/codeready-workspaces-images/tree/crw-2-rhel-8/codeready-workspaces-operator
+# @since 2.11: CRW-2150 - sources have moved to https://github.com/redhat-developer/codeready-workspaces-images/tree/crw-2-rhel-8/codeready-workspaces-operator
 # Update prepare-che-operator-templates.js
 pushd "${TARGETDIR}" >/dev/null
 	while IFS= read -r -d '' d; do
@@ -260,7 +260,7 @@ if [[ -f ${replaceFile} ]]; then
 		-e "s|codeready-operator|codeready-workspaces-operator|g"
 
 	echo "[INFO] Convert package.json (jq #1)"
-  # @since CRW-2150 - 2.11 sources have moved to https://github.com/redhat-developer/codeready-workspaces-images/tree/crw-2-rhel-8/codeready-workspaces-operator
+  # @since 2.11: CRW-2150 - sources have moved to https://github.com/redhat-developer/codeready-workspaces-images/tree/crw-2-rhel-8/codeready-workspaces-operator
 	declare -A package_replacements=(
 		["git://github.com/redhat-developer/codeready-workspaces-images#${MIDSTM_BRANCH}"]='.dependencies["codeready-workspaces-operator"]'
 		["crwctl"]='.name'
