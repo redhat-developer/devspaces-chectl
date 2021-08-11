@@ -12,8 +12,8 @@
 
 const fs = require('fs-extra')
 const path = require('path')
-var deployFolder = path.join(__dirname, 'node_modules', 'codeready-workspaces-operator', 'deploy')
-var configFolder = path.join(__dirname, 'node_modules', 'codeready-workspaces-operator', 'config')
+var deployFolder = path.join(__dirname, 'node_modules', 'codeready-workspaces-operator', 'codeready-workspaces-operator', 'deploy')
+var configFolder = path.join(__dirname, 'node_modules', 'codeready-workspaces-operator', 'codeready-workspaces-operator', 'config')
 var cheOperatorTemplates = path.join(__dirname, 'templates', 'codeready-operator')
 
 function prepareTemplates() {
