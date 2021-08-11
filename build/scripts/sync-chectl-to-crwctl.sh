@@ -116,6 +116,15 @@ pushd "${TARGETDIR}" >/dev/null
 	done <   <(find . -regextype posix-extended -iregex '.+/(helm|minishift|minishift-addon|minikube|microk8s|k8s|docker-desktop)(.test|).ts' -print0)
 popd >/dev/null
 
+# Update prepare-che-operator-templates.js
+# to copy resourcves from https://github.com/redhat-developer/codeready-workspaces-images/tree/crw-2-rhel-8/codeready-workspaces-operator
+pushd "${TARGETDIR}" >/dev/null
+	while IFS= read -r -d '' d; do
+		echo "[INFO] Convert ${d}"
+		sed -r -e "s#'node_modules', 'codeready-workspaces-operator'#'node_modules', 'codeready-workspaces-operator', 'codeready-workspaces-operator'#" -i "${TARGETDIR}/${d}"
+	done <   <(find prepare-che-operator-templates.js -print0)
+popd >/dev/null
+
 # Rename files
 pushd "${TARGETDIR}" >/dev/null
 	while IFS= read -r -d '' d; do
@@ -252,7 +261,7 @@ if [[ -f ${replaceFile} ]]; then
 
 	echo "[INFO] Convert package.json (jq #1)"
 	declare -A package_replacements=(
-		["git://github.com/redhat-developer/codeready-workspaces-operator#${MIDSTM_BRANCH}"]='.dependencies["codeready-workspaces-operator"]'
+		["git://github.com/redhat-developer/codeready-workspaces-images#${MIDSTM_BRANCH}"]='.dependencies["codeready-workspaces-operator"]'
 		["crwctl"]='.name'
 		["CodeReady Workspaces CLI"]='.description'
 		["${DEFAULT_TAG}.0-CI-redhat"]='.version'
