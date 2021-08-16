@@ -121,7 +121,9 @@ popd >/dev/null
 pushd "${TARGETDIR}" >/dev/null
 	while IFS= read -r -d '' d; do
 		echo "[INFO] Convert ${d} - use subfolder"
-		sed -r -e "s#'node_modules', 'codeready-workspaces-operator'#'node_modules', 'codeready-workspaces-operator', 'codeready-workspaces-operator'#" -i "${TARGETDIR}/${d}"
+		sed -i "${TARGETDIR}/${d}" -r \
+			-e "s#'node_modules', 'codeready-workspaces-operator'#'node_modules', 'codeready-workspaces-operator', 'codeready-workspaces-operator'#" \
+			-e "s#'templates', 'codeready-operator'#'templates', 'codeready-workspaces-operator'#"
 	done <   <(find prepare-che-operator-templates.js -print0)
 popd >/dev/null
 
