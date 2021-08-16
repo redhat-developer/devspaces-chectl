@@ -20,7 +20,8 @@
     "/lib",
     "/installers",
     "/npm-shrinkwrap.json",
-    "/oclif.manifest.json"
+    "/oclif.manifest.json",
+    "/prepare-codeready-workspaces-operator-templates.js"
   ],
   "scripts": {
     "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-cert-manager && npm run -s postinstall-operator && npm run -s postinstall-dev-workspace && npm run -s postinstall-cleanup",
