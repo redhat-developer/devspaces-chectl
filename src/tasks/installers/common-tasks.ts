@@ -146,10 +146,6 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
       ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || cr.spec.server.externalDevfileRegistry
       ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || cr.spec.server.externalPluginRegistry
 
-      if (cr.spec.server.customCheProperties && cr.spec.server.customCheProperties.CHE_MULTIUSER === 'false') {
-        flags.multiuser = false
-      }
-
       task.title = `${task.title}...done.`
     },
   }
@@ -205,24 +201,6 @@ export function getMessageImportCaCertIntoBrowser(caCertFileLocation: string): s
   const message = `${ansi.yellow('[ACTION REQUIRED]')} Please add Che self-signed CA certificate into your browser: ${caCertFileLocation}.\n` +
     `Documentation how to add a CA certificate into a browser: ${DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER}`
   return message
-}
-
-export function getRetrieveKeycloakCredentialsTask(flags: any): Listr.ListrTask {
-  return {
-    title: 'Retrieving Keycloak admin credentials',
-    enabled: () => (flags.installer !== 'helm'),
-    task: async (ctx: any, task: any) => {
-      const che = new CheHelper(flags)
-      const [login, password] = await che.retrieveKeycloakAdminCredentials(flags.chenamespace)
-      if (login && password) {
-        ctx.identityProviderUsername = login
-        ctx.identityProviderPassword = password
-        task.title = `${task.title}...done`
-      } else {
-        task.title = `${task.title}...failed.`
-      }
-    },
-  }
 }
 
 /**

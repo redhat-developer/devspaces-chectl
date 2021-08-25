@@ -15,14 +15,13 @@ import { boolean, string } from '@oclif/parser/lib/flags'
 import { cli } from 'cli-ux'
 import * as Listr from 'listr'
 import * as semver from 'semver'
-
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
 import { batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, devWorkspaceControllerNamespace, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_HELM_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION } from '../../constants'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_HELM_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION, STABLE_ALL_NAMESPACES_CHANNEL_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
-import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask, getRetrieveKeycloakCredentialsTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
+import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
@@ -70,9 +69,9 @@ export default class Deploy extends Command {
     [LOG_DIRECTORY_KEY]: logsDirectory,
     multiuser: flags.boolean({
       char: 'm',
-      description: `Deploys CodeReady Workspaces in multi-user mode.
- 		                Note, this option is turned on by default.`,
+      description: 'Deprecated. The flag is ignored. CodeReady Workspaces is always deployed in multi-user mode.',
       default: false,
+      hidden: true,
     }),
     tls: flags.boolean({
       char: 's',
@@ -265,7 +264,6 @@ export default class Deploy extends Command {
       flags.cheimage && ignoredFlags.push('--cheimage')
       flags.debug && ignoredFlags.push('--debug')
       flags.domain && ignoredFlags.push('--domain')
-      flags.multiuser && ignoredFlags.push('--multiuser')
 
       if (ignoredFlags.length) {
         this.warn(`--${CHE_OPERATOR_CR_YAML_KEY} is used. The following flag(s) will be ignored: ${ignoredFlags.join('\t')}`)
@@ -286,6 +284,10 @@ export default class Deploy extends Command {
       // OLM installer only checks
       if (flags.platform === 'minishift') {
         this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
+      }
+
+      if (flags['olm-channel'] === STABLE_ALL_NAMESPACES_CHANNEL_NAME && isKubernetesPlatformFamily(flags.platform)) {
+        this.error('"stable-all-namespaces" channel is supported only in "openshift" platform')
       }
 
       if (flags['catalog-source-name'] && flags['catalog-source-yaml']) {
@@ -378,6 +380,12 @@ export default class Deploy extends Command {
     await this.setPlaformDefaults(flags, ctx)
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Deploy.id, flags })
 
+    if (!flags.batch && flags.installer === 'helm') {
+      if (!await cli.confirm('\'helm\' installer is deprecated. Do you want to proceed? [y/n]')) {
+        cli.exit(0)
+      }
+    }
+
     const cheTasks = new CheTasks(flags)
     const platformTasks = new PlatformTasks()
     const installerTasks = new InstallerTasks()
@@ -409,7 +417,6 @@ export default class Deploy extends Command {
         title: '✅  Post installation checklist',
         task: () => new Listr(cheTasks.waitDeployedChe()),
       },
-      getRetrieveKeycloakCredentialsTask(flags),
       retrieveCheCaCertificateTask(flags),
       ...cheTasks.preparePostInstallationOutput(flags),
       getPrintHighlightedMessagesTask(),

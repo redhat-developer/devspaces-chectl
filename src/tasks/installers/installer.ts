@@ -89,20 +89,9 @@ export class InstallerTasks {
 
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the CodeReady Workspaces operator'
-      task = () => {
-        // The operator installs CodeReady Workspaces in multiuser mode by default
-        if (!flags.multiuser) {
-          flags.multiuser = true
-        }
-
-        return operatorTasks.deployTasks(flags, command)
-      }
+      task = () => operatorTasks.deployTasks(flags, command)
     } else if (flags.installer === 'olm') {
       title = '🏃‍  Running Olm installaion CodeReady Workspaces'
-      // The olm installs CodeReady Workspaces in multiuser mode by default
-      if (!flags.multiuser) {
-        flags.multiuser = true
-      }
       task = () => olmTasks.startTasks(flags, command)
     } else {
       title = '🏃‍  Installer preflight check'

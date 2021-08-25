@@ -12,19 +12,18 @@
 
 import axios from 'axios'
 import { cli } from 'cli-ux'
-import execa = require('execa')
 import * as fs from 'fs-extra'
 import * as https from 'https'
-import Listr = require('listr')
 import * as path from 'path'
 import * as semver from 'semver'
-
+import { CHECTL_REPO, CheGithubClient, ECLIPSE_CHE_INCUBATOR_ORG } from '../api/github-client'
 import { CHECTL_PROJECT_NAME } from '../constants'
 import { CheTasks } from '../tasks/che'
-import { getClusterClientCommand, getProjectName, getProjectVersion } from '../util'
-
+import { getClusterClientCommand, getProjectName, getProjectVersion, isKubernetesPlatformFamily } from '../util'
 import { ChectlContext } from './context'
 import { KubeHelper } from './kube'
+import execa = require('execa')
+import Listr = require('listr')
 
 export const CHECTL_DEVELOPMENT_VERSION = '0.0.2'
 
@@ -38,7 +37,7 @@ const A_DAY_IN_MS = 24 * 60 * 60 * 1000
 
 export namespace VersionHelper {
   export const MINIMAL_OPENSHIFT_VERSION = '3.11'
-  export const MINIMAL_K8S_VERSION = '1.9'
+  export const MINIMAL_K8S_VERSION = '1.19'
   export const MINIMAL_HELM_VERSION = '2.15'
   export const CHE_POD_MANIFEST_FILE = '/home/user/eclipse-che/tomcat/webapps/ROOT/META-INF/MANIFEST.MF'
   export const CHE_PREFFIX_VERSION = 'Implementation-Version: '
@@ -87,8 +86,8 @@ export namespace VersionHelper {
           task.title = `${task.title}: Unknown.`
         }
 
-        if (!flags['skip-version-check'] && actualVersion) {
-          const checkPassed = checkMinimalVersion(actualVersion, MINIMAL_K8S_VERSION)
+        if (isKubernetesPlatformFamily(flags.platform) && !flags['skip-version-check'] && actualVersion) {
+          const checkPassed = checkMinimalK8sVersion(actualVersion)
           if (!checkPassed) {
             throw getMinimalVersionError(actualVersion, MINIMAL_K8S_VERSION, 'Kubernetes')
           }
@@ -238,7 +237,7 @@ export namespace VersionHelper {
     // Check cache, if it is already known that newer version available
     let isCachedNewerVersionAvailable = false
     try {
-      isCachedNewerVersionAvailable = semver.gt(newVersionInfo.latestVersion, currentVersion)
+      isCachedNewerVersionAvailable = await gtChectlVersion(newVersionInfo.latestVersion, currentVersion)
     } catch (error) {
       // not a version (corrupted data)
       cli.debug(`Failed to compare versions '${newVersionInfo.latestVersion}' and '${currentVersion}': ${error}`)
@@ -258,7 +257,7 @@ export namespace VersionHelper {
       newVersionInfo = { latestVersion, lastCheck: now }
       await fs.writeJson(newVersionInfoFilePath, newVersionInfo, { encoding: 'utf8' })
       try {
-        return semver.gt(newVersionInfo.latestVersion, currentVersion)
+        return gtChectlVersion(newVersionInfo.latestVersion, currentVersion)
       } catch (error) {
         // not to fail unexpectedly
         cli.debug(`Failed to compare versions '${newVersionInfo.latestVersion}' and '${currentVersion}': ${error}`)
@@ -268,6 +267,57 @@ export namespace VersionHelper {
 
     // Information whether a newer version available is already in cache
     return isCachedNewerVersionAvailable
+  }
+
+  /**
+   * Returns true if verA > verB
+   */
+  export async function gtChectlVersion(verA: string, verB: string): Promise<boolean> {
+    return (await compareChectlVersions(verA, verB)) > 0
+  }
+
+  /**
+   * Retruns:
+   *  1 if verA > verB
+   *  0 if verA = verB
+   * -1 if verA < verB
+   */
+  async function compareChectlVersions(verA: string, verB: string): Promise<number> {
+    if (verA === verB) {
+      return 0
+    }
+
+    const verAChannel = verA.includes('next') ? 'next' : 'stable'
+    const verBChannel = verB.includes('next') ? 'next' : 'stable'
+    if (verAChannel !== verBChannel) {
+      // Consider next is always newer
+      return (verAChannel === 'next') ? 1 : -1
+    }
+
+    if (verAChannel === 'stable') {
+      return semver.gt(verA, verB) ? 1 : -1
+    }
+
+    // Compare next versions, like: 0.0.20210715-next.597729a
+    const verABase = verA.split('-')[0]
+    const verBBase = verB.split('-')[0]
+    if (verABase !== verBBase) {
+      // Releases are made in different days
+      // It is possible to compare just versions
+      return semver.gt(verA, verB) ? 1 : -1
+    }
+
+    // Releases are made in the same day
+    // It is not possible to compare by versions as the difference only in commits hashes
+    const verACommitId = verA.split('-')[1].split('.')[1]
+    const verBCommitId = verB.split('-')[1].split('.')[1]
+
+    const githubClient = new CheGithubClient()
+    const verACommitDateString = await githubClient.getCommitDate(ECLIPSE_CHE_INCUBATOR_ORG, CHECTL_REPO, verACommitId)
+    const verBCommitDateString = await githubClient.getCommitDate(ECLIPSE_CHE_INCUBATOR_ORG, CHECTL_REPO, verBCommitId)
+    const verATimestamp = Date.parse(verACommitDateString)
+    const verBTimestamp = Date.parse(verBCommitDateString)
+    return verATimestamp > verBTimestamp ? 1 : -1
   }
 
   /**

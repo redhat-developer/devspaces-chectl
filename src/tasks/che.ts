@@ -76,6 +76,14 @@ export class CheTasks {
     this.cheDeploymentName = flags['deployment-name']
   }
 
+  async skipKeycloakDeploy(): Promise<boolean> {
+    const cheCluster = await this.kube.getCheCluster(this.cheNamespace)
+    if (!cheCluster) {
+      return false
+    }
+    return cheCluster.spec.auth.nativeUserMode
+  }
+
   /**
    * Returns tasks list that waits until every CodeReady Workspaces component will be started.
    *
@@ -93,7 +101,15 @@ export class CheTasks {
       {
         title: 'Keycloak pod bootstrap',
         enabled: ctx => ctx.isKeycloakDeployed && !ctx.isKeycloakReady,
-        task: () => this.kubeTasks.podStartTasks(this.keycloakSelector, this.cheNamespace),
+        task: async (_ctx: any, task: any) => {
+          if (await this.skipKeycloakDeploy()) {
+            task.title = `${task.title}...skipped`
+            return {
+              task: () => {},
+            }
+          }
+          return this.kubeTasks.podStartTasks(this.keycloakSelector, this.cheNamespace)
+        },
       },
       {
         title: 'Devfile Registry pod bootstrap',
@@ -252,7 +268,13 @@ export class CheTasks {
       {
         title: 'Keycloak pod bootstrap',
         enabled: ctx => ctx.isKeycloakDeployed && !ctx.isKeycloakReady,
-        task: async () => {
+        task: async (_ctx: any, task: any) => {
+          if (await this.skipKeycloakDeploy()) {
+            task.title = `${task.title}...skipped`
+            return {
+              task: () => {},
+            }
+          }
           await this.kube.scaleDeployment(this.keycloakDeploymentName, this.cheNamespace, 1)
           return this.kubeTasks.podStartTasks(this.keycloakSelector, this.cheNamespace)
         },
@@ -723,11 +745,18 @@ export class CheTasks {
 
             if (cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL) {
               messages.push(`Identity Provider URL     : ${addTrailingSlash(cheConfigMap.data.CHE_KEYCLOAK_AUTH__SERVER__URL)}`)
+
+              if (ctx.identityProviderUsername && ctx.identityProviderPassword) {
+                messages.push(`Identity Provider login   : "${ctx.identityProviderUsername}:${ctx.identityProviderPassword}".`)
+              } else {
+                const [login, password] = await this.che.retrieveKeycloakAdminCredentials(flags.chenamespace)
+                if (login && password) {
+                  messages.push(`Identity Provider login   : "${login}:${password}".`)
+                }
+              }
+
+              messages.push(OUTPUT_SEPARATOR)
             }
-            if (ctx.identityProviderUsername && ctx.identityProviderPassword) {
-              messages.push(`Identity Provider login   : "${ctx.identityProviderUsername}:${ctx.identityProviderPassword}".`)
-            }
-            messages.push(OUTPUT_SEPARATOR)
           }
           ctx.highlightedMessages = messages.concat(ctx.highlightedMessages)
           task.title = `${task.title}...done`
