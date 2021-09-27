@@ -69,6 +69,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|app=codeready,component=che|app=codeready,component=codeready|" \
 			-e "s|eclipse-che-operator|codeready-workspaces-operator|g" \
 			-e "s|che-operator|codeready-operator|g" \
+			-e "s|tech-preview-stable-all-namespaces|tech-preview-latest-all-namespaces|g" \
 			-e "s|/codeready-operator/|/codeready-workspaces-operator/|g" \
 			\
 			-e "s|codeready-operator-(cr.+yaml)|che-operator-\1|g" \
