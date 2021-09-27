@@ -93,3 +93,4 @@ export const CHE_CLUSTER_RESTORE_KIND_PLURAL = 'checlusterrestores'
 
 export const DEFAULT_OPENSHIFT_OPERATORS_NS_NAME = 'openshift-operators'
 export const STABLE_ALL_NAMESPACES_CHANNEL_NAME = 'tech-preview-latest-all-namespaces'
+
