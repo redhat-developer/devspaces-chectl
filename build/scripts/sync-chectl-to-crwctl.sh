@@ -108,6 +108,15 @@ pushd "${SOURCEDIR}" >/dev/null
 	done <   <(find src test installers configs prepare-che-operator-templates.js package.json .ci/obfuscate/gnirts.js .eslintrc.js  -type f -name "*" -print0) # include package.json in here too
 popd >/dev/null
 
+# copy extra files without sed
+# include yarn.lock to have the same dependencies
+pushd "${SOURCEDIR}" >/dev/null
+	while IFS= read -r -d '' d; do
+		echo "[INFO] Convert ${d}"
+		cp -f $(pwd)/"${d}" "${TARGETDIR}/${d}"
+	done <   <(find yarn.lock -print0)
+popd >/dev/null
+
 # Remove files
 pushd "${TARGETDIR}" >/dev/null
 	while IFS= read -r -d '' d; do
