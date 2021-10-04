@@ -108,12 +108,16 @@ pushd "${SOURCEDIR}" >/dev/null
 	done <   <(find src test installers configs prepare-che-operator-templates.js package.json .ci/obfuscate/gnirts.js .eslintrc.js  -type f -name "*" -print0) # include package.json in here too
 popd >/dev/null
 
+# copy extra files without sed
+# CRW-2312 include yarn.lock to have the same dependencies as chectl
+echo "[INFO] Copy yarn.lock"
+cp -f "${SOURCEDIR}/yarn.lock" "${TARGETDIR}/yarn.lock"
+
 # Remove files
 pushd "${TARGETDIR}" >/dev/null
 	while IFS= read -r -d '' d; do
 		echo "[INFO] Delete ${d#./}"
 		rm -f "$d"
-		#
 	done <   <(find . -regextype posix-extended -iregex '.+/(helm|minishift|minishift-addon|minikube|microk8s|k8s|docker-desktop)(.test|).ts' -print0)
 popd >/dev/null
 
