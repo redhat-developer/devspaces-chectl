@@ -94,7 +94,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|(const DEFAULT_CHE_OLM_PACKAGE_NAME =).+|\1 'codeready-workspaces'|g" \
 			-e "s|(const OLM_STABLE_CHANNEL_NAME =).+|\1 'latest'|g" \
 			-e "s|(const CUSTOM_CATALOG_SOURCE_NAME =).+|\1 'codeready-custom-catalog-source'|g" \
-			-e "s|(const SUBSCRIPTION_NAME =).+|\1 'codeready-subscription'|g" \
+			-e "s|(const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME =).+|\1 'codeready-subscription'|g" \
 			-e "s|(const OPERATOR_GROUP_NAME =).+|\1 'codeready-operator-group'|g" \
 			-e "s|(const OPENSHIFT_OLM_CATALOG =).+|\1 'redhat-operators'|g" \
 			-e "s|(const DEFAULT_OLM_SUGGESTED_NAMESPACE =).+|\1 'openshift-workspaces'|g" \
