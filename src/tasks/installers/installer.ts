@@ -13,6 +13,8 @@
 import Command from '@oclif/command'
 import * as Listr from 'listr'
 
+import { ChectlContext } from '../../api/context'
+
 import { OLMTasks } from './olm'
 import { OperatorTasks } from './operator'
 
@@ -29,8 +31,8 @@ export class InstallerTasks {
 
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the CodeReady Workspaces operator Update'
-      task = () => {
-        return operatorTasks.updateTasks(flags, command)
+      task = (ctx: any) => {
+        return new Listr(operatorTasks.updateTasks(flags, command), ctx.listrOptions)
       }
     } else if (flags.installer === 'olm') {
       title = '🏃‍  Running the CodeReady Workspaces operator Update using OLM'
@@ -80,7 +82,9 @@ export class InstallerTasks {
     }]
   }
 
-  installTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
+  async installTasks(flags: any, command: Command): Promise<ReadonlyArray<Listr.ListrTask>> {
+    const ctx = ChectlContext.get()
+
     const operatorTasks = new OperatorTasks()
     const olmTasks = new OLMTasks()
 
@@ -89,10 +93,12 @@ export class InstallerTasks {
 
     if (flags.installer === 'operator') {
       title = '🏃‍  Running the CodeReady Workspaces operator'
-      task = () => operatorTasks.deployTasks(flags, command)
+      task = async () => {
+        return new Listr(await operatorTasks.deployTasks(flags, command), ctx.listrOptions)
+      }
     } else if (flags.installer === 'olm') {
       title = '🏃‍  Running Olm installaion CodeReady Workspaces'
-      task = () => olmTasks.startTasks(flags, command)
+      task = () => new Listr(olmTasks.startTasks(flags, command), ctx.listrOptions)
     } else {
       title = '🏃‍  Installer preflight check'
       task = () => {
