@@ -522,10 +522,6 @@ OPTIONS
   --deployment-name=deployment-name
       [default: codeready] CodeReady Workspaces deployment name
 
-  --dev-workspace-controller-namespace=dev-workspace-controller-namespace
-      [default: devworkspace-controller] Namespace for the DevWorkspace controller.  This parameter is used only when the 
-      workspace engine is the DevWorkspace
-
   --devfile-registry-url=devfile-registry-url
       The URL of the external Devfile registry.
 
