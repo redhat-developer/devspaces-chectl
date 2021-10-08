@@ -375,12 +375,17 @@ OPTIONS
 
   --backup-server-config-name=backup-server-config-name  Name of custom resource with backup server config
 
+  --batch                                                Batch mode. Running a command without end user interaction.
+
   --password=password                                    Authentication password for backup REST server
 
   --ssh-key=ssh-key                                      Private SSH key for authentication on SFTP server
 
   --ssh-key-file=ssh-key-file                            Path to file with private SSH key for authentication on SFTP
                                                          server
+
+  --telemetry=on|off                                     Enable or disable telemetry. This flag skips a prompt and
+                                                         enable/disable telemetry
 
   --username=username                                    Username for authentication in backup REST server
 
@@ -695,6 +700,8 @@ OPTIONS
 
   -n, --chenamespace=chenamespace                          CodeReady Workspaces Openshift Project. Default to
                                                            'openshift-workspaces'
+
+  --batch                                                  Batch mode. Running a command without end user interaction.
 
   --deployment-name=deployment-name                        [default: codeready] CodeReady Workspaces deployment name
 
