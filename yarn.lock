@@ -1151,10 +1151,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/node-forge@^0.10.5":
-  version "0.10.5"
-  resolved "https://registry.yarnpkg.com/@types/node-forge/-/node-forge-0.10.5.tgz#f79925c88202817a7ec0958c3a9d3a915d362b4f"
-  integrity sha512-P+Q+MPSDr0RgIzv5h0gJuJDCm1e4RaSu/EMJZTUS4ZzboWH2uX/T7TiqAAcEFTHzCKtgMRqCgTVTX9SD72fMTQ==
+"@types/node-forge@^0.10.7":
+  version "0.10.7"
+  resolved "https://registry.yarnpkg.com/@types/node-forge/-/node-forge-0.10.7.tgz#5ca98fb02c9c93012e5c310ae0ab30bed66535ff"
+  integrity sha512-Eq8e24JegOZ+3BfBkYcp31V/C8v72edG3U/flsWnoOAZDV1u0yFjTpzIRS9FZtp15jZjmjsQ/sUNx0WckVd2Zw==
   dependencies:
     "@types/node" "*"
 
@@ -3926,10 +3926,10 @@ inherits@2, inherits@^2.0.1, inherits@^2.0.3, inherits@^2.0.4, inherits@~2.0.0, 
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz#0fa2c64f932917c3433a0ded55363aae37416b7c"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
 
-inquirer@^8.1.5:
-  version "8.1.5"
-  resolved "https://registry.yarnpkg.com/inquirer/-/inquirer-8.1.5.tgz#2dc5159203c826d654915b5fe6990fd17f54a150"
-  integrity sha512-G6/9xUqmt/r+UvufSyrPpt84NYwhKZ9jLsgMbQzlx804XErNupor8WQdBnBRrXmBfTPpuwf1sV+ss2ovjgdXIg==
+inquirer@^8.2.0:
+  version "8.2.0"
+  resolved "https://registry.yarnpkg.com/inquirer/-/inquirer-8.2.0.tgz#f44f008dd344bbfc4b30031f45d984e034a3ac3a"
+  integrity sha512-0crLweprevJ02tTuA6ThpoAERAGyVILC4sS74uib58Xf/zSr1/ZWtmm7D5CI+bSQEaA04f0K7idaHpQbSWgiVQ==
   dependencies:
     ansi-escapes "^4.2.1"
     chalk "^4.1.1"
