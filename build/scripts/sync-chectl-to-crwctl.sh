@@ -222,7 +222,8 @@ pushd "${TARGETDIR}" >/dev/null
 		mkdir -p "${TARGETDIR}/${d%/*}"
 		sed -i -r -e '/.+BEGIN CHE ONLY$/,/.+END CHE ONLY$/d' "${TARGETDIR}/${d}"
 		sed -r -e "/.*(import|const|protected|new).+(Helm|Minishift|DockerDesktop|K8s|MicroK8s|Minikube).*Tasks.*/d" -i "${TARGETDIR}/${d}"
-		sed -r -e "s/.+return.+configureApiServerForDex.+/return []/" -i "${TARGETDIR}/${d}"
+		sed -r -e "s/.+constructor\(flags\: any\).+/  constructor() {/" -i "${TARGETDIR}/${d}"
+		sed -r -e "s/.+return.+configureApiServerForDex.+/      return []/" -i "${TARGETDIR}/${d}"
 	done
 popd >/dev/null
 
