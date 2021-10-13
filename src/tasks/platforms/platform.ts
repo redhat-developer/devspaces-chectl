@@ -19,28 +19,18 @@ import { OpenshiftTasks } from './openshift'
  * Platform specific tasks.
  */
 export class PlatformTasks {
-  protected minikubeTasks: MinikubeTasks
 
-  protected microk8sTasks: MicroK8sTasks
 
-  protected minishiftTasks: MinishiftTasks
 
   protected openshiftTasks: OpenshiftTasks
 
-  protected k8sTasks: K8sTasks
 
   protected crc: CRCHelper
 
-  protected dockerDesktopTasks: DockerDesktopTasks
 
   constructor(flags: any) {
-    this.minikubeTasks = new MinikubeTasks()
-    this.microk8sTasks = new MicroK8sTasks()
-    this.minishiftTasks = new MinishiftTasks()
     this.openshiftTasks = new OpenshiftTasks()
-    this.k8sTasks = new K8sTasks()
     this.crc = new CRCHelper()
-    this.dockerDesktopTasks = new DockerDesktopTasks(flags)
   }
 
   preflightCheckTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
@@ -76,7 +66,7 @@ export class PlatformTasks {
 
   configureApiServerForDex(flags: any): ReadonlyArray<Listr.ListrTask> {
     if (flags.platform === 'minikube') {
-      return this.minikubeTasks.configureApiServerForDex(flags)
+return []
     } else {
       cli.error(`It is not possible to configure API server for ${flags.platform}.`)
     }
