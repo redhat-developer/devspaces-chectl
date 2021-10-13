@@ -10,20 +10,40 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 import Command from '@oclif/command'
+import { cli } from 'cli-ux'
 import * as Listr from 'listr'
-
 import { CRCHelper } from './crc'
 import { OpenshiftTasks } from './openshift'
 
 /**
  * Platform specific tasks.
- *  - preflightCheck
  */
 export class PlatformTasks {
-  preflightCheckTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
-    const openshiftTasks = new OpenshiftTasks()
-    const crc = new CRCHelper()
+  protected minikubeTasks: MinikubeTasks
 
+  protected microk8sTasks: MicroK8sTasks
+
+  protected minishiftTasks: MinishiftTasks
+
+  protected openshiftTasks: OpenshiftTasks
+
+  protected k8sTasks: K8sTasks
+
+  protected crc: CRCHelper
+
+  protected dockerDesktopTasks: DockerDesktopTasks
+
+  constructor(flags: any) {
+    this.minikubeTasks = new MinikubeTasks()
+    this.microk8sTasks = new MicroK8sTasks()
+    this.minishiftTasks = new MinishiftTasks()
+    this.openshiftTasks = new OpenshiftTasks()
+    this.k8sTasks = new K8sTasks()
+    this.crc = new CRCHelper()
+    this.dockerDesktopTasks = new DockerDesktopTasks(flags)
+  }
+
+  preflightCheckTasks(flags: any, command: Command): ReadonlyArray<Listr.ListrTask> {
     let task: Listr.ListrTask
     if (!flags.platform) {
       task = {
@@ -35,12 +55,12 @@ export class PlatformTasks {
     } else if (flags.platform === 'openshift') {
       task = {
         title: '✈️  Openshift preflight checklist',
-        task: () => openshiftTasks.preflightCheckTasks(flags, command),
+        task: () => this.openshiftTasks.preflightCheckTasks(flags, command),
       }
     } else if (flags.platform === 'crc') {
       task = {
         title: '✈️  CodeReady Containers preflight checklist',
-        task: () => crc.preflightCheckTasks(flags, command),
+        task: () => this.crc.preflightCheckTasks(flags, command),
       }
     } else {
       task = {
@@ -52,5 +72,13 @@ export class PlatformTasks {
     }
 
     return [task]
+  }
+
+  configureApiServerForDex(flags: any): ReadonlyArray<Listr.ListrTask> {
+    if (flags.platform === 'minikube') {
+      return this.minikubeTasks.configureApiServerForDex(flags)
+    } else {
+      cli.error(`It is not possible to configure API server for ${flags.platform}.`)
+    }
   }
 }

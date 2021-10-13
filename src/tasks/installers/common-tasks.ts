@@ -13,6 +13,7 @@
 import Command from '@oclif/command'
 import ansi = require('ansi-colors')
 import * as fs from 'fs-extra'
+import * as os from 'os'
 import * as Listr from 'listr'
 import { isEmpty } from 'lodash'
 import * as path from 'path'
@@ -23,24 +24,26 @@ import { ChectlContext } from '../../api/context'
 import { CheGithubClient } from '../../api/github-client'
 import { KubeHelper } from '../../api/kube'
 import { VersionHelper } from '../../api/version'
-import { CHE_CLUSTER_CRD, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER, OPERATOR_TEMPLATE_DIR } from '../../constants'
+import { CHE_CLUSTER_CRD, DEFAULT_CA_CERT_FILE_NAME, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER, OPERATOR_TEMPLATE_DIR } from '../../constants'
 import { getProjectVersion } from '../../util'
+
+export const TASK_TITLE_CREATE_CHE_CLUSTER_CRD = `Create the Custom Resource of type ${CHE_CLUSTER_CRD}`
+export const TASK_TITLE_PATCH_CHECLUSTER_CR = `Patching the Custom Resource of type ${CHE_CLUSTER_CRD}`
 
 export function createNamespaceTask(namespaceName: string, labels: {}): Listr.ListrTask {
   return {
-    title: `Create Namespace (${namespaceName})`,
+    title: `Create Namespace ${namespaceName}`,
     task: async (_ctx: any, task: any) => {
       const kube = new KubeHelper()
-      const che = new CheHelper({})
 
       const namespace = await kube.getNamespace(namespaceName)
       if (namespace) {
-        await che.waitNamespaceActive(namespaceName)
-        task.title = `${task.title}...It already exists.`
+        await kube.waitNamespaceActive(namespaceName)
+        task.title = `${task.title}...[Exists]`
       } else {
         await kube.createNamespace(namespaceName, labels)
-        await che.waitNamespaceActive(namespaceName)
-        task.title = `${task.title}...Done.`
+        await kube.waitNamespaceActive(namespaceName)
+        task.title = `${task.title}...[OK]`
       }
     },
   }
@@ -117,9 +120,11 @@ export function downloadTemplates(flags: any): Listr.ListrTask {
 
 export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.ListrTask {
   return {
-    title: `Create the Custom Resource of type ${CHE_CLUSTER_CRD} in the namespace ${flags.chenamespace}`,
+    title: TASK_TITLE_CREATE_CHE_CLUSTER_CRD,
     enabled: ctx => Boolean(ctx.customCR) || Boolean(ctx.defaultCR),
     task: async (ctx: any, task: any) => {
+      task.title = `${task.title} in the namespace ${flags.chenamespace}`
+
       ctx.isCheDeployed = true
       ctx.isPostgresDeployed = true
       ctx.isKeycloakDeployed = true
@@ -160,9 +165,10 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
  */
 export function patchingEclipseCheCluster(flags: any, kube: KubeHelper, command: Command): Listr.ListrTask {
   return {
-    title: `Patching the Custom Resource of type '${CHE_CLUSTER_CRD}' in the namespace '${flags.chenamespace}'`,
+    title: TASK_TITLE_PATCH_CHECLUSTER_CR,
     skip: (ctx: any) => isEmpty(ctx[ChectlContext.CR_PATCH]),
     task: async (ctx: any, task: any) => {
+      task.title = `${task.title} in the namespace ${flags.chenamespace}`
       const cheCluster = await kube.getCheCluster(flags.chenamespace)
       if (!cheCluster) {
         command.error(`CodeReady Workspaces cluster CR is not found in the namespace '${flags.chenamespace}'`)
@@ -183,12 +189,12 @@ export function retrieveCheCaCertificateTask(flags: any): Listr.ListrTask {
       const kube = new KubeHelper()
       const cheCaCert = await che.retrieveCheCaCert(flags.chenamespace)
       if (cheCaCert) {
-        const targetFile = await che.saveCheCaCert(cheCaCert)
-
+        const caCertFilePath = path.join(os.tmpdir(), DEFAULT_CA_CERT_FILE_NAME)
+        fs.writeFileSync(caCertFilePath, cheCaCert)
         task.title = `${task.title}...OK`
         const serverStrategy = await kube.getConfigMapValue('che', flags.chenamespace, 'CHE_INFRA_KUBERNETES_SERVER__STRATEGY')
         if (serverStrategy !== 'single-host') {
-          ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(targetFile))
+          ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(caCertFilePath))
         }
       } else {
         task.title = `${task.title}... commonly trusted certificate is used.`

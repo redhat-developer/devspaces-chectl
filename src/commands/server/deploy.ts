@@ -17,15 +17,16 @@ import * as Listr from 'listr'
 import * as semver from 'semver'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, devWorkspaceControllerNamespace, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_HELM_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION, STABLE_ALL_NAMESPACES_CHANNEL_NAME } from '../../constants'
+import { batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, cheOperatorCRYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_OPERATOR_CR_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, k8sPodDownloadImageTimeout, K8SPODDOWNLOADIMAGETIMEOUT_KEY, k8sPodErrorRecheckTimeout, K8SPODERRORRECHECKTIMEOUT_KEY, k8sPodReadyTimeout, K8SPODREADYTIMEOUT_KEY, k8sPodWaitTimeout, K8SPODWAITTIMEOUT_KEY, listrRenderer, logsDirectory, LOG_DIRECTORY_KEY, skipKubeHealthzCheck as skipK8sHealthCheck } from '../../common-flags'
+import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_NAMESPACE, DEFAULT_OLM_SUGGESTED_NAMESPACE, DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY, MIN_CHE_OPERATOR_INSTALLER_VERSION, MIN_HELM_INSTALLER_VERSION, MIN_OLM_INSTALLER_VERSION, OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME } from '../../constants'
 import { CheTasks } from '../../tasks/che'
 import { DevWorkspaceTasks } from '../../tasks/component-installers/devfile-workspace-operator-installer'
-import { checkChectlAndCheVersionCompatibility, downloadTemplates, getPrintHighlightedMessagesTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
+import { DexTasks } from '../../tasks/component-installers/dex'
+import { checkChectlAndCheVersionCompatibility, createNamespaceTask, downloadTemplates, getPrintHighlightedMessagesTask, retrieveCheCaCertificateTask } from '../../tasks/installers/common-tasks'
 import { InstallerTasks } from '../../tasks/installers/installer'
 import { ApiTasks } from '../../tasks/platforms/api'
 import { PlatformTasks } from '../../tasks/platforms/platform'
-import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, isKubernetesPlatformFamily, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, getTlsSupport, isDevWorkspaceEnabled, isKubernetesPlatformFamily, isNativeUserModeEnabled, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Deploy extends Command {
   static description = 'Deploy CodeReady Workspaces server'
@@ -189,19 +190,18 @@ export default class Deploy extends Command {
       options: ['che-server', 'dev-workspace'],
       default: 'che-server',
     }),
-    'dev-workspace-controller-namespace': devWorkspaceControllerNamespace,
     telemetry: CHE_TELEMETRY,
     [DEPLOY_VERSION_KEY]: cheDeployVersion,
   }
 
   async setPlaformDefaults(flags: any, ctx: any): Promise<void> {
-    flags.tls = await this.checkTlsMode(ctx)
+    flags.tls = getTlsSupport(ctx)
     if (flags['self-signed-cert']) {
       this.warn('"self-signed-cert" flag is deprecated and has no effect. Autodetection is used instead.')
     }
 
     if (!flags.installer) {
-      await this.setDefaultInstaller(flags, ctx)
+      await setDefaultInstaller(flags)
       cli.info(`› Installer type is set to: '${flags.installer}'`)
     }
 
@@ -219,38 +219,6 @@ export default class Deploy extends Command {
       // All flavors should use embedded templates if not custom templates is given.
       flags.templates = getEmbeddedTemplatesDirectory()
     }
-  }
-
-  /**
-   * Checks if TLS is disabled via operator custom resource.
-   * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
-   */
-  async checkTlsMode(ctx: any): Promise<boolean> {
-    const crPatch = ctx.crPatch
-    if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
-      return false
-    }
-
-    const customCR = ctx.customCR
-    if (customCR && customCR.spec && customCR.spec.server && customCR.spec.server.tlsSupport === false) {
-      return false
-    }
-
-    return true
-  }
-
-  private isDevWorkspaceEnabled(ctx: any): boolean {
-    const crPatch = ctx.crPatch
-    if (crPatch && crPatch.spec && crPatch.spec.devWorkspace && crPatch.spec.devWorkspace.enable) {
-      return true
-    }
-
-    const customCR = ctx.customCR
-    if (customCR && customCR.spec && customCR.spec.devWorkspace && customCR.spec.devWorkspace.enable) {
-      return true
-    }
-
-    return false
   }
 
   private checkCompatibility(flags: any) {
@@ -286,7 +254,7 @@ export default class Deploy extends Command {
         this.error(`🛑 The specified installer ${flags.installer} does not support Minishift`)
       }
 
-      if (flags['olm-channel'] === STABLE_ALL_NAMESPACES_CHANNEL_NAME && isKubernetesPlatformFamily(flags.platform)) {
+      if (flags['olm-channel'] === OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME && isKubernetesPlatformFamily(flags.platform)) {
         this.error('"stable-all-namespaces" channel is supported only in "openshift" platform')
       }
 
@@ -296,9 +264,6 @@ export default class Deploy extends Command {
       if (flags.version) {
         if (flags['starting-csv']) {
           this.error('"starting-csv" and "version" flags are mutually exclusive. Please specify only one of them.')
-        }
-        if (flags['olm-channel']) {
-          this.error('"starting-csv" and "version" flags are mutually exclusive. Use "starting-csv" with "olm-channel" flag.')
         }
         if (flags['auto-update']) {
           this.error('enabled "auto-update" flag cannot be used with version flag. Deploy latest version instead.')
@@ -386,8 +351,9 @@ export default class Deploy extends Command {
       }
     }
 
+    const dexTasks = new DexTasks(flags)
     const cheTasks = new CheTasks(flags)
-    const platformTasks = new PlatformTasks()
+    const platformTasks = new PlatformTasks(flags)
     const installerTasks = new InstallerTasks()
     const apiTasks = new ApiTasks()
     const devWorkspaceTasks = new DevWorkspaceTasks(flags)
@@ -406,10 +372,16 @@ export default class Deploy extends Command {
     preInstallTasks.add(downloadTemplates(flags))
     preInstallTasks.add({
       title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
-      enabled: () => (this.isDevWorkspaceEnabled(ctx) || flags['workspace-engine'] === 'dev-workspace') && !ctx.isOpenShift,
+      enabled: () => (isDevWorkspaceEnabled(ctx) || flags['workspace-engine'] === 'dev-workspace') && !ctx.isOpenShift,
       task: () => new Listr(devWorkspaceTasks.getInstallTasks(flags)),
     })
-    const installTasks = new Listr(installerTasks.installTasks(flags, this), ctx.listrOptions)
+
+    const installTasks = new Listr(undefined, ctx.listrOptions)
+    installTasks.add([createNamespaceTask(flags.chenamespace, this.getNamespaceLabels(flags))])
+    if (isKubernetesPlatformFamily(flags.platform) && isNativeUserModeEnabled(ctx)) {
+      installTasks.add(dexTasks.getInstallTasks())
+    }
+    installTasks.add(await installerTasks.installTasks(flags, this))
 
     // Post Install Checks
     const postInstallTasks = new Listr([
@@ -448,27 +420,37 @@ export default class Deploy extends Command {
       this.error(wrapCommandError(err))
     }
 
-    notifyCommandCompletedSuccessfully()
+    if (!flags.batch) {
+      notifyCommandCompletedSuccessfully()
+    }
     this.exit(0)
   }
 
-  /**
-   * Sets default installer which is `olm` for OpenShift 4 with stable version of crwctl
-   * and `operator` for other cases.
-   */
-  async setDefaultInstaller(flags: any, _ctx: any): Promise<void> {
-    const kubeHelper = new KubeHelper(flags)
-
-    const isOlmPreinstalled = await kubeHelper.isPreInstalledOLM()
-    if ((flags['catalog-source-name'] || flags['catalog-source-yaml']) && isOlmPreinstalled) {
-      flags.installer = 'olm'
-      return
+  private getNamespaceLabels(flags: any): any {
+    // The label values must be strings
+    if (flags['cluster-monitoring'] && flags.platform === 'openshift') {
+      return { 'openshift.io/cluster-monitoring': 'true' }
     }
+    return {}
+  }
+}
 
-    if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isOlmPreinstalled) {
-      flags.installer = 'olm'
-    } else {
-      flags.installer = 'operator'
-    }
+/**
+ * Sets default installer which is `olm` for OpenShift 4 with stable version of crwctl
+ * and `operator` for other cases.
+ */
+export async function setDefaultInstaller(flags: any): Promise<void> {
+  const kubeHelper = new KubeHelper(flags)
+
+  const isOlmPreinstalled = await kubeHelper.isPreInstalledOLM()
+  if ((flags['catalog-source-name'] || flags['catalog-source-yaml']) && isOlmPreinstalled) {
+    flags.installer = 'olm'
+    return
+  }
+
+  if (flags.platform === 'openshift' && await kubeHelper.isOpenShift4() && isOlmPreinstalled) {
+    flags.installer = 'olm'
+  } else {
+    flags.installer = 'operator'
   }
 }
