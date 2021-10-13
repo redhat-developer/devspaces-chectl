@@ -222,7 +222,6 @@ pushd "${TARGETDIR}" >/dev/null
 		mkdir -p "${TARGETDIR}/${d%/*}"
 		sed -i -r -e '/.+BEGIN CHE ONLY$/,/.+END CHE ONLY$/d' "${TARGETDIR}/${d}"
 		sed -r -e "/.*(import|const|protected|new).+(Helm|Minishift|DockerDesktop|K8s|MicroK8s|Minikube).*Tasks.*/d" -i "${TARGETDIR}/${d}"
-		sed -r -e "s/(.+constructor)\(flags\: any\).+/\1() {/" -i "${TARGETDIR}/${d}"
 		sed -r -e "s/(.+return).+configureApiServerForDex.+/\1 []/" -i "${TARGETDIR}/${d}"
 	done
 popd >/dev/null
@@ -238,6 +237,14 @@ pushd "${TARGETDIR}" >/dev/null
 	sed -r -e "s#CHECTL_PROJECT_NAME =.+#CHECTL_PROJECT_NAME = 'chectl'#" -i "${TARGETDIR}/${d}"
 	# Fix correct templates directory
 	sed -r -e "s#OPERATOR_TEMPLATE_DIR =.+#OPERATOR_TEMPLATE_DIR = 'codeready-workspaces-operator'#" -i "${TARGETDIR}/${d}"
+popd >/dev/null
+
+# Patch eslint rules
+pushd "${TARGETDIR}" >/dev/null
+  d=configs/disabled.rules.json
+	echo "[INFO] Convert ${d}"
+	mkdir -p "${TARGETDIR}/${d%/*}"
+  sed -r -e '/"rules"\: \{/ a "@typescript-eslint/no-unused-vars": 0,' -i "${TARGETDIR}/${d}"
 popd >/dev/null
 
 replaceVar()
