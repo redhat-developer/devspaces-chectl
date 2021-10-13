@@ -244,7 +244,7 @@ pushd "${TARGETDIR}" >/dev/null
   d=configs/disabled.rules.json
 	echo "[INFO] Convert ${d}"
 	mkdir -p "${TARGETDIR}/${d%/*}"
-  sed -r -e '/"rules"\: \{/ a "@typescript-eslint/no-unused-vars": 0,' -i "${TARGETDIR}/${d}"
+  sed -r -e '/"rules"\: \{/ a \ \ \ \ \ \ "@typescript-eslint/no-unused-vars": 0,' -i "${TARGETDIR}/${d}"
 popd >/dev/null
 
 replaceVar()

@@ -22,7 +22,7 @@ export class PlatformTasks {
   protected openshiftTasks: OpenshiftTasks
   protected crc: CRCHelper
 
-  constructor() {
+  constructor(flags: any) {
     this.openshiftTasks = new OpenshiftTasks()
     this.crc = new CRCHelper()
   }
