@@ -19,16 +19,10 @@ import { OpenshiftTasks } from './openshift'
  * Platform specific tasks.
  */
 export class PlatformTasks {
-
-
-
   protected openshiftTasks: OpenshiftTasks
-
-
   protected crc: CRCHelper
 
-
-  constructor(flags: any) {
+  constructor() {
     this.openshiftTasks = new OpenshiftTasks()
     this.crc = new CRCHelper()
   }
@@ -66,7 +60,7 @@ export class PlatformTasks {
 
   configureApiServerForDex(flags: any): ReadonlyArray<Listr.ListrTask> {
     if (flags.platform === 'minikube') {
-return []
+      return []
     } else {
       cli.error(`It is not possible to configure API server for ${flags.platform}.`)
     }
