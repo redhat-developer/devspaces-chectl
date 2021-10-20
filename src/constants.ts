@@ -41,22 +41,28 @@ export const CHE_OPERATOR_SELECTOR = 'app=codeready-operator'
 export const DEFAULT_CHE_NAMESPACE = 'openshift-workspaces'
 export const LEGACY_CHE_NAMESPACE = 'workspaces'
 
-// OLM
+// OLM common
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'codeready-workspaces'
+export const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME = 'codeready-subscription'
+export const DEVWORKSPACE_OPERATOR_SUBSRIPTION_NAME = 'devworkspace-operator-fast-redhat-operators-openshift-marketplace'
+export const OPERATOR_GROUP_NAME = 'codeready-operator-group'
+export const CVS_PREFIX = 'crwoperator'
+export const DEVWORKSPACE_CVS_PREFIX = 'crwoperator'
+// OLM channels
 export const OLM_STABLE_CHANNEL_NAME = 'latest'
 export const OLM_STABLE_ALL_NAMESPACES_CHANNEL_NAME = 'tech-preview-latest-all-namespaces'
 export const OLM_NEXT_CHANNEL_NAME = 'next'
+export const OLM_NEXT_ALL_NAMESPACES_CHANNEL_NAME = 'next-all-namespaces'
+// OLM namespaces
 export const DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE = 'openshift-marketplace'
 export const DEFAULT_OLM_KUBERNETES_NAMESPACE = 'olm'
+export const DEFAULT_OPENSHIFT_OPERATORS_NS_NAME = 'openshift-operators'
+// OLM catalogs
 export const CUSTOM_CATALOG_SOURCE_NAME = 'codeready-custom-catalog-source'
-export const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME = 'codeready-subscription'
-export const OPERATOR_GROUP_NAME = 'codeready-operator-group'
-export const KUBERNETES_OLM_CATALOG = 'operatorhubio-catalog'
-export const OPENSHIFT_OLM_CATALOG = 'redhat-operators'
-export const CVS_PREFIX = 'crwoperator'
 export const NEXT_CATALOG_SOURCE_NAME = 'eclipse-che-preview'
 export const DEFAULT_OLM_SUGGESTED_NAMESPACE = 'openshift-workspaces'
-export const DEFAULT_OPENSHIFT_OPERATORS_NS_NAME = 'openshift-operators'
+export const KUBERNETES_OLM_CATALOG = 'operatorhubio-catalog'
+export const OPENSHIFT_OLM_CATALOG = 'redhat-operators'
 
 // Documentation links
 export const DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.13/'
