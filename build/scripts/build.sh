@@ -112,12 +112,10 @@ isPreRelease="true"
 if [[ "${versionSuffix}" ]]; then
     CHECTL_VERSION="${CSV_VERSION}-${versionSuffix}"
     CUSTOM_TAG="${CSV_VERSION}-${versionSuffix}-${SHORT_SHA1}"
-    RELEASE_DESCRIPTION="Stable release ${CUSTOM_TAG}"
 else
     # TODO replace multiple CI releases with a single reusable CI pre-release for each CSV version
     CHECTL_VERSION="${CSV_VERSION}-$CURRENT_DAY"
     CUSTOM_TAG="${CSV_VERSION}-$CURRENT_DAY-${SHORT_SHA1}"
-    RELEASE_DESCRIPTION="CI release ${CUSTOM_TAG}"
 fi
 
 # RENAME artifacts to include version in the tarball: codeready-workspaces-2.1.0-crwctl-*.tar.gz
@@ -261,10 +259,15 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
 
     # Create new release
     curl -XPOST -H "Authorization:token ${GITHUB_TOKEN}" \
-        --data '{"tag_name": "'${CUSTOM_TAG}'", "target_commitish": "'${MIDSTM_BRANCH}'", "name": "'${CUSTOM_TAG}'", "body": "'${RELEASE_DESCRIPTION}'", "draft": false, "prerelease": '${isPreRelease}'}' \
+        --data '{"tag_name": "'${CUSTOM_TAG}'", "target_commitish": "'${MIDSTM_BRANCH}'", "name": "'${CUSTOM_TAG}'", "body": "Release '${CUSTOM_TAG}'", "draft": false, "prerelease": '${isPreRelease}'}' \
         https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}
     # Extract the id of the release from the creation response
     RELEASE_ID=$(jq -r .id /tmp/${CUSTOM_TAG}); rm -f /tmp/${CUSTOM_TAG}
+
+    if [[ "${RELEASE_ID}" == "null" ]]; then
+        echo "[ERROR] Could not load release id for new GH release"
+        exit 1
+    fi
 
     # upload artifacts for each platform + sources tarball
     pushd ${CRWCTL_DIR}/dist/channels/quay/ 
