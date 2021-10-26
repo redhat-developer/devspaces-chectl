@@ -108,12 +108,12 @@ SHORT_SHA1=$(git rev-parse --short=4 HEAD)
 
 # for RC and CI, prerelease=true
 isPreRelease="true"
+releaseName="${CSV_VERSION}-CI-assets"
 
 if [[ "${versionSuffix}" ]]; then
     CHECTL_VERSION="${CSV_VERSION}-${versionSuffix}"
     CUSTOM_TAG="${CSV_VERSION}-${versionSuffix}-${SHORT_SHA1}"
 else
-    # TODO replace multiple CI releases with a single reusable CI pre-release for each CSV version
     CHECTL_VERSION="${CSV_VERSION}-$CURRENT_DAY"
     CUSTOM_TAG="${CSV_VERSION}-$CURRENT_DAY-${SHORT_SHA1}"
 fi
@@ -126,6 +126,7 @@ if [[ $versionSuffix == "GA" ]]; then
     repoFlag="--stage"
     repoOrg="codeready-workspaces"
     isPreRelease="false"
+    releaseName="${CSV_VERSION}-GA-assets"
 elif [[ $versionSuffix == "RC" ]]; then
     repoFlag="--quay"
     repoOrg="crw"
@@ -259,7 +260,7 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
 
     # Create new release
     curl -XPOST -H "Authorization:token ${GITHUB_TOKEN}" \
-        --data '{"tag_name": "'${CUSTOM_TAG}'", "target_commitish": "'${MIDSTM_BRANCH}'", "name": "'${CUSTOM_TAG}'", "body": "Release '${CUSTOM_TAG}'", "draft": false, "prerelease": '${isPreRelease}'}' \
+        --data '{"tag_name": "'${CUSTOM_TAG}'", "target_commitish": "'${MIDSTM_BRANCH}'", "name": "'${releaseName}'", "body": "Release '${CUSTOM_TAG}'", "draft": false, "prerelease": '${isPreRelease}'}' \
         https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}
     # Extract the id of the release from the creation response
     RELEASE_ID=$(jq -r .id /tmp/${CUSTOM_TAG}); rm -f /tmp/${CUSTOM_TAG}
