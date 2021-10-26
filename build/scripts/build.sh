@@ -106,6 +106,9 @@ pushd $CRWCTL_DIR >/dev/null
 CURRENT_DAY=$(date +'%Y%m%d-%H%M')
 SHORT_SHA1=$(git rev-parse --short=4 HEAD)
 
+# for RC and CI, prerelease=true
+isPreRelease="true"
+
 if [[ "${versionSuffix}" ]]; then
     CHECTL_VERSION="${CSV_VERSION}-${versionSuffix}"
     CUSTOM_TAG="${CSV_VERSION}-${versionSuffix}-${SHORT_SHA1}"
@@ -120,10 +123,11 @@ fi
 # RENAME artifacts to include version in the tarball: codeready-workspaces-2.1.0-crwctl-*.tar.gz
 TARBALL_PREFIX="codeready-workspaces-${CHECTL_VERSION}"
 
-# compute latest tags for server and operator from quay
+# compute latest tags for server and operator from quay; also set prerelease=false for GA
 if [[ $versionSuffix == "GA" ]]; then
     repoFlag="--stage"
     repoOrg="codeready-workspaces"
+    isPreRelease="false"
 elif [[ $versionSuffix == "RC" ]]; then
     repoFlag="--quay"
     repoOrg="crw"
@@ -256,8 +260,8 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
     # TODO use gh cli instead of curling? See https://github.com/redhat-developer/codeready-workspaces/blob/crw-2-rhel-8/product/uploadAssetsToGHRelease.sh
 
     # Create new release
-    curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' \
-        --data '{"tag_name": "${CUSTOM_TAG}", "target_commitish": "${MIDSTM_BRANCH}", "name": "${CUSTOM_TAG}", "body": "${RELEASE_DESCRIPTION}", "draft": false, "prerelease": ${isPreRelease}}' \
+    curl -XPOST -H "Authorization:token ${GITHUB_TOKEN}" \
+        --data '{"tag_name": "'${CUSTOM_TAG}'", "target_commitish": "'${MIDSTM_BRANCH}'", "name": "'${CUSTOM_TAG}'", "body": "'${RELEASE_DESCRIPTION}'", "draft": false, "prerelease": '${isPreRelease}'}' \
         https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}
     # Extract the id of the release from the creation response
     RELEASE_ID=$(jq -r .id /tmp/${CUSTOM_TAG}); rm -f /tmp/${CUSTOM_TAG}
@@ -265,7 +269,7 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
     # upload artifacts for each platform + sources tarball
     pushd ${CRWCTL_DIR}/dist/channels/quay/ 
         for platform in ${platforms//,/ } sources; do
-        curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' -H 'Content-Type:application/octet-stream' \
+        curl -XPOST -H "Authorization:token ${GITHUB_TOKEN}" -H 'Content-Type:application/octet-stream' \
             --data-binary @${TARBALL_PREFIX}-crwctl-${platform}.tar.gz \
             https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-${platform}.tar.gz
         done
