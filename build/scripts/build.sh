@@ -120,9 +120,6 @@ fi
 # RENAME artifacts to include version in the tarball: codeready-workspaces-2.1.0-crwctl-*.tar.gz
 TARBALL_PREFIX="codeready-workspaces-${CHECTL_VERSION}"
 
-# TODO refactor - don't need both SHA_CTL and SHORT_SHA1
-SHA_CTL=$(git rev-parse --short=4 HEAD)
-
 # compute latest tags for server and operator from quay
 if [[ $versionSuffix == "GA" ]]; then
     repoFlag="--stage"
@@ -255,6 +252,8 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
     ########################################################################
     echo "[INFO] 4. Publish to GH"
     ########################################################################
+
+    # TODO use gh cli instead of curling? See https://github.com/redhat-developer/codeready-workspaces/blob/crw-2-rhel-8/product/uploadAssetsToGHRelease.sh
 
     # Create new release
     curl -XPOST -H 'Authorization:token ${GITHUB_TOKEN}' \
