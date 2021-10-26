@@ -237,7 +237,7 @@ pushd ${CRWCTL_DIR} >/dev/null
     mv dist/channels/*quay dist/channels/quay
     # copy from generic name specific name, so E2E/CI jobs can access tarballs from generic folder and filename (name doesn't change between builds)
     while IFS= read -r -d '' d; do
-    e=${d/quay\/crwctl/quay\/'''+TARBALL_PREFIX+'''-crwctl}
+    e=${d/quay\/crwctl/quay\/${TARBALL_PREFIX}-crwctl}
     cp ${d} ${e}
     done <   <(find dist/channels/quay -type f -name "*gz" -print0)
     pwd; du ./dist/channels/*/*gz
@@ -270,7 +270,7 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
     fi
 
     # upload artifacts for each platform + sources tarball
-    pushd ${CRWCTL_DIR}/dist/channels/quay/ 
+    pushd ${CRWCTL_DIR}/dist/channels/quay/
         for platform in ${platforms//,/ } sources; do
         curl -XPOST -H "Authorization:token ${GITHUB_TOKEN}" -H 'Content-Type:application/octet-stream' \
             --data-binary @${TARBALL_PREFIX}-crwctl-${platform}.tar.gz \
