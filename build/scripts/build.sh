@@ -106,8 +106,6 @@ SOURCE_BRANCH=$(cd "$SOURCE_DIR"; git rev-parse --abbrev-ref HEAD)
 
 ###############################################################
 
-set -x
-
 pushd $CRWCTL_DIR >/dev/null
 
 CURRENT_DAY=$(date +'%Y%m%d-%H%M')
@@ -150,12 +148,24 @@ if [[ ! $CRW_SERVER_TAG ]] && [[ ! $CRW_OPERATOR_TAG ]]; then
         chmod +x getLatestImageTags.sh
     popd >/dev/null
     CRW_SERVER_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/server-rhel8" --tag "${CRW_VERSION}-" ${repoFlag})
+    if [[ $CRW_SERVER_TAG == *":???" ]]; then
+        echo "[ERROR] Server tag not found: $CRW_SERVER_TAG"
+        echo "[ERROR] For GA suffix, images must be in stage first!"
+        exit 1
+    fi
     CRW_SERVER_TAG=${CRW_SERVER_TAG##*:}
     CRW_OPERATOR_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/crw-2-rhel8-operator" --tag "${CRW_VERSION}-" ${repoFlag})
+    if [[ $CRW_OPERATOR_TAG == ":???" ]]; then
+        echo "[ERROR] Operator tag not found: $CRW_OPERATOR_TAG"
+        echo "[ERROR] For GA suffix, images must be in stage first!"
+        exit 1
+    fi
     CRW_OPERATOR_TAG=${CRW_OPERATOR_TAG##*:}
 fi
 echo "Using server:${CRW_SERVER_TAG} + operator:${CRW_OPERATOR_TAG}"
 popd >/dev/null
+
+set -x
 
 if [[ $DO_SYNC -eq 1 ]]; then 
     ########################################################################
