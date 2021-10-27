@@ -291,9 +291,10 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
     # upload artifacts for each platform + sources tarball
     for channel in quay redhat; do 
         pushd ${CRWCTL_DIR}/dist/channels/${channel}/
-            echo "[INFO] Publish $channel assets to GH"
-            /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --publish-assets -v "${CSV_VERSION}" -b "${MIDSTM_BRANCH}" --asset-name "crwctl" "codeready-workspaces-*tar.gz"
+            echo "[INFO] Publish $channel assets to ${CSV_VERSION}-${releaseName}-assets GH release"
+            /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --publish-assets -v "${CSV_VERSION}" -b "${MIDSTM_BRANCH}" --asset-name "${releaseName}" "codeready-workspaces-*tar.gz"
         popd >/dev/null
+        echo "[INFO] Published assets: https://github.com/redhat-developer/codeready-workspaces-chectl/releases/tag/${CSV_VERSION}-${releaseName}-assets"
     done
 
     # cleanup
