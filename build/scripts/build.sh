@@ -20,10 +20,6 @@ set -e
 platforms="linux-x64,darwin-x64,win32-x64"
 versionSuffix="" 
 
-# five steps
-DO_SYNC=1
-DO_REDHAT_BUILD=1
-DO_QUAY_BUILD=1
 PUBLISH_ARTIFACTS_TO_GITHUB=0
 PUBLISH_ARTIFACTS_TO_RCM=0
 
@@ -87,9 +83,6 @@ while [[ "$#" -gt 0 ]]; do
 	'--crw-version') CRW_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
     '--gh') PUBLISH_ARTIFACTS_TO_GITHUB=1;;
     '--rcm') PUBLISH_ARTIFACTS_TO_RCM=1;;
-    '--no-sync') DO_SYNC=0;;
-    '--no-redhat') DO_REDHAT_BUILD=0;;
-    '--no-quay') DO_QUAY_BUILD=0;;
   esac
   shift 1
 done
@@ -98,7 +91,7 @@ if [[ ! "${SEGMENT_WRITE_KEY}" ]]; then usageSegKey; fi
 if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]] && [[ ! "${GITHUB_TOKEN}" ]]; then usageSegKey; fi
 if [[ ! -d "${SOURCE_DIR}" ]] || [[ ! -d "${CRWCTL_DIR}" ]] || [[ ! -d "${CRWIMG_DIR}" ]]; then usage; fi
 if [[ ${CRWCTL_DIR} == "." ]]; then usage; fi
-if [[ ! ${CRW_VERSION} ]]; then CRW_VERSION="${CSV_VERSION%.*}"; fi
+
 if [[ ! ${CSV_VERSION} ]]; then usage; fi
 
 # compute branch from already-checked out sources dir
@@ -106,14 +99,16 @@ SOURCE_BRANCH=$(cd "$SOURCE_DIR"; git rev-parse --abbrev-ref HEAD)
 
 ###############################################################
 
+set -x
+
 pushd $CRWCTL_DIR >/dev/null
 
 CURRENT_DAY=$(date +'%Y%m%d-%H%M')
 SHORT_SHA1=$(git rev-parse --short=4 HEAD)
 
 # for RC and CI, prerelease=true
-PRE_RELEASE="--prerelease"
-releaseName="crwctl-CI"
+isPreRelease="true"
+releaseName="${CSV_VERSION}-CI-assets"
 
 if [[ "${versionSuffix}" ]]; then
     CHECTL_VERSION="${CSV_VERSION}-${versionSuffix}"
@@ -127,15 +122,14 @@ fi
 TARBALL_PREFIX="codeready-workspaces-${CHECTL_VERSION}"
 
 # compute latest tags for server and operator from quay; also set prerelease=false for GA
-repoFlag="--quay"
-repoOrg="crw"
 if [[ $versionSuffix == "GA" ]]; then
     repoFlag="--stage"
     repoOrg="codeready-workspaces"
-    PRE_RELEASE="--release" # not a --prerelease
-    releaseName="crwctl"
-elif [[ $versionSuffix != "" ]]; then
-    releaseName="crwctl-${versionSuffix}"
+    isPreRelease="false"
+    releaseName="${CSV_VERSION}-GA-assets"
+elif [[ $versionSuffix == "RC" ]]; then
+    repoFlag="--quay"
+    repoOrg="crw"
 else
     # for CI, use simple floating tag 2.yy
     CRW_SERVER_TAG=${CRW_VERSION}
@@ -148,158 +142,144 @@ if [[ ! $CRW_SERVER_TAG ]] && [[ ! $CRW_OPERATOR_TAG ]]; then
         chmod +x getLatestImageTags.sh
     popd >/dev/null
     CRW_SERVER_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/server-rhel8" --tag "${CRW_VERSION}-" ${repoFlag})
-    if [[ $CRW_SERVER_TAG == *":???" ]]; then
-        echo "[ERROR] Server tag not found: $CRW_SERVER_TAG"
-        echo "[ERROR] For GA suffix, images must be in stage first!"
-        exit 1
-    fi
     CRW_SERVER_TAG=${CRW_SERVER_TAG##*:}
     CRW_OPERATOR_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/crw-2-rhel8-operator" --tag "${CRW_VERSION}-" ${repoFlag})
-    if [[ $CRW_OPERATOR_TAG == ":???" ]]; then
-        echo "[ERROR] Operator tag not found: $CRW_OPERATOR_TAG"
-        echo "[ERROR] For GA suffix, images must be in stage first!"
-        exit 1
-    fi
     CRW_OPERATOR_TAG=${CRW_OPERATOR_TAG##*:}
 fi
 echo "Using server:${CRW_SERVER_TAG} + operator:${CRW_OPERATOR_TAG}"
 popd >/dev/null
 
+########################################################################
+echo "[INFO] 0. Sync from upstream chectl"
+########################################################################
+# CRW-1579 change yamls to use :2.y tag, not :latest or :next - use that only for quay version of crwctl
+pushd ${CRWIMG_DIR} >/dev/null
+  FILES="codeready-workspaces-operator/config/manager/manager.yaml codeready-workspaces-operator-metadata/manifests/codeready-workspaces.csv.yaml"
+  for d in ${FILES}; do
+    sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/(.+):(.+)#registry.redhat.io/codeready-workspaces/\1:${CRW_VERSION}#g"
+  done
+popd >/dev/null
+
+pushd $CRWCTL_DIR >/dev/null
+./build/scripts/sync-chectl-to-crwctl.sh -b ${MIDSTM_BRANCH} -s ${SOURCE_DIR} -t ${CRWCTL_DIR} \
+  --crw-version ${CRW_VERSION} --server-tag ${CRW_SERVER_TAG} --operator-tag ${CRW_OPERATOR_TAG}
+# commit changes
 set -x
+git add .
+git commit -s -m "ci: [sync] Push chectl @ ${SOURCE_BRANCH} to codeready-workspaces-chectl @ ${MIDSTM_BRANCH}" . || true
+git push origin ${MIDSTM_BRANCH} || true
+popd >/dev/null
 
-if [[ $DO_SYNC -eq 1 ]]; then 
-    ########################################################################
-    echo "[INFO] 1. Sync from upstream chectl"
-    ########################################################################
-    # CRW-1579 change yamls to use :2.y tag, not :latest or :next - use that only for quay version of crwctl
-    pushd ${CRWIMG_DIR} >/dev/null
-        FILES="codeready-workspaces-operator/config/manager/manager.yaml codeready-workspaces-operator-metadata/manifests/codeready-workspaces.csv.yaml"
-        for d in ${FILES}; do
-            sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/(.+):(.+)#registry.redhat.io/codeready-workspaces/\1:${CRW_VERSION}#g"
-        done
-    popd >/dev/null
+########################################################################
+echo "[INFO] 1. Build crwctl using -redhat suffix and registry.redhat.io/codeready-workspaces/ URLs"
+########################################################################
+pushd $CRWCTL_DIR >/dev/null
+    # clean up from previous build if applicable
+    jq -M --arg CHECTL_VERSION "${CHECTL_VERSION}-redhat" '.version = $CHECTL_VERSION' package.json > package.json2; mv -f package.json2 package.json
+    git diff -u package.json
+    git tag -f "${CUSTOM_TAG}-redhat"
+    rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/
+    echo "Insert SEGMENT_WRITE_KEY = $SEGMENT_WRITE_KEY into src/hooks/analytics/analytics.ts (redhat version)"
+    sed -i "s|INSERT-KEY-HERE|${SEGMENT_WRITE_KEY}|g" src/hooks/analytics/analytics.ts
+    yarn && npx oclif-dev pack -t ${platforms}
+    mv dist/channels/*redhat dist/channels/redhat
+    # copy from generic name specific name, so E2E/CI jobs can access tarballs from generic folder and filename (name doesn't change between builds)
+    while IFS= read -r -d '' d; do
+    e=${d/redhat\/crwctl/redhat\/${TARBALL_PREFIX}-crwctl}
+    cp ${d} ${e}
+    done <   <(find dist/channels/redhat -type f -name "*gz" -print0)
 
-    pushd $CRWCTL_DIR >/dev/null
-        ./build/scripts/sync-chectl-to-crwctl.sh -b ${MIDSTM_BRANCH} -s ${SOURCE_DIR} -t ${CRWCTL_DIR} \
-            --crw-version ${CRW_VERSION} --server-tag ${CRW_SERVER_TAG} --operator-tag ${CRW_OPERATOR_TAG}
-        # commit changes
-        set -x
-        git add .
-        git commit -s -m "ci: [sync] Push chectl @ ${SOURCE_BRANCH} to codeready-workspaces-chectl @ ${MIDSTM_BRANCH}" . || true
-        git push origin ${MIDSTM_BRANCH} || true
-    popd >/dev/null
-fi
+    # purge generated binaries and temp files
+    rm -fr coverage/ lib/ node_modules/ templates/ tmp/
 
-if [[ $DO_REDHAT_BUILD -eq 1 ]]; then 
-    ########################################################################
-    echo "[INFO] 2. Build crwctl using -redhat suffix and registry.redhat.io/codeready-workspaces/ URLs"
-    ########################################################################
-    pushd $CRWCTL_DIR >/dev/null
-        # clean up from previous build if applicable
-        jq -M --arg CHECTL_VERSION "${CHECTL_VERSION}-redhat" '.version = $CHECTL_VERSION' package.json > package.json2; mv -f package.json2 package.json
-        git diff -u package.json
-        git tag -f "${CUSTOM_TAG}-redhat"
-        rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/
-        echo "Insert SEGMENT_WRITE_KEY = $SEGMENT_WRITE_KEY into src/hooks/analytics/analytics.ts (redhat version)"
-        sed -i "s|INSERT-KEY-HERE|${SEGMENT_WRITE_KEY}|g" src/hooks/analytics/analytics.ts
-        yarn && npx oclif-dev pack -t ${platforms}
-        mv dist/channels/*redhat dist/channels/redhat
-        # copy from generic name specific name, so E2E/CI jobs can access tarballs from generic folder and filename (name doesn't change between builds)
-        while IFS= read -r -d '' d; do
-            e=${d/redhat\/crwctl/redhat\/${TARBALL_PREFIX}-crwctl}
-            cp ${d} ${e}
-        done <   <(find dist/channels/redhat -type f -name "*gz" -print0)
+    # create sources tarball in the same dir where we have the per-arch binaries 
+    tar czf /tmp/${TARBALL_PREFIX}-crwctl-sources.tar.gz --exclude=dist/ ./* && \
+    mv /tmp/${TARBALL_PREFIX}-crwctl-sources.tar.gz ${CRWCTL_DIR}/dist/channels/redhat/
 
-        # purge generated binaries and temp files
-        rm -fr coverage/ lib/ node_modules/ templates/ tmp/
+    pwd; du ./dist/channels/*/*gz
 
-        # create sources tarball in the same dir where we have the per-arch binaries 
-        tar czf /tmp/${TARBALL_PREFIX}-crwctl-sources.tar.gz --exclude=./dist/channels/*/* ./* && \
-        mv /tmp/${TARBALL_PREFIX}-crwctl-sources.tar.gz ${CRWCTL_DIR}/dist/channels/redhat/
+    git commit -s -m "ci: [update] package.json + README.md" package.json README.md || true
+    git push origin ${MIDSTM_BRANCH} || true
+popd >/dev/null
 
-        pwd; du ./dist/channels/*/*gz
+########################################################################
+echo "[INFO] 2. Prepare ${MIDSTM_BRANCH}-quay branch of crw operator repo"
+########################################################################
+# check out from MIDSTM_BRANCH
+pushd ${CRWIMG_DIR} >/dev/null
+    git branch ${MIDSTM_BRANCH}-quay -f
+    git checkout ${MIDSTM_BRANCH}-quay
+    # CRW-1579 change yamls to use quay image, and :latest or :nightly
+    # do not use :2.y to allow stable builds to be auto-updated via crwctl on ocp3.11 - :latest tag triggers always-update (?)
+    FILES="codeready-workspaces-operator/config/manager/manager.yaml codeready-workspaces-operator-metadata/manifests/codeready-workspaces.csv.yaml"
+    for d in ${FILES}; do
+        sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/(.+):(.+)#quay.io/crw/\1:${latestNext}#g"
+    done
 
-        git commit -s -m "ci: [update] package.json + README.md" package.json README.md || true
-        git push origin ${MIDSTM_BRANCH} || true
-    popd >/dev/null
-fi
+    # push to ${MIDSTM_BRANCH}-quay branch
+    git commit -s -m "ci: [update] Push ${MIDSTM_BRANCH} to ${MIDSTM_BRANCH}-quay branch" ${FILES}
+    git push origin ${MIDSTM_BRANCH}-quay -f
+popd >/dev/null
 
-if [[ $DO_QUAY_BUILD -eq 1 ]]; then 
-    ########################################################################
-    echo "[INFO] 3a. Prepare ${MIDSTM_BRANCH}-quay branch of crw operator repo"
-    ########################################################################
-    # check out from MIDSTM_BRANCH
-    pushd ${CRWIMG_DIR} >/dev/null
-        git branch ${MIDSTM_BRANCH}-quay -f
-        git checkout ${MIDSTM_BRANCH}-quay
-        # CRW-1579 change yamls to use quay image, and :latest or :nightly
-        # do not use :2.y to allow stable builds to be auto-updated via crwctl on ocp3.11 - :latest tag triggers always-update (?)
-        FILES="codeready-workspaces-operator/config/manager/manager.yaml codeready-workspaces-operator-metadata/manifests/codeready-workspaces.csv.yaml"
-        for d in ${FILES}; do
-            sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/(.+):(.+)#quay.io/crw/\1:${latestNext}#g"
-        done
+########################################################################
+echo "[INFO] 3. Build crwctl using ${MIDSTM_BRANCH}-quay branch, -quay suffix and quay.io/crw/ URLs"
+########################################################################
+pushd ${CRWCTL_DIR} >/dev/null
+    YAML_REPO="`cat package.json | jq -r '.dependencies["codeready-workspaces-operator"]'`-quay"
+    jq -M --arg YAML_REPO "${YAML_REPO}" '.dependencies["codeready-workspaces-operator"] = $YAML_REPO' package.json > package.json2
+    jq -M --arg CHECTL_VERSION "${CHECTL_VERSION}-quay" '.version = $CHECTL_VERSION' package.json2 > package.json
+    rm -f package.json2
+    git diff -u package.json
+    git tag -f "${CUSTOM_TAG}-quay"
+    rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo
+    echo "Insert SEGMENT_WRITE_KEY = $SEGMENT_WRITE_KEY into src/hooks/analytics/analytics.ts (quay version)"
+    sed -i "s|INSERT-KEY-HERE|${SEGMENT_WRITE_KEY}|g" src/hooks/analytics/analytics.ts
+    yarn && npx oclif-dev pack -t ${platforms}
+    mv dist/channels/*quay dist/channels/quay
+    # copy from generic name specific name, so E2E/CI jobs can access tarballs from generic folder and filename (name doesn't change between builds)
+    while IFS= read -r -d '' d; do
+    e=${d/quay\/crwctl/quay\/${TARBALL_PREFIX}-crwctl}
+    cp ${d} ${e}
+    done <   <(find dist/channels/quay -type f -name "*gz" -print0)
+    pwd; du ./dist/channels/*/*gz
 
-        # push to ${MIDSTM_BRANCH}-quay branch
-        git commit -s -m "ci: [update] Push ${MIDSTM_BRANCH} to ${MIDSTM_BRANCH}-quay branch" ${FILES}
-        git push origin ${MIDSTM_BRANCH}-quay -f
-    popd >/dev/null
+    # purge generated binaries and temp files
+    rm -fr coverage/ lib/ node_modules/ templates/ tmp/
 
-    ########################################################################
-    echo "[INFO] 3b. Build crwctl using ${MIDSTM_BRANCH}-quay branch, -quay suffix and quay.io/crw/ URLs"
-    ########################################################################
-    pushd ${CRWCTL_DIR} >/dev/null
-        YAML_REPO="`cat package.json | jq -r '.dependencies["codeready-workspaces-operator"]'`-quay"
-        jq -M --arg YAML_REPO "${YAML_REPO}" '.dependencies["codeready-workspaces-operator"] = $YAML_REPO' package.json > package.json2
-        jq -M --arg CHECTL_VERSION "${CHECTL_VERSION}-quay" '.version = $CHECTL_VERSION' package.json2 > package.json
-        rm -f package.json2
-        git diff -u package.json
-        git tag -f "${CUSTOM_TAG}-quay"
-        rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo
-        echo "Insert SEGMENT_WRITE_KEY = $SEGMENT_WRITE_KEY into src/hooks/analytics/analytics.ts (quay version)"
-        sed -i "s|INSERT-KEY-HERE|${SEGMENT_WRITE_KEY}|g" src/hooks/analytics/analytics.ts
-        yarn && npx oclif-dev pack -t ${platforms}
-        mv dist/channels/*quay dist/channels/quay
-        # copy from generic name specific name, so E2E/CI jobs can access tarballs from generic folder and filename (name doesn't change between builds)
-        while IFS= read -r -d '' d; do
-            e=${d/quay\/crwctl/quay\/${TARBALL_PREFIX}-quay-crwctl}
-            cp ${d} ${e}
-        done <   <(find dist/channels/quay -type f -name "*gz" -print0)
-        pwd; du ./dist/channels/*/*gz
-
-        # purge generated binaries and temp files
-        rm -fr coverage/ lib/ node_modules/ templates/ tmp/
-
-        # create sources tarball in the same dir where we have the per-arch binaries 
-        tar czf /tmp/${TARBALL_PREFIX}-quay-crwctl-sources.tar.gz --exclude=./dist/channels/*/* ./* && \
-        mv /tmp/${TARBALL_PREFIX}-quay-crwctl-sources.tar.gz ${CRWCTL_DIR}/dist/channels/quay/
-    popd >/dev/null 
-fi
+    # create sources tarball in the same dir where we have the per-arch binaries 
+    tar czf /tmp/${TARBALL_PREFIX}-crwctl-sources.tar.gz --exclude=dist/ ./* && \
+    mv /tmp/${TARBALL_PREFIX}-crwctl-sources.tar.gz ${CRWCTL_DIR}/dist/channels/quay/
+popd >/dev/null 
 
 if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
     ########################################################################
     echo "[INFO] 4. Publish to GH"
     ########################################################################
 
-    # requires hub cli
-    if [[ ! -x /tmp/uploadAssetsToGHRelease.sh ]]; then 
-        pushd /tmp/ >/dev/null
-        curl -sSLO "https://raw.githubusercontent.com/redhat-developer/codeready-workspaces/${MIDSTM_BRANCH}/product/uploadAssetsToGHRelease.sh" && \
-        chmod +x uploadAssetsToGHRelease.sh
-        popd >/dev/null
+    # TODO use gh cli instead of curling? See https://github.com/redhat-developer/codeready-workspaces/blob/crw-2-rhel-8/product/uploadAssetsToGHRelease.sh
+
+    # Create new release
+    curl -XPOST -H "Authorization:token ${GITHUB_TOKEN}" \
+        --data '{"tag_name": "'${CUSTOM_TAG}'", "target_commitish": "'${MIDSTM_BRANCH}'", "name": "'${releaseName}'", "body": "Release '${CUSTOM_TAG}'", "draft": false, "prerelease": '${isPreRelease}'}' \
+        https://api.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases > /tmp/${CUSTOM_TAG}
+    # Extract the id of the release from the creation response
+    RELEASE_ID=$(jq -r .id /tmp/${CUSTOM_TAG}); rm -f /tmp/${CUSTOM_TAG}
+
+    if [[ "${RELEASE_ID}" == "null" ]]; then
+        echo "[ERROR] Could not load release id for new GH release"
+        exit 1
     fi
 
     # upload artifacts for each platform + sources tarball
-    for channel in quay redhat; do 
-        pushd ${CRWCTL_DIR}/dist/channels/${channel}/
-            echo "[INFO] Publish $channel assets to GH"
-            /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --publish-assets -v "${CSV_VERSION}" -b "${MIDSTM_BRANCH}" --asset-name "crwctl" "codeready-workspaces-*tar.gz"
-        popd >/dev/null
-    done
+    pushd ${CRWCTL_DIR}/dist/channels/quay/
+        for platform in ${platforms//,/ } sources; do
+        curl -XPOST -H "Authorization:token ${GITHUB_TOKEN}" -H 'Content-Type:application/octet-stream' \
+            --data-binary @${TARBALL_PREFIX}-crwctl-${platform}.tar.gz \
+            https://uploads.github.com/repos/redhat-developer/codeready-workspaces-chectl/releases/${RELEASE_ID}/assets?name=${TARBALL_PREFIX}-crwctl-${platform}.tar.gz
+        done
+    popd >/dev/null
 
-    # cleanup
-    rm -f /tmp/uploadAssetsToGHRelease.sh
-
-    echo "[INFO] Refresh GH pages"
+    # refresh github pages
     pushd ${CRWCTL_DIR} >/dev/null
         git clone https://devstudio-release:${GITHUB_TOKEN}@github.com/redhat-developer/codeready-workspaces-chectl -b gh-pages --single-branch gh-pages && cd gh-pages
         echo $(date +%s) > update && git add update && git commit -m "ci: [update] add $RELEASE_ID to github pages" && git push origin gh-pages
@@ -323,20 +303,19 @@ if [[ $PUBLISH_ARTIFACTS_TO_RCM -eq 1 ]]; then
     RCMG="${DESTHOST}:/mnt/rcm-guest/staging/crw"
     sshfs --version
     for mnt in RCMG; do 
-        mkdir -p ${WORKSPACE}/${mnt}-ssh; 
-        if [[ $(file ${WORKSPACE}/${mnt}-ssh 2>&1) == *"Transport endpoint is not connected"* ]]; then fusermount -uz ${WORKSPACE}/${mnt}-ssh; fi
-        if [[ ! -d ${WORKSPACE}/${mnt}-ssh/crw ]]; then sshfs ${!mnt} ${WORKSPACE}/${mnt}-ssh || true; fi
+    mkdir -p ${WORKSPACE}/${mnt}-ssh; 
+    if [[ $(file ${WORKSPACE}/${mnt}-ssh 2>&1) == *"Transport endpoint is not connected"* ]]; then fusermount -uz ${WORKSPACE}/${mnt}-ssh; fi
+    if [[ ! -d ${WORKSPACE}/${mnt}-ssh/crw ]]; then sshfs ${!mnt} ${WORKSPACE}/${mnt}-ssh; fi
     done
 
     # copy files to rcm-guest
     ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw && mkdir -p CRW-${CSV_VERSION}/ && ls -la . "
-    rsync -zrlt --rsh=ssh --protocol=28 --exclude "crwctl*.tar.gz" --exclude "*-quay-*.tar.gz" \
+    rsync -zrlt --rsh=ssh --protocol=28 --exclude "crwctl*.tar.gz" \
     ${CRWCTL_DIR}/dist/channels/redhat/*gz \
     ${WORKSPACE}/${mnt}-ssh/CRW-${CSV_VERSION}/
 
     # clone files so we have a crwctl3 version too
     # codeready-workspaces-2.y.z-GA-crwctl-linux-x64.tar.gz -> codeready-workspaces-2.y.z-GA-crwctl3-linux-x64.tar.gz
-    # DO NOT INCLUDE the -quay- versions!
     ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw/CRW-${CSV_VERSION}/ && for d in ${TARBALL_PREFIX}-crwctl-*; do cp \$d \${d/crwctl-/crwctl3-}; done" || true
 
     # echo what we have on disk
