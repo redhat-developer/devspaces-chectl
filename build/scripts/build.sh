@@ -232,7 +232,7 @@ if [[ $DO_QUAY_BUILD -eq 1 ]]; then
     pushd ${CRWIMG_DIR} >/dev/null
         git branch ${MIDSTM_BRANCH}-quay -f
         git checkout ${MIDSTM_BRANCH}-quay
-        # CRW-1579 change yamls to use quay image, and :latest or :nightly
+        # CRW-1579 change yamls to use quay image, and :latest or :next
         # do not use :2.y to allow stable builds to be auto-updated via crwctl on ocp3.11 - :latest tag triggers always-update (?)
         FILES="codeready-workspaces-operator/config/manager/manager.yaml codeready-workspaces-operator-metadata/manifests/codeready-workspaces.csv.yaml"
         for d in ${FILES}; do
