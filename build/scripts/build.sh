@@ -288,6 +288,11 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
         popd >/dev/null
     fi
 
+    # delete existing CI pre-release and replace it, so timestamp is fresh
+    if [[ $releaseName == "crwctl-CI" ]] || [[ $PRE_RELEASE == "--prerelease" ]]; then # CI build
+        /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --delete-assets -v "${CSV_VERSION}" -b "${MIDSTM_BRANCH}" --asset-name "${releaseName}"
+    fi
+
     # upload artifacts for each platform + sources tarball
     for channel in quay redhat; do 
         pushd ${CRWCTL_DIR}/dist/channels/${channel}/
