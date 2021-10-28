@@ -82,11 +82,11 @@
     "ansi-colors": "4.1.1",
     "axios": "^0.21.1",
     "cli-ux": "^5.6.3",
-    "codeready-workspaces-operator": "git://github.com/redhat-developer/codeready-workspaces-images#crw-2-rhel-8",
+    "codeready-workspaces-operator": "git://github.com/redhat-developer/codeready-workspaces-images#crw-2.13-rhel-8",
     "command-exists": "^1.2.9",
     "countries-and-timezones": "^3.2.3",
     "debug": "^4.3.2",
-    "eclipse-che-server": "git://github.com/eclipse-che/che-server#main",
+    "eclipse-che-server": "git://github.com/eclipse-che/che-server#7.38.0",
     "esprima": "^4.0.1",
     "execa": "^5.1.1",
     "fancy-test": "^1.4.9",
@@ -111,7 +111,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@eclipse-che/api": "latest",
+    "@eclipse-che/api": "7.38.0",
     "@oclif/dev-cli": "^1",
     "@oclif/test": "^1",
     "@types/chai": "^4",
