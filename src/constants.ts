@@ -16,7 +16,6 @@ export const OPERATOR_TEMPLATE_DIR = 'codeready-workspaces-operator'
 // minimal installable versions by current crwctl
 export const MIN_OLM_INSTALLER_VERSION = '7.17.0'
 export const MIN_CHE_OPERATOR_INSTALLER_VERSION = '7.13.1'
-export const MIN_HELM_INSTALLER_VERSION = '7.10.0'
 
 // labels
 export const CHE_RELATED_COMPONENT_LABEL = 'client/org.eclipse.che=true'
@@ -44,7 +43,6 @@ export const LEGACY_CHE_NAMESPACE = 'workspaces'
 // OLM common
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'codeready-workspaces'
 export const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME = 'codeready-subscription'
-export const DEVWORKSPACE_OPERATOR_SUBSRIPTION_NAME = 'devworkspace-operator-fast-redhat-operators-openshift-marketplace'
 export const OPERATOR_GROUP_NAME = 'codeready-operator-group'
 export const CVS_PREFIX = 'crwoperator'
 export const DEVWORKSPACE_CVS_PREFIX = 'crwoperator'
@@ -65,8 +63,8 @@ export const KUBERNETES_OLM_CATALOG = 'operatorhubio-catalog'
 export const OPENSHIFT_OLM_CATALOG = 'redhat-operators'
 
 // Documentation links
-export const DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.13/'
-export const DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.13/html/release_notes_and_known_issues/index'
+export const DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.14/'
+export const DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.14/html/release_notes_and_known_issues/index'
 export const DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY = 'https://www.eclipse.org/che/docs/che-7/installation-guide/installing-che-locally/'
 export const DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER = 'https://www.eclipse.org/che/docs/che-7/end-user-guide/importing-certificates-to-browsers/'
 export const DOCS_LINK_HOW_TO_ADD_IDENTITY_PROVIDER_OS4 = 'https://docs.openshift.com/container-platform/latest/authentication/understanding-identity-provider.html#identity-provider-overview_understanding-identity-provider'

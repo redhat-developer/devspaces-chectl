@@ -28,7 +28,7 @@ import { ApiTasks } from '../../tasks/platforms/api'
 import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Delete extends Command {
-  static description = 'delete any CodeReady Workspaces related resource'
+  static description = 'delete any CodeReady Workspaces related resource: Kubernetes/OpenShift'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),

@@ -15,7 +15,7 @@ import * as Listr from 'listr'
 import { CheHelper } from '../../api/che'
 import { KubeHelper } from '../../api/kube'
 import { OpenShiftHelper } from '../../api/openshift'
-import { DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE } from '../../constants'
+import { DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE, DEFAULT_OPENSHIFT_OPERATORS_NS_NAME, DEVWORKSPACE_CVS_PREFIX } from '../../constants'
 import { CertManagerTasks } from '../component-installers/cert-manager'
 
 /**
@@ -92,16 +92,26 @@ export class DevWorkspaceTasks {
   /**
    * Returns list of tasks which setup dev-workspace.
    */
-  getInstallTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
+  getInstallTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
         title: 'Verify cert-manager installation',
         enabled: (ctx: any) => !ctx.isOpenShift,
         task: async (ctx: any, _task: any) => {
-          return new Listr(this.certManagerTask.getDeployCertManagerTasks(flags), ctx.listrOptions)
+          return new Listr(this.certManagerTask.getDeployCertManagerTasks(), ctx.listrOptions)
         },
       },
     ]
+  }
+
+  async isDevWorkspaceInstalledViaOLM(): Promise<boolean> {
+    const IsPreInstalledOLM = await this.kubeHelper.isPreInstalledOLM()
+    if (!IsPreInstalledOLM) {
+      return false
+    }
+    const csvAll = await this.kubeHelper.getClusterServiceVersions(DEFAULT_OPENSHIFT_OPERATORS_NS_NAME)
+    const devWorkspaceCSVs = csvAll.items.filter(csv => csv.metadata.name!.startsWith(DEVWORKSPACE_CVS_PREFIX))
+    return devWorkspaceCSVs.length > 0
   }
 
   /**
@@ -109,6 +119,14 @@ export class DevWorkspaceTasks {
    */
   getUninstallTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
+      {
+        title: 'Check DevWorkspace OLM installation',
+        task: async (ctx: any, task: any) => {
+          ctx.isDevWorkspaceInstalledViaOLM = Boolean(await this.isDevWorkspaceInstalledViaOLM())
+
+          task.title = await `${task.title} ...${ctx.isDevWorkspaceInstalledViaOLM ? 'Installed' : 'Not installed'}`
+        },
+      },
       {
         title: 'Delete all DevWorkspace Controller deployments',
         task: async (_ctx: any, task: any) => {
@@ -149,10 +167,12 @@ export class DevWorkspaceTasks {
       },
       {
         title: 'Delete DevWorkspace Controller ClusterRoleBindings',
-        task: async (_ctx: any, task: any) => {
+        task: async (ctx: any, task: any) => {
           await this.kubeHelper.deleteClusterRoleBinding(this.devWorkspaceRoleBinding)
           await this.kubeHelper.deleteClusterRoleBinding(this.devworkspaceProxyClusterRoleBinding)
-          await this.kubeHelper.deleteClusterRoleBinding(this.devWorkspaceWebhookServerClusterRolebinding)
+          if (!ctx.isDevWorkspaceInstalledViaOLM) {
+            await this.kubeHelper.deleteClusterRoleBinding(this.devWorkspaceWebhookServerClusterRolebinding)
+          }
 
           task.title = await `${task.title}...OK`
         },
@@ -175,12 +195,15 @@ export class DevWorkspaceTasks {
       },
       {
         title: 'Delete DevWorkspace Controller cluster roles',
-        task: async (_ctx: any, task: any) => {
-          await this.kubeHelper.deleteClusterRole(this.devWorkspaceEditWorkspaceClusterRole)
-          await this.kubeHelper.deleteClusterRole(this.devWorkspaceViewWorkspaceClusterRole)
+        task: async (ctx: any, task: any) => {
+          if (!ctx.isDevWorkspaceInstalledViaOLM) {
+            await this.kubeHelper.deleteClusterRole(this.devWorkspaceEditWorkspaceClusterRole)
+            await this.kubeHelper.deleteClusterRole(this.devWorkspaceViewWorkspaceClusterRole)
+            await this.kubeHelper.deleteClusterRole(this.devWorkspaceClusterRoleWebhook)
+          }
+
           await this.kubeHelper.deleteClusterRole(this.devworkspaceProxyClusterRole)
           await this.kubeHelper.deleteClusterRole(this.devworkspaceClusterRole)
-          await this.kubeHelper.deleteClusterRole(this.devWorkspaceClusterRoleWebhook)
 
           task.title = await `${task.title}...OK`
         },
@@ -205,6 +228,7 @@ export class DevWorkspaceTasks {
       },
       {
         title: 'Delete DevWorkspace Controller webhooks configurations',
+        enabled: ctx => !ctx.isDevWorkspaceInstalledViaOLM,
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteMutatingWebhookConfiguration(this.webhooksName)
           await this.kubeHelper.deleteValidatingWebhookConfiguration(this.webhooksName)
@@ -214,6 +238,7 @@ export class DevWorkspaceTasks {
       },
       {
         title: 'Delete DevWorkspace Controller CRDs',
+        enabled: ctx => !ctx.isDevWorkspaceInstalledViaOLM,
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteCrd(this.devWorkspacesCrdName)
           await this.kubeHelper.deleteCrd(this.devWorkspaceTemplatesCrdName)
