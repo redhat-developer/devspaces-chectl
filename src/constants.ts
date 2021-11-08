@@ -44,7 +44,6 @@ export const LEGACY_CHE_NAMESPACE = 'workspaces'
 // OLM common
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'codeready-workspaces'
 export const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME = 'codeready-subscription'
-export const DEVWORKSPACE_OPERATOR_SUBSRIPTION_NAME = 'devworkspace-operator-fast-redhat-operators-openshift-marketplace'
 export const OPERATOR_GROUP_NAME = 'codeready-operator-group'
 export const CVS_PREFIX = 'crwoperator'
 export const DEVWORKSPACE_CVS_PREFIX = 'crwoperator'
