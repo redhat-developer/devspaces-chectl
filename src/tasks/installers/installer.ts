@@ -99,3 +99,16 @@ export class InstallerTasks {
     } else if (flags.installer === 'olm') {
       title = '🏃‍  Running Olm installaion CodeReady Workspaces'
       task = () => new Listr(olmTasks.startTasks(flags, command), ctx.listrOptions)
+    } else {
+      title = '🏃‍  Installer preflight check'
+      task = () => {
+        command.error(`Installer ${flags.installer} is not supported ¯\\_(ツ)_/¯`)
+      }
+    }
+
+    return [{
+      title,
+      task,
+    }]
+  }
+}
