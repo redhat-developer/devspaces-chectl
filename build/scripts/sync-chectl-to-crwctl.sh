@@ -105,7 +105,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|\"CodeReady Workspaces will be deployed in Multi-User mode.+mode.\"|'CodeReady Workspaces can only be deployed in Multi-User mode.'|" \
 			-e "s|che-incubator/crwctl|redhat-developer/codeready-workspaces-chectl|g" \
 		"$d" > "${TARGETDIR}/${d}"
-	done <   <(find src test installers configs prepare-che-operator-templates.js package.json .ci/obfuscate/gnirts.js .eslintrc.js  -type f -name "*" -print0) # include package.json in here too
+	done <   <(find src test resources configs prepare-che-operator-templates.js package.json .ci/obfuscate/gnirts.js .eslintrc.js  -type f -name "*" -print0) # include package.json in here too
 popd >/dev/null
 
 # copy extra files without sed
