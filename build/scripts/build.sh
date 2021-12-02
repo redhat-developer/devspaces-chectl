@@ -27,6 +27,10 @@ DO_QUAY_BUILD=1
 PUBLISH_ARTIFACTS_TO_GITHUB=0
 PUBLISH_ARTIFACTS_TO_RCM=0
 
+# for publishing to RCM only
+DESTHOST="crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@rcm-guest.app.eng.bos.redhat.com"
+KERBEROS_USER="crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM"
+
 MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 DEFAULT_TAG=${MIDSTM_BRANCH#*-}; DEFAULT_TAG=${DEFAULT_TAG%%-*}
 if [[ $DEFAULT_TAG == "2" ]]; then latestNext="next"; else latestNext="latest"; fi
@@ -87,6 +91,8 @@ while [[ "$#" -gt 0 ]]; do
 	'--crw-version') CRW_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
     '--gh') PUBLISH_ARTIFACTS_TO_GITHUB=1;;
     '--rcm') PUBLISH_ARTIFACTS_TO_RCM=1;;
+    '--desthost') DESTHOST="$2"; shift 1;;
+    '--kerbuser') KERBEROS_USER="$2"; shift 1;;
     '--no-sync') DO_SYNC=0;;
     '--no-redhat') DO_REDHAT_BUILD=0;;
     '--no-quay') DO_QUAY_BUILD=0;;
@@ -320,12 +326,22 @@ if [[ $PUBLISH_ARTIFACTS_TO_RCM -eq 1 ]]; then
         WORKSPACE=/tmp
     fi
 
+    # TODO CRW-1919 remove this when we no longer need it
+    export KRB5CCNAME=/var/tmp/crw-build_ccache
+
     # accept host key
     echo "rcm-guest.app.eng.bos.redhat.com,10.16.101.129 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEApd6cnyFVRnS2EFf4qeNvav0o+xwd7g7AYeR9dxzJmCR3nSoVHA4Q/kV0qvWkyuslvdA41wziMgSpwq6H/DPLt41RPGDgJ5iGB5/EDo3HAKfnFmVAXzYUrJSrYd25A1eUDYHLeObtcL/sC/5bGPp/0deohUxLtgyLya4NjZoYPQY8vZE6fW56/CTyTdCEWohDRUqX76sgKlVBkYVbZ3uj92GZ9M88NgdlZk74lOsy5QiMJsFQ6cpNw+IPW3MBCd5NHVYFv/nbA3cTJHy25akvAwzk8Oi3o9Vo0Z4PSs2SsD9K9+UvCfP1TUTI4PXS8WpJV6cxknprk0PSIkDdNODzjw==
     " >> ~/.ssh/known_hosts
 
+    # if no kerb ticket for crw-build user, attempt to create one
+    if [[ ! $(klist | grep crw-build) ]]; then
+        cat /etc/redhat-release
+        keytab=$(find /mnt/hudson_workspace/ $HOME $WORKSPACE -name "*crw-build*keytab*" 2>/dev/null | head -1)
+        kinit "${KERBEROS_USER}" -kt $keytab || true 
+        klist
+    fi
+
     # set up sshfs mount
-    DESTHOST="crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@rcm-guest.app.eng.bos.redhat.com"
     RCMG="${DESTHOST}:/mnt/rcm-guest/staging/crw"
     sshfs --version
     for mnt in RCMG; do 
