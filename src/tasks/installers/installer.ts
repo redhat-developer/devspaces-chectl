@@ -97,7 +97,7 @@ export class InstallerTasks {
         return new Listr(await operatorTasks.deployTasks(flags, command), ctx.listrOptions)
       }
     } else if (flags.installer === 'olm') {
-      title = '🏃‍  Running Olm installaion CodeReady Workspaces'
+      title = '🏃‍  Running Olm installation CodeReady Workspaces'
       task = () => new Listr(olmTasks.startTasks(flags, command), ctx.listrOptions)
     } else {
       title = '🏃‍  Installer preflight check'
