@@ -153,15 +153,22 @@ if [[ ! $CRW_SERVER_TAG ]] && [[ ! $CRW_OPERATOR_TAG ]]; then
         curl -sSLO https://raw.githubusercontent.com/redhat-developer/codeready-workspaces/${MIDSTM_BRANCH}/product/getLatestImageTags.sh && \
         chmod +x getLatestImageTags.sh
     popd >/dev/null
-    CRW_SERVER_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/server-rhel8" --tag "${CRW_VERSION}-" ${repoFlag})
+    set -x; CRW_SERVER_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/server-rhel8" --tag "${CRW_VERSION}-" ${repoFlag}); set +x
+    if [[ $CRW_SERVER_TAG == *":???" ]]; then # instead of stage, check prod
+        set -x; CRW_SERVER_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/server-rhel8" --tag "${CRW_VERSION}-" --rhec --freshmaker); set +x
+    fi
     if [[ $CRW_SERVER_TAG == *":???" ]]; then
         echo "[ERROR] Server tag not found: $CRW_SERVER_TAG"
         echo "[ERROR] For GA suffix, images must be in stage first!"
         exit 1
     fi
     CRW_SERVER_TAG=${CRW_SERVER_TAG##*:}
-    CRW_OPERATOR_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/crw-2-rhel8-operator" --tag "${CRW_VERSION}-" ${repoFlag})
-    if [[ $CRW_OPERATOR_TAG == ":???" ]]; then
+
+    set -x; CRW_OPERATOR_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/crw-2-rhel8-operator" --tag "${CRW_VERSION}-" ${repoFlag}); set +x
+    if [[ $CRW_OPERATOR_TAG == *":???" ]]; then
+        set -x; CRW_OPERATOR_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/crw-2-rhel8-operator" --tag "${CRW_VERSION}-" --rhec --freshmaker); set +x
+    fi
+    if [[ $CRW_OPERATOR_TAG == *":???" ]]; then
         echo "[ERROR] Operator tag not found: $CRW_OPERATOR_TAG"
         echo "[ERROR] For GA suffix, images must be in stage first!"
         exit 1
