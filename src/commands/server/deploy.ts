@@ -183,6 +183,7 @@ export default class Deploy extends Command {
       description: 'Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.',
       options: ['che-server', 'dev-workspace'],
       default: 'che-server',
+      hidden: true,
     }),
     telemetry: CHE_TELEMETRY,
     [DEPLOY_VERSION_KEY]: cheDeployVersion,
@@ -351,13 +352,13 @@ export default class Deploy extends Command {
     preInstallTasks.add(downloadTemplates(flags))
     preInstallTasks.add({
       title: '🧪  DevWorkspace engine (experimental / technology preview) 🚨',
-      enabled: () => isDevWorkspaceEnabled(ctx, flags) && !ctx.isOpenShift,
+      enabled: () => isDevWorkspaceEnabled(ctx) && !ctx.isOpenShift,
       task: () => new Listr(devWorkspaceTasks.getInstallTasks()),
     })
 
     const installTasks = new Listr(undefined, ctx.listrOptions)
     installTasks.add([createNamespaceTask(flags.chenamespace, this.getNamespaceLabels(flags))])
-    if (flags.platform === 'minikube' && isDevWorkspaceEnabled(ctx, flags)) {
+    if (flags.platform === 'minikube' && isDevWorkspaceEnabled(ctx)) {
       installTasks.add(dexTasks.getInstallTasks())
     }
     installTasks.add(await installerTasks.installTasks(flags, this))
