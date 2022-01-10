@@ -2281,6 +2281,10 @@ code-point-at@^1.0.0:
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
   integrity sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=
 
+"codeready-workspaces-operator@git://github.com/redhat-developer/codeready-workspaces-images#crw-2-rhel-8":
+  version "0.0.0"
+  resolved "git://github.com/redhat-developer/codeready-workspaces-images#20e262cd9faf878ef815953eea53ad17931d9677"
+
 collect-v8-coverage@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/collect-v8-coverage/-/collect-v8-coverage-1.0.1.tgz#cc2c8e94fc18bbdffe64d6534570c8a673b27f59"
@@ -2610,10 +2614,6 @@ ecc-jsbn@~0.1.1:
   dependencies:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
-
-"eclipse-che-operator@git://github.com/eclipse-che/che-operator#main":
-  version "0.0.0"
-  resolved "git://github.com/eclipse-che/che-operator#4ccd0bdde3c349b125d0ae2d3eb2835e18390c76"
 
 editorconfig@^0.15.0:
   version "0.15.3"

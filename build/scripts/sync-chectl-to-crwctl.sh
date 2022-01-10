@@ -300,3 +300,6 @@ if [[ -f ${replaceFile} ]]; then
 	npx -q sort-package-json
 	popd >/dev/null
 fi
+
+# update yarn.lock and package.json; report any problems
+yarn && yarn check || true
