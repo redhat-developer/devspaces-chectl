@@ -279,7 +279,7 @@ if [[ -f ${replaceFile} ]]; then
 	echo "[INFO] Convert package.json (jq #1)"
   # @since 2.11: CRW-2150 - sources have moved to https://github.com/redhat-developer/codeready-workspaces-images/tree/crw-2-rhel-8/codeready-workspaces-operator
 	declare -A package_replacements=(
-		["git://github.com/redhat-developer/codeready-workspaces-images#${MIDSTM_BRANCH}"]='.dependencies["codeready-workspaces-operator"]'
+		["https://github.com/redhat-developer/codeready-workspaces-images#${MIDSTM_BRANCH}"]='.dependencies["codeready-workspaces-operator"]'
 		["crwctl"]='.name'
 		["CodeReady Workspaces CLI"]='.description'
 		["${DEFAULT_TAG}.0-CI-redhat"]='.version'

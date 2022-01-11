@@ -80,7 +80,7 @@
     "ansi-colors": "4.1.1",
     "axios": "^0.21.1",
     "cli-ux": "^6.0.6",
-    "codeready-workspaces-operator": "git://github.com/redhat-developer/codeready-workspaces-images#crw-2-rhel-8",
+    "codeready-workspaces-operator": "https://github.com/redhat-developer/codeready-workspaces-images#crw-2-rhel-8",
     "command-exists": "^1.2.9",
     "countries-and-timezones": "^3.3.0",
     "execa": "^5.1.1",
