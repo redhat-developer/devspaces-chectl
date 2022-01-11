@@ -50,16 +50,9 @@ USAGE
 ```
 # Commands
 <!-- commands -->
-* [`crwctl auth:delete CHE-API-ENDPOINT`](#crwctl-authdelete-che-api-endpoint)
-* [`crwctl auth:get`](#crwctl-authget)
-* [`crwctl auth:list`](#crwctl-authlist)
-* [`crwctl auth:login [CHE-API-ENDPOINT]`](#crwctl-authlogin-che-api-endpoint)
-* [`crwctl auth:logout`](#crwctl-authlogout)
-* [`crwctl auth:use [CHE-API-ENDPOINT]`](#crwctl-authuse-che-api-endpoint)
 * [`crwctl autocomplete [SHELL]`](#crwctl-autocomplete-shell)
 * [`crwctl cacert:export`](#crwctl-cacertexport)
 * [`crwctl dashboard:open`](#crwctl-dashboardopen)
-* [`crwctl devfile:generate`](#crwctl-devfilegenerate)
 * [`crwctl help [COMMAND]`](#crwctl-help-command)
 * [`crwctl server:backup`](#crwctl-serverbackup)
 * [`crwctl server:debug`](#crwctl-serverdebug)
@@ -72,159 +65,6 @@ USAGE
 * [`crwctl server:stop`](#crwctl-serverstop)
 * [`crwctl server:update`](#crwctl-serverupdate)
 * [`crwctl update [CHANNEL]`](#crwctl-update-channel)
-* [`crwctl workspace:create`](#crwctl-workspacecreate)
-* [`crwctl workspace:delete WORKSPACE`](#crwctl-workspacedelete-workspace)
-* [`crwctl workspace:inject`](#crwctl-workspaceinject)
-* [`crwctl workspace:list`](#crwctl-workspacelist)
-* [`crwctl workspace:logs`](#crwctl-workspacelogs)
-* [`crwctl workspace:start WORKSPACE`](#crwctl-workspacestart-workspace)
-* [`crwctl workspace:stop WORKSPACE`](#crwctl-workspacestop-workspace)
-
-## `crwctl auth:delete CHE-API-ENDPOINT`
-
-Delete specified login session(s)
-
-```
-USAGE
-  $ crwctl auth:delete CHE-API-ENDPOINT
-
-ARGUMENTS
-  CHE-API-ENDPOINT  CodeReady Workspaces server API endpoint
-
-OPTIONS
-  -h, --help               show CLI help
-  -u, --username=username  CodeReady Workspaces username
-  --telemetry=on|off       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-
-EXAMPLES
-  # Delete login session of the specified user on the cluster:
-  crwctl auth:delete che-che.apps-crc.testing/api -u username
-
-
-  # Delete all login sessions on the cluster:
-  crwctl auth:delete che-che.apps-crc.testing
-```
-
-_See code: [src/commands/auth/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/auth/delete.ts)_
-
-## `crwctl auth:get`
-
-Display active login session
-
-```
-USAGE
-  $ crwctl auth:get
-
-OPTIONS
-  -h, --help          show CLI help
-  --telemetry=on|off  Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/auth/get.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/auth/get.ts)_
-
-## `crwctl auth:list`
-
-Show all existing login sessions
-
-```
-USAGE
-  $ crwctl auth:list
-
-OPTIONS
-  -h, --help          show CLI help
-  --telemetry=on|off  Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/auth/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/auth/list.ts)_
-
-## `crwctl auth:login [CHE-API-ENDPOINT]`
-
-Log in to CodeReady Workspaces server
-
-```
-USAGE
-  $ crwctl auth:login [CHE-API-ENDPOINT]
-
-ARGUMENTS
-  CHE-API-ENDPOINT  CodeReady Workspaces server API endpoint
-
-OPTIONS
-  -h, --help                         show CLI help
-  -n, --chenamespace=chenamespace    CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
-  -p, --password=password            CodeReady Workspaces user password
-  -t, --refresh-token=refresh-token  Keycloak refresh token
-  -u, --username=username            CodeReady Workspaces username
-  --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-
-EXAMPLES
-  # Log in with username and password (when OpenShift OAuth is not enabled):
-  crwctl auth:login https://che-che.apps-crc.testing/api -u username -p password
-
-
-  # Log in with username and password (password will be asked interactively):
-  crwctl auth:login che-che.apps-crc.testing -u username
-
-
-  # Log in with token (when OpenShift OAuth is enabled):
-  crwctl auth:login che.openshift.io -t token
-
-
-  # Log in with oc token (when logged into an OpenShift cluster with oc and OpenShift OAuth is enabled):
-  crwctl auth:login che.my.server.net
-```
-
-_See code: [src/commands/auth/login.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/auth/login.ts)_
-
-## `crwctl auth:logout`
-
-Log out of the active login session
-
-```
-USAGE
-  $ crwctl auth:logout
-
-OPTIONS
-  -h, --help          show CLI help
-  --telemetry=on|off  Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/auth/logout.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/auth/logout.ts)_
-
-## `crwctl auth:use [CHE-API-ENDPOINT]`
-
-Set active login session
-
-```
-USAGE
-  $ crwctl auth:use [CHE-API-ENDPOINT]
-
-ARGUMENTS
-  CHE-API-ENDPOINT  CodeReady Workspaces server API endpoint
-
-OPTIONS
-  -h, --help               show CLI help
-  -i, --interactive        Select an active login session in interactive mode
-  -u, --username=username  CodeReady Workspaces username
-  --telemetry=on|off       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-
-EXAMPLES
-  # Set an active login session for the specified user on the given cluster:
-  crwctl auth:use che-che.apps-crc.testing/api -u username
-
-
-  # Switch to another user on the same cluster:
-  crwctl auth:use -u another-user-on-this-server
-
-
-  # Switch to the only user on the given cluster:
-  crwctl auth:use my.cluster.net
-
-
-  # Select an active login session in interactive mode:
-  crwctl auth:use -i
-```
-
-_See code: [src/commands/auth/use.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/auth/use.ts)_
 
 ## `crwctl autocomplete [SHELL]`
 
@@ -247,7 +87,7 @@ EXAMPLES
   $ crwctl autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.3.0/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v1.1.0/src/commands/autocomplete/index.ts)_
 
 ## `crwctl cacert:export`
 
@@ -277,7 +117,7 @@ OPTIONS
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/cacert/export.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-20220111-1301-redhat/src/commands/cacert/export.ts)_
 
 ## `crwctl dashboard:open`
 
@@ -293,41 +133,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/dashboard/open.ts)_
-
-## `crwctl devfile:generate`
-
-generate and print a devfile to stdout given some Kubernetes resources and other workspaces features (project, language-support, commands etc...)
-
-```
-USAGE
-  $ crwctl devfile:generate
-
-OPTIONS
-  -h, --help                 show CLI help
-  --command=command          Command to include in the workspace
-  --dockerimage=dockerimage  dockerimage component to include in the Devfile
-  --editor=editor            Specify the editor component. Currently supported editors: theia-next,theia-1.0.0
-  --git-repo=git-repo        Source code git repository to include in the workspace
-
-  --language=language        Add support for a particular language. Currently supported languages:
-                             java,typescript,go,python,c#
-
-  --name=name                Workspace name
-
-  --namespace=namespace      Kubernetes namespace where the resources are defined
-
-  --plugin=plugin            CodeReady Workspaces plugin to include in the workspace. The format is JSON. For example
-                             this is a valid CodeReady Workspaces plugin specification: {"type":
-                             "TheEndpointName.ChePlugin", "alias": "java-ls", "id": "redhat/java/0.38.0"}
-
-  --selector=selector        label selector to filter the Kubernetes resources. For example
-                             --selector="app.kubernetes.io/name=employee-manager"
-
-  --telemetry=on|off         Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/devfile/generate.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/devfile/generate.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-20220111-1301-redhat/src/commands/dashboard/open.ts)_
 
 ## `crwctl help [COMMAND]`
 
@@ -344,7 +150,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.14/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.18/src/commands/help.ts)_
 
 ## `crwctl server:backup`
 
@@ -397,7 +203,7 @@ EXAMPLES
   crwctl server:backup -r sftp:user@my-server.net:/srv/sftp/che-data -p repopassword
 ```
 
-_See code: [src/commands/server/backup.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/backup.ts)_
+_See code: [src/commands/server/backup.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-20220111-1301-redhat/src/commands/server/backup.ts)_
 
 ## `crwctl server:debug`
 
@@ -415,7 +221,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-20220111-1301-redhat/src/commands/server/debug.ts)_
 
 ## `crwctl server:delete`
 
@@ -443,7 +249,7 @@ OPTIONS
   --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-20220111-1301-redhat/src/commands/server/delete.ts)_
 
 ## `crwctl server:deploy`
 
@@ -564,6 +370,9 @@ OPTIONS
   --skip-kubernetes-health-check
       Skip Kubernetes health check
 
+  --skip-oidc-provider-check
+      Skip OIDC Provider check
+
   --skip-version-check
       Skip minimal versions check.
 
@@ -579,14 +388,11 @@ OPTIONS
   --telemetry=on|off
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 
-  --workspace-engine=che-server|dev-workspace
-      [default: che-server] Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.
-
   --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
       persistent volume(s) storage class name to use to store CodeReady Workspaces workspaces data
 ```
 
-_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/deploy.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-20220111-1301-redhat/src/commands/server/deploy.ts)_
 
 ## `crwctl server:logs`
 
@@ -605,7 +411,7 @@ OPTIONS
   --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-20220111-1301-redhat/src/commands/server/logs.ts)_
 
 ## `crwctl server:restore`
 
@@ -675,7 +481,7 @@ EXAMPLES
   crwctl server:restore --backup-cr-name=backup-object-name
 ```
 
-_See code: [src/commands/server/restore.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/restore.ts)_
+_See code: [src/commands/server/restore.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-20220111-1301-redhat/src/commands/server/restore.ts)_
 
 ## `crwctl server:start`
 
@@ -711,7 +517,7 @@ OPTIONS
   --skip-kubernetes-health-check                           Skip Kubernetes health check
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-20220111-1301-redhat/src/commands/server/start.ts)_
 
 ## `crwctl server:status`
 
@@ -727,7 +533,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/status.ts)_
+_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-20220111-1301-redhat/src/commands/server/status.ts)_
 
 ## `crwctl server:stop`
 
@@ -757,7 +563,7 @@ OPTIONS
   --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-20220111-1301-redhat/src/commands/server/stop.ts)_
 
 ## `crwctl server:update`
 
@@ -805,7 +611,7 @@ EXAMPLES
   crwctl server:update --che-operator-cr-patch-yaml patch.yaml
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-20220111-1301-redhat/src/commands/server/update.ts)_
 
 ## `crwctl update [CHANNEL]`
 
@@ -819,272 +625,7 @@ OPTIONS
   --from-local  interactively choose an already installed version
 ```
 
-_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.5.0/src/commands/update.ts)_
-
-## `crwctl workspace:create`
-
-Creates a workspace from a devfile
-
-```
-USAGE
-  $ crwctl workspace:create
-
-OPTIONS
-  -d, --debug
-      Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup. This
-      flag is used in conjunction with --start flag.
-
-  -f, --devfile=devfile
-      Path or URL to a valid devfile
-
-  -h, --help
-      show CLI help
-
-  -n, --chenamespace=chenamespace
-      CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
-
-  -s, --start
-      Starts the workspace after creation
-
-  --access-token=access-token
-      CodeReady Workspaces OIDC Access Token. See the documentation how to obtain token: https://www.eclipse.org/che/docs/
-      che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_authenticating-to-the-che-server
-      and https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-opens
-      hift-token-through-keycloak_authenticating-to-the-che-server.
-
-  --che-api-endpoint=che-api-endpoint
-      CodeReady Workspaces server API endpoint
-
-  --name=name
-      Workspace name: overrides the workspace name to use instead of the one defined in the devfile.
-
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
-
-  --telemetry=on|off
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/workspace/create.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/workspace/create.ts)_
-
-## `crwctl workspace:delete WORKSPACE`
-
-Delete a stopped workspace - use workspace:stop to stop the workspace before deleting it
-
-```
-USAGE
-  $ crwctl workspace:delete WORKSPACE
-
-ARGUMENTS
-  WORKSPACE  The workspace id to delete
-
-OPTIONS
-  -h, --help
-      show CLI help
-
-  -n, --chenamespace=chenamespace
-      CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
-
-  --access-token=access-token
-      CodeReady Workspaces OIDC Access Token. See the documentation how to obtain token: https://www.eclipse.org/che/docs/
-      che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_authenticating-to-the-che-server
-      and https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-opens
-      hift-token-through-keycloak_authenticating-to-the-che-server.
-
-  --che-api-endpoint=che-api-endpoint
-      CodeReady Workspaces server API endpoint
-
-  --delete-namespace
-      Indicates that a Kubernetes namespace where workspace was created will be deleted as well
-
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
-
-  --telemetry=on|off
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/workspace/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/workspace/delete.ts)_
-
-## `crwctl workspace:inject`
-
-Inject configurations and tokens in a workspace
-
-```
-USAGE
-  $ crwctl workspace:inject
-
-OPTIONS
-  -c, --container=container
-      The container name. If not specified, configuration files will be injected in all containers of the workspace pod
-
-  -h, --help
-      show CLI help
-
-  -k, --kubeconfig
-      (required) Inject the local Kubernetes configuration
-
-  -n, --chenamespace=chenamespace
-      CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
-
-  -w, --workspace=workspace
-      The workspace id to inject configuration into. It can be omitted if the only one running workspace exists.
-      Use workspace:list command to get all workspaces and their statuses.
-
-  --access-token=access-token
-      CodeReady Workspaces OIDC Access Token. See the documentation how to obtain token: https://www.eclipse.org/che/docs/
-      che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_authenticating-to-the-che-server
-      and https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-opens
-      hift-token-through-keycloak_authenticating-to-the-che-server.
-
-  --che-api-endpoint=che-api-endpoint
-      CodeReady Workspaces server API endpoint
-
-  --kube-context=kube-context
-      Kubeconfig context to inject
-
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
-
-  --telemetry=on|off
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/workspace/inject.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/workspace/inject.ts)_
-
-## `crwctl workspace:list`
-
-List workspaces
-
-```
-USAGE
-  $ crwctl workspace:list
-
-OPTIONS
-  -h, --help
-      show CLI help
-
-  -n, --chenamespace=chenamespace
-      CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
-
-  --access-token=access-token
-      CodeReady Workspaces OIDC Access Token. See the documentation how to obtain token: https://www.eclipse.org/che/docs/
-      che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_authenticating-to-the-che-server
-      and https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-opens
-      hift-token-through-keycloak_authenticating-to-the-che-server.
-
-  --che-api-endpoint=che-api-endpoint
-      CodeReady Workspaces server API endpoint
-
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
-
-  --telemetry=on|off
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/workspace/list.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/workspace/list.ts)_
-
-## `crwctl workspace:logs`
-
-Collect workspace(s) logs
-
-```
-USAGE
-  $ crwctl workspace:logs
-
-OPTIONS
-  -d, --directory=directory       Directory to store logs into
-  -h, --help                      show CLI help
-
-  -n, --namespace=namespace       (required) The namespace where workspace is located. Can be found in workspace
-                                  configuration 'attributes.infrastructureNamespace' field.
-
-  -w, --workspace=workspace       (required) Target workspace id. Can be found in workspace configuration 'id' field.
-
-  --follow                        Indicate if logs should be streamed
-
-  --skip-kubernetes-health-check  Skip Kubernetes health check
-
-  --telemetry=on|off              Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/workspace/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/workspace/logs.ts)_
-
-## `crwctl workspace:start WORKSPACE`
-
-Starts a workspace
-
-```
-USAGE
-  $ crwctl workspace:start WORKSPACE
-
-ARGUMENTS
-  WORKSPACE  The workspace id to start
-
-OPTIONS
-  -d, --debug
-      Debug workspace start. It is useful when workspace start fails and it is needed to print more logs on startup.
-
-  -h, --help
-      show CLI help
-
-  -n, --chenamespace=chenamespace
-      CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
-
-  --access-token=access-token
-      CodeReady Workspaces OIDC Access Token. See the documentation how to obtain token: https://www.eclipse.org/che/docs/
-      che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_authenticating-to-the-che-server
-      and https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-opens
-      hift-token-through-keycloak_authenticating-to-the-che-server.
-
-  --che-api-endpoint=che-api-endpoint
-      CodeReady Workspaces server API endpoint
-
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
-
-  --telemetry=on|off
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/workspace/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/workspace/start.ts)_
-
-## `crwctl workspace:stop WORKSPACE`
-
-Stop a running workspace
-
-```
-USAGE
-  $ crwctl workspace:stop WORKSPACE
-
-ARGUMENTS
-  WORKSPACE  The workspace id to stop
-
-OPTIONS
-  -h, --help
-      show CLI help
-
-  -n, --chenamespace=chenamespace
-      CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
-
-  --access-token=access-token
-      CodeReady Workspaces OIDC Access Token. See the documentation how to obtain token: https://www.eclipse.org/che/docs/
-      che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_authenticating-to-the-che-server
-      and https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-opens
-      hift-token-through-keycloak_authenticating-to-the-che-server.
-
-  --che-api-endpoint=che-api-endpoint
-      CodeReady Workspaces server API endpoint
-
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
-
-  --telemetry=on|off
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
-```
-
-_See code: [src/commands/workspace/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/workspace/stop.ts)_
+_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v2.1.3/src/commands/update.ts)_
 <!-- commandsstop -->
 
 # Contributing
