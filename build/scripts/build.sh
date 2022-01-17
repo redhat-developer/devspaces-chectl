@@ -373,4 +373,7 @@ if [[ $PUBLISH_ARTIFACTS_TO_RCM -eq 1 ]]; then
 
     # trigger release
     ssh "${DESTHOST}" "/mnt/redhat/scripts/rel-eng/utility/bus-clients/stage-mw-release CRW-${CSV_VERSION}" || true
+
+    # drop connection to remote host so Jenkins cleanup won't delete files we just created
+    fusermount -uz ${WORKSPACE}/RCMG-ssh || true
 fi
