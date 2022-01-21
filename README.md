@@ -87,7 +87,7 @@ EXAMPLES
   $ crwctl autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v1.1.1/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v1.1.0/src/commands/autocomplete/index.ts)_
 
 ## `crwctl cacert:export`
 
@@ -388,6 +388,9 @@ OPTIONS
   --telemetry=on|off
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 
+  --workspace-engine=che-server|dev-workspace
+      [default: che-server] Workspace Engine. If not set, default is "che-server". "dev-workspace" is experimental.
+
   --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
       persistent volume(s) storage class name to use to store CodeReady Workspaces workspaces data
 ```
@@ -625,7 +628,7 @@ OPTIONS
   --from-local  interactively choose an already installed version
 ```
 
-_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.5.0/src/commands/update.ts)_
+_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v2.1.3/src/commands/update.ts)_
 <!-- commandsstop -->
 
 # Contributing
