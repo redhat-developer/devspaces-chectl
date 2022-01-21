@@ -41,11 +41,9 @@ export class DevWorkspaceTasks {
   // DevWorkspace Controller Cluster Roles
   protected devWorkspaceEditWorkspaceClusterRole = 'devworkspace-controller-edit-workspaces'
 
-  protected devWorkspaceProxyClusterRole = 'devworkspace-controller-proxy-role'
+  protected devworkspaceProxyClusterRole = 'devworkspace-controller-proxy-role'
 
   protected devworkspaceClusterRole = 'devworkspace-controller-role'
-
-  protected devWorkspaceMetricsClusterRole = 'devworkspace-controller-metrics-reader'
 
   protected devWorkspaceViewWorkspaceClusterRole = 'devworkspace-controller-view-workspaces'
 
@@ -67,6 +65,8 @@ export class DevWorkspaceTasks {
 
   // ConfigMap names
   protected devWorkspaceConfigMap = 'devworkspace-controller-configmap'
+
+  protected devworkspaceCheConfigmap = 'devworkspace-che-configmap'
 
   protected devWorkspaceCertificate = 'devworkspace-controller-serving-cert'
 
@@ -183,8 +183,7 @@ export class DevWorkspaceTasks {
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteClusterRole(this.devWorkspaceEditWorkspaceClusterRole)
           await this.kubeHelper.deleteClusterRole(this.devWorkspaceViewWorkspaceClusterRole)
-          await this.kubeHelper.deleteClusterRole(this.devWorkspaceProxyClusterRole)
-          await this.kubeHelper.deleteClusterRole(this.devWorkspaceMetricsClusterRole)
+          await this.kubeHelper.deleteClusterRole(this.devworkspaceProxyClusterRole)
           await this.kubeHelper.deleteClusterRole(this.devworkspaceClusterRole)
 
           task.title = `${task.title}...[OK]`
@@ -209,7 +208,7 @@ export class DevWorkspaceTasks {
         },
       },
       {
-        title: 'Delete Dev Workspace Operator Namespace',
+        title: 'Delete DevWorkspace Operator Namespace',
         task: async (_ctx: any, task: any) => {
           const namespaceExist = await this.kubeHelper.getNamespace(DEFAULT_DEV_WORKSPACE_CONTROLLER_NAMESPACE)
           if (namespaceExist) {
@@ -238,13 +237,14 @@ export class DevWorkspaceTasks {
         },
       },
       {
-        title: 'Delete All Dev Workspace CRD',
+        title: 'Delete Dev Workspace CRDs',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteCrd(this.devWorkspacesCrdName)
           await this.kubeHelper.deleteCrd(this.devWorkspaceTemplatesCrdName)
           await this.kubeHelper.deleteCrd(this.workspaceRoutingsCrdName)
           await this.kubeHelper.deleteCrd(this.devWorkspaceConfigCrdName)
-          task.title = `${task.title}...[OK]`
+
+          task.title = await `${task.title}...[OK]`
         },
       },
     ]
@@ -253,14 +253,14 @@ export class DevWorkspaceTasks {
   deleteDevWorkspaceWebhooksTasks(namespace: string): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Delete Dev Workspace webhook deployment',
+        title: 'Delete Dev Workspace webhooks deployment',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteDeployment(namespace, this.deploymentWebhookName)
           task.title = `${task.title}...[OK]`
         },
       },
       {
-        title: 'Delete Dev Workspace webhook service',
+        title: 'Delete all Dev Workspace webhooks services',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteService(this.serviceWebhookName, namespace)
           task.title = `${task.title}...[OK]`
@@ -281,7 +281,7 @@ export class DevWorkspaceTasks {
         },
       },
       {
-        title: 'Delete Dev Workspace webhooks service account',
+        title: 'Delete DevWorkspace webhooks service account',
         task: async (_ctx: any, task: any) => {
           await this.kubeHelper.deleteServiceAccount(this.devWorkspaceWebhookServiceAccount, namespace)
           task.title = `${task.title}...[OK]`
