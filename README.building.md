@@ -2,7 +2,7 @@ CRWCTL is built in Jenkins and published to https://developers.redhat.com/produc
 
 To build in Jenkins:
 
-* https://main-jenkins-csb-crwqe.apps.ocp4.prod.psi.redhat.com/job/CRW_CI/ (jobs)
+* https://main-jenkins-csb-crwqe.apps.ocp-c1.prod.psi.redhat.com/job/CRW_CI/ (jobs)
 * https://gitlab.cee.redhat.com/codeready-workspaces/crw-jenkins/-/tree/master/jobs/CRW_CI (sources)
 * https://github.com/redhat-developer/codeready-workspaces-images#jenkins-jobs (copied sources)
 
