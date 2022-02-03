@@ -1,6 +1,6 @@
 {
   "name": "crwctl",
-  "version": "2.16.0-20220131-1740-redhat",
+  "version": "2.16.0-CI-redhat",
   "description": "CodeReady Workspaces CLI",
   "keywords": [
     "oclif"
@@ -151,14 +151,8 @@
       "@oclif/plugin-update"
     ],
     "topics": {
-      "auth": {
-        "description": "Manage CodeReady Workspaces server login sessions"
-      },
       "server": {
         "description": "Control CodeReady Workspaces server"
-      },
-      "workspace": {
-        "description": "Control CodeReady Workspaces workspaces"
       }
     },
     "update": {
