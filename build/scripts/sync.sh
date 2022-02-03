@@ -52,6 +52,34 @@ if [[ -z "${CRW_SERVER_TAG}" ]];   then CRW_SERVER_TAG=${MIDSTM_BRANCH#*-};   CR
 if [[ -z "${CRW_OPERATOR_TAG}" ]]; then CRW_OPERATOR_TAG=${MIDSTM_BRANCH#*-}; CRW_OPERATOR_TAG=${CRW_OPERATOR_TAG%%-*}; fi
 if [[ -z "${CRW_VERSION}" ]];      then CRW_VERSION=${MIDSTM_BRANCH#*-};      CRW_VERSION=${CRW_VERSION%%-*};           fi
 
+# ignore changes in these files
+echo "/.github/
+/.git/
+/.gitignore
+/.dockerignore
+/.eslint*
+/build/
+/devfile.yaml
+/README.building.md
+/README.md
+/tsconfig.tsbuildinfo
+/templates/
+/docs/
+/dist/
+/bin/
+/RELEASE.md
+/CONTRIBUTING.md
+/make-release.sh
+/.ci/
+/hack/
+" > /tmp/rsync-excludes
+echo "Rsync ${SOURCEDIR} to ${TARGETDIR}"
+rsync -azrlt --checksum --exclude-from /tmp/rsync-excludes --delete "${SOURCEDIR}"/ "${TARGETDIR}"/
+rm -f /tmp/rsync-excludes
+
+# ensure shell scripts are executable
+find "${TARGETDIR}"/ -name "*.sh" -exec chmod +x {} \;
+
 # global / generic changes
 pushd "${SOURCEDIR}" >/dev/null
 	while IFS= read -r -d '' d; do
@@ -106,13 +134,8 @@ pushd "${SOURCEDIR}" >/dev/null
 			\
 			-e "s|\"CodeReady Workspaces will be deployed in Multi-User mode.+mode.\"|'CodeReady Workspaces can only be deployed in Multi-User mode.'|" \
 		"$d" > "${TARGETDIR}/${d}"
-	done <   <(find src test resources configs prepare-che-operator-templates.js package.json .ci/obfuscate/gnirts.js .eslintrc.js  -type f -name "*" -print0) # include package.json in here too
+	done <   <(find src test resources configs prepare-che-operator-templates.js package.json .ci/obfuscate/gnirts.js .eslintrc.js -type f -name "*" -print0) # include package.json in here too
 popd >/dev/null
-
-# copy extra files without sed
-# CRW-2312 include yarn.lock to have the same dependencies as chectl
-echo "[INFO] Copy yarn.lock"
-cp -f "${SOURCEDIR}/yarn.lock" "${TARGETDIR}/yarn.lock"
 
 # Remove files
 pushd "${TARGETDIR}" >/dev/null
@@ -133,13 +156,8 @@ pushd "${TARGETDIR}" >/dev/null
 	done <   <(find prepare-che-operator-templates.js -print0)
 popd >/dev/null
 
-# Rename files
-pushd "${TARGETDIR}" >/dev/null
-	while IFS= read -r -d '' d; do
-		echo "[INFO] Rename ${d#./}"
-		mv -f "$d" $(echo $d | sed -e "s|che-operator|codeready-workspaces-operator|g")
-	done <   <(find prepare-che-operator-templates.js -print0)
-popd >/dev/null
+# Rename file prepare-che-operator-templates.js
+mv -f "${TARGETDIR}"/prepare-che-operator-templates.js "${TARGETDIR}"/prepare-codeready-workspaces-operator-templates.js
 
 # per-file changes:
 platformString="    platform: string({\n\

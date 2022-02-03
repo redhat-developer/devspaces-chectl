@@ -193,7 +193,7 @@ if [[ $DO_SYNC -eq 1 ]]; then
     popd >/dev/null
 
     pushd $CRWCTL_DIR >/dev/null
-        ./build/scripts/sync-chectl-to-crwctl.sh -b ${MIDSTM_BRANCH} -s ${SOURCE_DIR} -t ${CRWCTL_DIR} \
+        ./build/scripts/sync.sh -b ${MIDSTM_BRANCH} -s ${SOURCE_DIR} -t ${CRWCTL_DIR} \
             --crw-version ${CRW_VERSION} --server-tag ${CRW_SERVER_TAG} --operator-tag ${CRW_OPERATOR_TAG}
         # commit changes
         set -x
