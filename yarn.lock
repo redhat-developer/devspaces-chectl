@@ -2153,7 +2153,7 @@ code-point-at@^1.0.0:
 
 "codeready-workspaces-operator@https://github.com/redhat-developer/codeready-workspaces-images#crw-2-rhel-8":
   version "0.0.0"
-  resolved "https://github.com/redhat-developer/codeready-workspaces-images#5ff7b5ec02b9daa5157f63db7f8db36d3f65256c"
+  resolved "https://github.com/redhat-developer/codeready-workspaces-images#ee3e64c5b2d624706605a3a90c4cf9eea08cc3af"
 
 collect-v8-coverage@^1.0.0:
   version "1.0.1"
@@ -2484,7 +2484,6 @@ ecc-jsbn@~0.1.1:
   dependencies:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
-
 
 editorconfig@^0.15.0:
   version "0.15.3"
