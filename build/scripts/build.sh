@@ -186,7 +186,7 @@ if [[ $DO_SYNC -eq 1 ]]; then
     ########################################################################
     # CRW-1579 change yamls to use :2.y tag, not :latest or :next - use that only for quay version of crwctl
     pushd ${CRWIMG_DIR} >/dev/null
-        FILES="codeready-workspaces-operator/config/manager/manager.yaml codeready-workspaces-operator-metadata/manifests/codeready-workspaces.csv.yaml"
+        FILES="codeready-workspaces-operator/config/manager/manager.yaml codeready-workspaces-operator-bundle/manifests/codeready-workspaces.csv.yaml"
         for d in ${FILES}; do
             sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/(.+):(.+)#registry.redhat.io/codeready-workspaces/\1:${CRW_VERSION}#g"
         done
@@ -247,7 +247,7 @@ if [[ $DO_QUAY_BUILD -eq 1 ]]; then
         git checkout ${MIDSTM_BRANCH}-quay
         # CRW-1579 change yamls to use quay image, and :latest or :next
         # do not use :2.y to allow stable builds to be auto-updated via crwctl on ocp3.11 - :latest tag triggers always-update (?)
-        FILES="codeready-workspaces-operator/config/manager/manager.yaml codeready-workspaces-operator-metadata/manifests/codeready-workspaces.csv.yaml"
+        FILES="codeready-workspaces-operator/config/manager/manager.yaml codeready-workspaces-operator-bundle/manifests/codeready-workspaces.csv.yaml"
         for d in ${FILES}; do
             sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/(.+):(.+)#quay.io/crw/\1:${latestNext}#g"
         done
