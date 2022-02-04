@@ -2166,7 +2166,7 @@ code-point-at@^1.0.0:
 
 "codeready-workspaces-operator@https://github.com/redhat-developer/codeready-workspaces-images#crw-2-rhel-8":
   version "0.0.0"
-  resolved "https://github.com/redhat-developer/codeready-workspaces-images#67c61f1fc4d4d6b3c48f28826370a29286ddcc6c"
+  resolved "https://github.com/redhat-developer/codeready-workspaces-images#f053bd49873c349363e7ea1fc05e5f33f11c77ab"
 
 collect-v8-coverage@^1.0.0:
   version "1.0.1"
