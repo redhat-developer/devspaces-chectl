@@ -40,9 +40,6 @@ running command...
 $ crwctl server:stop
 running command...
 
-$ crwctl workspace:start --devfile
-running command...
-
 $ crwctl --help [COMMAND]
 USAGE
   $ crwctl COMMAND
