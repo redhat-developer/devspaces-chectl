@@ -117,7 +117,7 @@ OPTIONS
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/cacert/export.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-GA-redhat/src/commands/cacert/export.ts)_
 
 ## `crwctl dashboard:open`
 
@@ -133,7 +133,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/dashboard/open.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-GA-redhat/src/commands/dashboard/open.ts)_
 
 ## `crwctl help [COMMAND]`
 
@@ -203,7 +203,7 @@ EXAMPLES
   crwctl server:backup -r sftp:user@my-server.net:/srv/sftp/che-data -p repopassword
 ```
 
-_See code: [src/commands/server/backup.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/backup.ts)_
+_See code: [src/commands/server/backup.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-GA-redhat/src/commands/server/backup.ts)_
 
 ## `crwctl server:debug`
 
@@ -221,7 +221,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-GA-redhat/src/commands/server/debug.ts)_
 
 ## `crwctl server:delete`
 
@@ -249,7 +249,7 @@ OPTIONS
   --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-GA-redhat/src/commands/server/delete.ts)_
 
 ## `crwctl server:deploy`
 
@@ -395,7 +395,7 @@ OPTIONS
       persistent volume(s) storage class name to use to store CodeReady Workspaces workspaces data
 ```
 
-_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/deploy.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-GA-redhat/src/commands/server/deploy.ts)_
 
 ## `crwctl server:logs`
 
@@ -414,7 +414,7 @@ OPTIONS
   --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-GA-redhat/src/commands/server/logs.ts)_
 
 ## `crwctl server:restore`
 
@@ -484,7 +484,7 @@ EXAMPLES
   crwctl server:restore --backup-cr-name=backup-object-name
 ```
 
-_See code: [src/commands/server/restore.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/restore.ts)_
+_See code: [src/commands/server/restore.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-GA-redhat/src/commands/server/restore.ts)_
 
 ## `crwctl server:start`
 
@@ -520,7 +520,7 @@ OPTIONS
   --skip-kubernetes-health-check                           Skip Kubernetes health check
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-GA-redhat/src/commands/server/start.ts)_
 
 ## `crwctl server:status`
 
@@ -536,7 +536,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/status.ts)_
+_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-GA-redhat/src/commands/server/status.ts)_
 
 ## `crwctl server:stop`
 
@@ -566,7 +566,7 @@ OPTIONS
   --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-GA-redhat/src/commands/server/stop.ts)_
 
 ## `crwctl server:update`
 
@@ -614,7 +614,7 @@ EXAMPLES
   crwctl server:update --che-operator-cr-patch-yaml patch.yaml
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-CI-redhat/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/codeready-workspaces-chectl/blob/v2.15.0-GA-redhat/src/commands/server/update.ts)_
 
 ## `crwctl update [CHANNEL]`
 
