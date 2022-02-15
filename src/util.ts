@@ -432,3 +432,9 @@ export function getTlsSecretName(ctx: any): string {
 
   return DEFAULT_CHE_TLS_SECRET_NAME
 }
+
+export function getWarnVersionFlagMsg(_flags: any): string {
+  return `'--version' flag is not supported anymore.
+1. Update crwctl to a specific version following the doc https://github.com/redhat-developer/codeready-workspaces-chectl#updating
+2. Use crwctl of the specific version to deploy or to upgrade CodeReady Workspaces`
+}

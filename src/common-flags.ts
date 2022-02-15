@@ -127,6 +127,7 @@ export const cheDeployVersion = string({
   description: 'Version to deploy (e.g. 7.15.2). Defaults to the same as crwctl.',
   env: 'CHE_DEPLOY_VERSION',
   hidden: true,
+  hidden: true,
 })
 
 export const FOLLOW_LOGS = boolean({
