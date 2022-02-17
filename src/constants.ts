@@ -44,14 +44,14 @@ export const DEFAULT_CHE_NAMESPACE = 'openshift-workspaces'
 export const LEGACY_CHE_NAMESPACE = 'workspaces'
 
 // OLM common
-export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'codeready-workspaces'
+export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'devspaces'
 export const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME = 'codeready-subscription'
 export const OPERATOR_GROUP_NAME = 'codeready-operator-group'
 export const CSV_PREFIX = 'eclipse-che'
 export const DEVWORKSPACE_CSV_PREFIX = 'devworkspace-operator'
 // OLM channels
 export const OLM_STABLE_CHANNEL_NAME = 'latest'
-export const OLM_STABLE_CHANNEL_STARTING_CSV_TEMPLATE = 'crwoperator.v{{VERSION}}'
+export const OLM_STABLE_CHANNEL_STARTING_CSV_TEMPLATE = 'devspacesoperator.v{{VERSION}}'
 export const OLM_NEXT_CHANNEL_NAME = 'next'
 // OLM namespaces
 export const DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE = 'openshift-marketplace'
