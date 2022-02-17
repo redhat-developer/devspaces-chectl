@@ -119,10 +119,10 @@ pushd "${SOURCEDIR}" >/dev/null
 			\
 			-e "s|(const CHE_CLUSTER_CR_NAME =).+|\1 'codeready-workspaces'|g" \
 			\
-			-e "s|(const DEFAULT_CHE_OLM_PACKAGE_NAME =).+|\1 'codeready-workspaces'|g" \
+			-e "s|(const DEFAULT_CHE_OLM_PACKAGE_NAME =).+|\1 'devspaces'|g" \
 			-e "s|(const OLM_STABLE_CHANNEL_NAME =).+|\1 'latest'|g" \
-			-e "s|(const OLM_STABLE_CHANNEL_STARTING_CSV_TEMPLATE =).+|\1 'crwoperator.v{{VERSION}}'|g" \
-			-e "s|(const OLM_STABLE_ALL_NAMESPACES_CHANNEL_STARTING_CSV_TEMPLATE =).+|\1 'crwoperatorallnamespaces.v{{VERSION}}'|g" \
+			-e "s|(const OLM_STABLE_CHANNEL_STARTING_CSV_TEMPLATE =).+|\1 'devspacesoperator.v{{VERSION}}'|g" \
+			-e "s|(const OLM_STABLE_ALL_NAMESPACES_CHANNEL_STARTING_CSV_TEMPLATE =).+|\1 'devspacesoperator.v{{VERSION}}'|g" \
 			-e "s|(const CUSTOM_CATALOG_SOURCE_NAME =).+|\1 'codeready-custom-catalog-source'|g" \
 			-e "s|(const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME =).+|\1 'codeready-subscription'|g" \
 			-e "s|(const OPERATOR_GROUP_NAME =).+|\1 'codeready-operator-group'|g" \
