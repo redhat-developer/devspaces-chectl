@@ -9,8 +9,11 @@ To build in Jenkins:
 To build locally:
 
 ```
+# purge local yarn cache
+rm -fr $HOME/.cache/yarn/v6/
+
 # sync from upstream chectl
-./build/scripts/sync-chectl-to-crwctl.sh -b crw-2-rhel-8 \
+./build/scripts/sync.sh -b crw-2-rhel-8 \
   -s ${WORKSPACE}/chectl \
   -t ${WORKSPACE}/crwctl \
 	--server-tag 2.y-zz --operator-tag 2.y-zzz
@@ -19,4 +22,3 @@ To build locally:
 platforms="linux-x64,darwin-x64,win32-x64"
 yarn && npx oclif-dev pack -t ${platforms}
 ```
-
