@@ -13,6 +13,7 @@
 # convert chectl upstream to downstream using sed & perl transforms, and deleting files
 
 set -e
+set -x
 
 MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 DEFAULT_TAG=${MIDSTM_BRANCH#*-}; DEFAULT_TAG=${DEFAULT_TAG%%-*};
@@ -211,7 +212,6 @@ pushd "${TARGETDIR}" >/dev/null
 	sed -r \
 		`# replace line after specified one with new default` \
 		-e "s|Kubernetes namespace|Openshift Project|g" \
-		-e "s|env: 'CHE_DEPLOY_VERSION'|env: 'CHE_DEPLOY_VERSION',\n  hidden: true|g" \
 		-e "/description: .+ deployment name.+/{n;s/.+/  default: 'codeready',/}" \
 		-i "${TARGETDIR}/${d}"
 popd >/dev/null
