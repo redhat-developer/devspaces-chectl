@@ -211,7 +211,6 @@ pushd "${TARGETDIR}" >/dev/null
 	sed -r \
 		`# replace line after specified one with new default` \
 		-e "s|Kubernetes namespace|Openshift Project|g" \
-		-e "s|env: 'CHE_DEPLOY_VERSION'|env: 'CHE_DEPLOY_VERSION',\n  hidden: true|g" \
 		-e "/description: .+ deployment name.+/{n;s/.+/  default: 'codeready',/}" \
 		-i "${TARGETDIR}/${d}"
 popd >/dev/null
