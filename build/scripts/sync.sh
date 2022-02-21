@@ -13,7 +13,6 @@
 # convert chectl upstream to downstream using sed & perl transforms, and deleting files
 
 set -e
-set -x
 
 MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 DEFAULT_TAG=${MIDSTM_BRANCH#*-}; DEFAULT_TAG=${DEFAULT_TAG%%-*};
