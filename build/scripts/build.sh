@@ -306,6 +306,9 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
         /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --delete-assets -v "${CSV_VERSION}" -b "${MIDSTM_BRANCH}" --asset-name "${releaseName}"
     fi
 
+    # in case API is running slow, sleep for a bit before trying to push files into the freshly created release
+    sleep 10s
+
     # upload artifacts for each platform + sources tarball
     for channel in quay redhat; do 
         pushd ${CRWCTL_DIR}/dist/channels/${channel}/
