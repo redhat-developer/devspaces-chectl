@@ -43,7 +43,7 @@ See https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3
 
 === Override containers in the plugin registry
 
-Once deployed to your cluster, you can override the link:https://github.com/redhat-developer/codeready-workspaces/tree/crw-2-rhel-8/dependencies/che-plugin-registry/v3/plugins/eclipse[default CRW containers referenced in the plugin registry] using specific environment variables.
+Once deployed to your cluster, you can override the link:https://github.com/redhat-developer/devspaces/tree/devspaces-3-rhel-8/dependencies/che-plugin-registry/v3/plugins/eclipse[default CRW containers referenced in the plugin registry] using specific environment variables.
 
 First, get the environment variables:
 
@@ -58,7 +58,7 @@ oc set env deployment/plugin-registry RELATED_IMAGE_codeready_workspaces_machine
 
 === Override containers in the devfile registry
 
-Once deployed to your cluster, you can override the link:https://github.com/redhat-developer/codeready-workspaces/tree/crw-2-rhel-8/dependencies/che-devfile-registry/v3/plugins/eclipse[default CRW containers referenced in the devfile registry] using specific environment variables.
+Once deployed to your cluster, you can override the link:https://github.com/redhat-developer/devspaces/tree/devspaces-3-rhel-8/dependencies/che-devfile-registry/v3/plugins/eclipse[default CRW containers referenced in the devfile registry] using specific environment variables.
 
 First, get the environment variables:
 
