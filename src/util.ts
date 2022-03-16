@@ -435,6 +435,6 @@ export function getTlsSecretName(ctx: any): string {
 
 export function getWarnVersionFlagMsg(_flags: any): string {
   return `'--version' flag is not supported anymore.
-1. Update dsc to a specific version following the doc https://github.com/redhat-developer/devspaces-chectl#updating
+1. Update dsc to a specific version following the doc https://github.com/redhat-developer/devspaces-dsc#updating
 2. Use dsc of the specific version to deploy or to upgrade Red Hat OpenShift Dev Spaces`
 }

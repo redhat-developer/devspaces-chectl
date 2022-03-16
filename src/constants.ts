@@ -21,7 +21,7 @@ export const MIN_CHE_OPERATOR_INSTALLER_VERSION = '7.13.1'
 export const CHE_RELATED_COMPONENT_LABEL = 'client/org.eclipse.che=true'
 
 // images
-export const DEFAULT_CHE_OPERATOR_IMAGE_NAME = 'registry.redhat.io/codeready-workspaces/crw-2-rhel8-operator'
+export const DEFAULT_CHE_OPERATOR_IMAGE_NAME = 'registry.redhat.io/devspaces/devspaces-rhel8-operator'
 // This image should be updated manually when needed.
 // Repository location: https://github.com/che-dockerfiles/che-cert-manager-ca-cert-generator-image
 export const CA_CERT_GENERATION_JOB_IMAGE = 'quay.io/eclipse/che-cert-manager-ca-cert-generator:671342c'

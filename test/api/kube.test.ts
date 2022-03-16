@@ -39,13 +39,13 @@ kube.kubeConfig.loadFromString(kubeContext)
 describe('Kube API helper', () => {
   fancy
     .nock(kubeClusterURL, api => api
-      .get(`/api/v1/namespaces/${namespace}/pods?labelSelector=app%3Dcodeready`)
+      .get(`/api/v1/namespaces/${namespace}/pods?labelSelector=app%devspaces`)
       .times(2)
       .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-running.json', { 'Content-Type': 'application/json' })
-      .get(`/api/v1/namespaces/${namespace}/pods?labelSelector=app%3Dcodeready`)
+      .get(`/api/v1/namespaces/${namespace}/pods?labelSelector=app%devspaces`)
       .replyWithFile(200, __dirname + '/replies/get-pod-by-selector-running-ready.json', { 'Content-Type': 'application/json' }))
     .it('waits until the pod Ready status is "True"', async () => {
-      const selector = 'app=codeready'
+      const selector = 'app=devspaces'
       const interval = 10
       const timeout = 1000
       await kube.waitForPodReady(selector, namespace, interval, timeout)

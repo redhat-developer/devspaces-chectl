@@ -30,7 +30,7 @@ export default class Stop extends Command {
     'deployment-name': cheDeployment,
     'che-selector': string({
       description: 'Selector for Red Hat OpenShift Dev Spaces server resources',
-      default: 'app=codeready,component=codeready',
+      default: 'app=devspaces,component=devspaces',
       env: 'CHE_SELECTOR',
     }),
     'access-token': accessToken,
