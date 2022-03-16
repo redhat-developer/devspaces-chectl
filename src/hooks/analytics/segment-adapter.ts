@@ -53,7 +53,7 @@ export class SegmentAdapter {
   }
 
   /**
-   * Returns anonymous id to identify and track crwctl events in segment
+   * Returns anonymous id to identify and track dsc events in segment
    * Check if exists an anonymousId in file: $HOME/.redhat/anonymousId and if not generate new one in this location
    */
   static getAnonymousId(): string | undefined {
@@ -87,9 +87,9 @@ export class SegmentAdapter {
   }
 
   /**
-   * Create a segment track object which includes command properties and some crwctl filtred properties
-   * @param options crwctl information like command or flags.
-   * @param segmentID crwctl ID generated only if telemetry it is 'on'
+   * Create a segment track object which includes command properties and some dsc filtred properties
+   * @param options dsc information like command or flags.
+   * @param segmentID dsc ID generated only if telemetry it is 'on'
    */
   public async trackSegmentEvent(options: { command: string, flags: any }): Promise<void> {
     this.segment.track({

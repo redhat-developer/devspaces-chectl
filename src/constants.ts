@@ -11,9 +11,9 @@
  */
 
 export const CHECTL_PROJECT_NAME = 'chectl'
-export const OPERATOR_TEMPLATE_DIR = 'codeready-workspaces-operator'
+export const OPERATOR_TEMPLATE_DIR = 'devspaces-operator'
 
-// minimal installable versions by current crwctl
+// minimal installable versions by current dsc
 export const MIN_OLM_INSTALLER_VERSION = '7.17.0'
 export const MIN_CHE_OPERATOR_INSTALLER_VERSION = '7.13.1'
 
@@ -35,18 +35,18 @@ export const CERT_MANAGER_NAMESPACE_NAME = 'cert-manager'
 export const CHE_TLS_SECRET_NAME = 'che-tls'
 export const CHE_ROOT_CA_SECRET_NAME = 'self-signed-certificate'
 export const DEFAULT_CA_CERT_FILE_NAME = 'cheCA.crt'
-export const CHE_CLUSTER_CR_NAME = 'codeready-workspaces'
+export const CHE_CLUSTER_CR_NAME = 'devspaces'
 
 // operator
-export const OPERATOR_DEPLOYMENT_NAME = 'codeready-operator'
-export const CHE_OPERATOR_SELECTOR = 'app=codeready-operator'
+export const OPERATOR_DEPLOYMENT_NAME = 'devspaces-operator'
+export const CHE_OPERATOR_SELECTOR = 'app=devspaces-operator'
 export const DEFAULT_CHE_NAMESPACE = 'openshift-workspaces'
 export const LEGACY_CHE_NAMESPACE = 'workspaces'
 
 // OLM common
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'devspaces'
-export const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME = 'codeready-subscription'
-export const OPERATOR_GROUP_NAME = 'codeready-operator-group'
+export const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME = 'devspaces-subscription'
+export const OPERATOR_GROUP_NAME = 'devspaces-operator-group'
 export const CSV_PREFIX = 'eclipse-che'
 export const DEVWORKSPACE_CSV_PREFIX = 'devworkspace-operator'
 // OLM channels
@@ -58,7 +58,7 @@ export const DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE = 'openshift-marketplace'
 export const DEFAULT_OLM_KUBERNETES_NAMESPACE = 'olm'
 export const DEFAULT_OPENSHIFT_OPERATORS_NS_NAME = 'openshift-operators'
 // OLM catalogs
-export const CUSTOM_CATALOG_SOURCE_NAME = 'codeready-custom-catalog-source'
+export const CUSTOM_CATALOG_SOURCE_NAME = 'devspaces-custom-catalog-source'
 export const NEXT_CATALOG_SOURCE_NAME = 'eclipse-che-preview'
 export const NEXT_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR = 'custom-devworkspace-operator-catalog'
 export const STABLE_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR = 'stable-custom-devworkspace-operator-catalog'
@@ -67,8 +67,8 @@ export const KUBERNETES_OLM_CATALOG = 'operatorhubio-catalog'
 export const OPENSHIFT_OLM_CATALOG = 'redhat-operators'
 
 // Documentation links
-export const DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.16/'
-export const DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.16/html/release_notes_and_known_issues/index'
+export const DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.0/'
+export const DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.0/html/release_notes_and_known_issues/index'
 export const DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY = 'https://www.eclipse.org/che/docs/che-7/installation-guide/installing-che-locally/'
 export const DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER = 'https://www.eclipse.org/che/docs/che-7/end-user-guide/importing-certificates-to-browsers/'
 export const DOCS_LINK_HOW_TO_ADD_IDENTITY_PROVIDER_OS4 = 'https://docs.openshift.com/container-platform/latest/authentication/understanding-identity-provider.html#identity-provider-overview_understanding-identity-provider'

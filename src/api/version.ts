@@ -170,7 +170,7 @@ export namespace VersionHelper {
   }
 
   /**
-   * Returns latest crwctl version for the given channel.
+   * Returns latest dsc version for the given channel.
    */
   export async function getLatestChectlVersion(channel: string): Promise<string | undefined> {
     if (getProjectName() !== CHECTL_PROJECT_NAME) {
@@ -182,7 +182,7 @@ export namespace VersionHelper {
     })
 
     try {
-      const { data } = await axiosInstance.get(`https://che-incubator.github.io/crwctl/channels/${channel}/linux-x64`)
+      const { data } = await axiosInstance.get(`https://che-incubator.github.io/dsc/channels/${channel}/linux-x64`)
       return data.version
     } catch {
       return
@@ -190,19 +190,19 @@ export namespace VersionHelper {
   }
 
   /**
-   * Checks whether there is an update available for current crwctl.
+   * Checks whether there is an update available for current dsc.
    */
   export async function isChectlUpdateAvailable(cacheDir: string, forceRecheck = false): Promise<boolean> {
     // Do not use ctx inside this function as the function is used from hook where ctx is not yet defined.
 
     if (getProjectName() !== CHECTL_PROJECT_NAME) {
-      // Do nothing for crwctl flavors
+      // Do nothing for dsc flavors
       return false
     }
 
     const currentVersion = getProjectVersion()
     if (currentVersion === CHECTL_DEVELOPMENT_VERSION) {
-      // Skip it, crwctl is built from source
+      // Skip it, dsc is built from source
       return false
     }
 

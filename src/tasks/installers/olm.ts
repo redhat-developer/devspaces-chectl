@@ -271,7 +271,7 @@ export class OLMTasks {
                 task: () => { },
               },
               {
-                title: '[Warning] Use \'crwctl server:update\' command only with \'Manual\' installation plan approval.',
+                title: '[Warning] Use \'dsc server:update\' command only with \'Manual\' installation plan approval.',
                 task: () => {
                   command.exit(0)
                 },

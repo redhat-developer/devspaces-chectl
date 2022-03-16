@@ -6,7 +6,7 @@ Red Hat CodeReady Workspaces CLI
 
 See product _Release Notes and Known Issues_ for more information about the product and the current version:
 
-https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.14/html/release_notes_and_known_issues/
+https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.0/html/release_notes_and_known_issues/
 
 
 == Installing CodeReady Workspaces
@@ -20,17 +20,17 @@ See the CodeReady Workspaces _Administration Guide_ for instructions on how to d
 * migrate from the previous version of the product
 * uninstall the product
 
-https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.14/html/administration_guide/
+https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.0/html/administration_guide/
 
 == Installing with OperatorHub
 
-On Openshift 4.x, the recommended way to install Workspaces is via OperatorHub. See link:https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.14/html-single/installation_guide/index#installing-codeready-workspaces-on-openshift-4-from-operatorhub_installing-codeready-workspaces-on-openshift-container-platform-4[Installing CodeReady Workspaces on OpenShift 4 from OperatorHub].
+On Openshift 4.x, the recommended way to install Workspaces is via OperatorHub. See link:https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.0/html-single/installation_guide/index#installing-codeready-workspaces-on-openshift-4-from-operatorhub_installing-codeready-workspaces-on-openshift-container-platform-4[Installing CodeReady Workspaces on OpenShift 4 from OperatorHub].
 
-However, the instructions below should also work, as crwctl is the recommended solution for installing Workspaces to an airgapped (restricted) environment, or for offline installs.
+However, the instructions below should also work, as dsc is the recommended solution for installing Workspaces to an airgapped (restricted) environment, or for offline installs.
 
-== Installing with crwctl
+== Installing with dsc
 
-To install Workspaces, see https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.14/html-single/installation_guide/index#installing-codeready-workspaces-on-openshift-4-using-the-cli_crw
+To install Workspaces, see https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.0/html-single/installation_guide/index#installing-codeready-workspaces-on-openshift-4-using-the-cli_crw
 
 
 == Overriding default images when deploying
@@ -39,7 +39,7 @@ If you need to swap out a default image for a custom one, eg., for testing a cha
 
 === Override operator and default images
 
-See https://access.redhat.com/documentation/en-us/red_hat_codeready_workspaces/2.14/html-single/installation_guide#starting-codeready-workspaces-installation-in-a-restricted-environment-using-cli-management-tool
+See https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.0/html-single/installation_guide#starting-codeready-workspaces-installation-in-a-restricted-environment-using-cli-management-tool
 
 === Override containers in the plugin registry
 
@@ -53,7 +53,7 @@ oc get deployment plugin-registry -o=json | jq '.spec.template.spec.containers[0
 
 Then you can set new values with something like this:
 ```
-oc set env deployment/plugin-registry RELATED_IMAGE_codeready_workspaces_machineexec_plugin_registry_image_GIXDCNIK=quay.io/crw/machineexec-rhel8:next
+oc set env deployment/plugin-registry RELATED_IMAGE_codeready_workspaces_machineexec_plugin_registry_image_GIXDCNIK=quay.io/devspaces/machineexec-rhel8:next
 ```
 
 === Override containers in the devfile registry

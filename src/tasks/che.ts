@@ -409,7 +409,7 @@ export class CheTasks {
         title: 'Delete configmaps for CodeReady Workspaces server and operator',
         task: async (_ctx: any, task: any) => {
           await this.kube.deleteConfigMap('che', flags.chenamespace)
-          await this.kube.deleteConfigMap('codeready-operator', flags.chenamespace)
+          await this.kube.deleteConfigMap('devspaces-operator', flags.chenamespace)
           task.title = `${task.title}...OK`
         },
       },
@@ -417,7 +417,7 @@ export class CheTasks {
         title: 'Delete rolebindings che, che-workspace-exec and che-workspace-view',
         task: async (_ctx: any, task: any) => {
           await this.kube.deleteRoleBinding('che', flags.chenamespace)
-          await this.kube.deleteRoleBinding('codeready-operator', flags.chenamespace)
+          await this.kube.deleteRoleBinding('devspaces-operator', flags.chenamespace)
           await this.kube.deleteRoleBinding('che-workspace-exec', flags.chenamespace)
           await this.kube.deleteRoleBinding('che-workspace-view', flags.chenamespace)
           task.title = `${task.title}...OK`

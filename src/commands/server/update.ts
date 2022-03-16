@@ -32,11 +32,11 @@ export default class Update extends Command {
 
   static examples = [
     '# Update CodeReady Workspaces:\n' +
-    'crwctl server:update',
+    'dsc server:update',
     '\n# Update CodeReady Workspaces in \'eclipse-che\' namespace:\n' +
-    'crwctl server:update -n eclipse-che',
+    'dsc server:update -n eclipse-che',
     '\n# Update CodeReady Workspaces and update its configuration in the custom resource:\n' +
-    `crwctl server:update --${CHE_OPERATOR_CR_PATCH_YAML_KEY} patch.yaml`,
+    `dsc server:update --${CHE_OPERATOR_CR_PATCH_YAML_KEY} patch.yaml`,
   ]
 
   static flags: flags.Input<any> = {
@@ -214,10 +214,10 @@ export default class Update extends Command {
   }
 
   /**
-   * Check whether crwctl should proceed with update.
+   * Check whether dsc should proceed with update.
    * Asks user for confirmation (unless assume yes is provided).
    * Is applicable to operator installer only.
-   * Returns true if crwctl can/should proceed with update, false otherwise.
+   * Returns true if dsc can/should proceed with update, false otherwise.
    */
   private async checkAbilityToUpdateCheOperatorAndAskUser(flags: any): Promise<boolean> {
     const ctx = ChectlContext.get()
@@ -252,7 +252,7 @@ export default class Update extends Command {
           if (ctx.newCheOperatorImageTag === NEXT_TAG) {
             cli.warn(`Stable ${getProjectName()} cannot update stable CodeReady Workspaces to ${NEXT_TAG} version`)
           } else {
-            cli.warn(`It is not possible to update CodeReady Workspaces to a newer version using the current '${currentChectlVersion}' version of crwctl. Please, update '${getProjectName()}' to a newer version using command '${getProjectName()} update' and then try again.`)
+            cli.warn(`It is not possible to update CodeReady Workspaces to a newer version using the current '${currentChectlVersion}' version of dsc. Please, update '${getProjectName()}' to a newer version using command '${getProjectName()} update' and then try again.`)
           }
           return false
         }

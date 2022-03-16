@@ -22,7 +22,7 @@ import { getProjectName, getProjectVersion, readCRFile } from '../util'
 import { CHECTL_DEVELOPMENT_VERSION } from './version'
 
 /**
- * crwctl command context.
+ * dsc command context.
  * Can be requested from any location with `ChectlContext#get`
  */
 export namespace ChectlContext {
@@ -56,7 +56,7 @@ export namespace ChectlContext {
     ctx[CACHE_DIR] = command.config.cacheDir
     ctx[ERROR_LOG] = command.config.errlog
     ctx[COMMAND_ID] = command.id
-    ctx[LOGS_DIR] = path.resolve(flags[LOG_DIRECTORY_KEY] ? flags[LOG_DIRECTORY_KEY] : path.resolve(os.tmpdir(), 'crwctl-logs', Date.now().toString()))
+    ctx[LOGS_DIR] = path.resolve(flags[LOG_DIRECTORY_KEY] ? flags[LOG_DIRECTORY_KEY] : path.resolve(os.tmpdir(), 'dsc-logs', Date.now().toString()))
 
     ctx[CUSTOM_CR] = readCRFile(flags, CHE_OPERATOR_CR_YAML_KEY)
     ctx[CR_PATCH] = readCRFile(flags, CHE_OPERATOR_CR_PATCH_YAML_KEY)

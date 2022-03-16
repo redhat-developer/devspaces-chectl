@@ -21,14 +21,14 @@ import { KubeHelper } from '../../src/api/kube'
 import { OpenShiftHelper } from '../../src/api/openshift'
 
 export const NAMESPACE = 'eclipse-che'
-export const CHECTL_REPONAME = 'crwctl'
+export const CHECTL_REPONAME = 'dsc'
 
 // Workspace created in admin-che
 export const WORKSPACE_NAMESPACE = 'admin-che'
 
 export const LOGS_DIR = '/tmp/logs'
 export const OWNER = 'che-incubator'
-export const CHE_REPO = 'crwctl'
+export const CHE_REPO = 'dsc'
 
 //Utilities to help e2e tests
 export class E2eHelper {
@@ -46,14 +46,14 @@ export class E2eHelper {
     this.oc = new OpenShiftHelper()
     this.octokit = new Octokit({
       baseUrl: 'https://api.github.com',
-      userAgent: 'crwctl',
+      userAgent: 'dsc',
       auth: process.env.GITHUB_TOKEN,
     })
   }
 
   static getChectlBinaries(): string {
     if (process.env.ASSEMBLY_MODE === 'on') {
-      return 'crwctl'
+      return 'dsc'
     }
     return `${process.cwd()}/bin/run`
   }
@@ -189,7 +189,7 @@ export class E2eHelper {
   }
 
   /**
-   * Get previous version from crwctl repository
+   * Get previous version from dsc repository
    */
   async getLatestReleasedVersion(): Promise<string> {
     const githubClient = new CheGithubClient()

@@ -15,8 +15,8 @@ import { Octokit } from '@octokit/rest'
 export const ECLIPSE_CHE_ORG = 'eclipse-che'
 export const ECLIPSE_CHE_INCUBATOR_ORG = 'che-incubator'
 
-export const CHE_OPERATOR_REPO = 'codeready-operator'
-export const CHECTL_REPO = 'crwctl'
+export const CHE_OPERATOR_REPO = 'devspaces-operator'
+export const CHECTL_REPO = 'dsc'
 
 export interface TagInfo {
   name: string
@@ -33,7 +33,7 @@ export class CheGithubClient {
   constructor() {
     this.octokit = new Octokit({
       baseUrl: 'https://api.github.com',
-      userAgent: 'crwctl',
+      userAgent: 'dsc',
       auth: process.env.GITHUB_TOKEN,
     })
   }

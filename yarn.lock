@@ -2164,9 +2164,9 @@ code-point-at@^1.0.0:
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
   integrity sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=
 
-"codeready-workspaces-operator@https://github.com/redhat-developer/codeready-workspaces-images#crw-2-rhel-8":
+"devspaces-operator@https://github.com/redhat-developer/devspaces-images#crw-2-rhel-8":
   version "0.0.0"
-  resolved "https://github.com/redhat-developer/codeready-workspaces-images#f7b452693cb8289aaca753efbe7f312e7e3c0b5b"
+  resolved "https://github.com/redhat-developer/devspaces-images#f7b452693cb8289aaca753efbe7f312e7e3c0b5b"
 
 collect-v8-coverage@^1.0.0:
   version "1.0.1"

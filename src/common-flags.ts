@@ -28,7 +28,7 @@ export const batch = boolean({
 
 export const cheDeployment = string({
   description: 'CodeReady Workspaces deployment name',
-  default: 'codeready',
+  default: 'devspaces',
   env: 'CHE_DEPLOYMENT',
 })
 
@@ -124,7 +124,7 @@ export const CHE_TELEMETRY = string({
 export const DEPLOY_VERSION_KEY = 'version'
 export const cheDeployVersion = string({
   char: 'v',
-  description: 'Version to deploy (e.g. 7.15.2). Defaults to the same as crwctl.',
+  description: 'Version to deploy (e.g. 7.15.2). Defaults to the same as dsc.',
   env: 'CHE_DEPLOY_VERSION',
   hidden: true,
 })

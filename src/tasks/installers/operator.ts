@@ -26,9 +26,9 @@ import { isDevWorkspaceEnabled } from '../../util'
 import { createEclipseCheCluster, patchingEclipseCheCluster } from './common-tasks'
 
 export class OperatorTasks {
-  operatorServiceAccount = 'codeready-operator'
+  operatorServiceAccount = 'devspaces-operator'
 
-  legacyClusterResourcesName = 'codeready-operator'
+  legacyClusterResourcesName = 'devspaces-operator'
 
   devworkspaceCheNamePrefix = 'devworkspace-che'
 
@@ -476,9 +476,9 @@ export class OperatorTasks {
       },
     },
     {
-      title: 'Delete PVC codeready-operator',
+      title: 'Delete PVC devspaces-operator',
       task: async (_ctx: any, task: any) => {
-        await kh.deletePersistentVolumeClaim('codeready-operator', flags.chenamespace)
+        await kh.deletePersistentVolumeClaim('devspaces-operator', flags.chenamespace)
         task.title = `${task.title}...OK`
       },
     }]
@@ -488,7 +488,7 @@ export class OperatorTasks {
     const containers = deployment.spec!.template!.spec!.containers
     const namespace = deployment.metadata!.namespace
     const name = deployment.metadata!.name
-    const container = containers.find(c => c.name === 'codeready-operator')
+    const container = containers.find(c => c.name === 'devspaces-operator')
 
     if (!container) {
       throw new Error(`Can not evaluate image of ${namespace}/${name} deployment. Containers list are empty`)
@@ -516,7 +516,7 @@ export class OperatorTasks {
   }
 
   /**
-   * Reads and patch 'codeready-operator' deployment:
+   * Reads and patch 'devspaces-operator' deployment:
    * - sets operator image
    * - sets deployment namespace
    * - removes other containers for ocp 3.11
@@ -529,11 +529,11 @@ export class OperatorTasks {
     }
 
     if (flags['che-operator-image']) {
-      const container = operatorDeployment.spec!.template.spec!.containers.find(c => c.name === 'codeready-operator')
+      const container = operatorDeployment.spec!.template.spec!.containers.find(c => c.name === 'devspaces-operator')
       if (container) {
         container.image = flags['che-operator-image']
       } else {
-        throw new Error(`Container 'codeready-operator' not found in deployment '${operatorDeployment.metadata!.name}'`)
+        throw new Error(`Container 'devspaces-operator' not found in deployment '${operatorDeployment.metadata!.name}'`)
       }
     }
 
@@ -544,7 +544,7 @@ export class OperatorTasks {
     const kube = new KubeHelper(flags)
     if (!await kube.IsAPIExtensionSupported('v1')) {
       const containers = operatorDeployment.spec!.template.spec!.containers || []
-      operatorDeployment.spec!.template.spec!.containers = containers.filter(c => c.name === 'codeready-operator')
+      operatorDeployment.spec!.template.spec!.containers = containers.filter(c => c.name === 'devspaces-operator')
     }
 
     return operatorDeployment

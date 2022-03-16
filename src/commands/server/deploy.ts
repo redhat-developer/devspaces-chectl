@@ -421,7 +421,7 @@ function ensureOIDCProviderInstalled(flags: any): Listr.ListrTask {
 }
 
 /**
- * Sets default installer which is `olm` for OpenShift 4 with stable version of crwctl
+ * Sets default installer which is `olm` for OpenShift 4 with stable version of dsc
  * and `operator` for other cases.
  */
 export async function setDefaultInstaller(flags: any): Promise<void> {

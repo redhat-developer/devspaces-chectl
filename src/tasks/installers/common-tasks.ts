@@ -58,9 +58,9 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
       ctx.isDashboardDeployed = false
 
       // Check if the installed version support dashboard deployment checking `RELATED_IMAGE_dashboard` operator environment
-      const operatorDeployment = await kube.getDeployment('codeready-operator', flags.chenamespace)
+      const operatorDeployment = await kube.getDeployment('devspaces-operator', flags.chenamespace)
       if (operatorDeployment && operatorDeployment.spec && operatorDeployment.spec.template.spec) {
-        const operatorContainer = operatorDeployment.spec.template.spec.containers.find(c => c.name === 'codeready-operator')
+        const operatorContainer = operatorDeployment.spec.template.spec.containers.find(c => c.name === 'devspaces-operator')
         if (operatorContainer && operatorContainer.env) {
           ctx.isDashboardDeployed = operatorContainer.env.some(env => env.name === 'RELATED_IMAGE_dashboard')
         }

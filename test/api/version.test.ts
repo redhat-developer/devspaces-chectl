@@ -43,7 +43,7 @@ describe('Version Helper', () => {
       })
   })
 
-  describe('crwctl version comparator', () => {
+  describe('dsc version comparator', () => {
     function getCommitDateFakeResponse(commitDate: string) {
       return {
         commit : {
@@ -97,7 +97,7 @@ describe('Version Helper', () => {
         expect(shouldUpdate).to.be.false
       })
     fancy
-      .nock('https://api.github.com/repos/che-incubator/crwctl/commits', api => api
+      .nock('https://api.github.com/repos/che-incubator/dsc/commits', api => api
         .get('/597729a').reply(200, getCommitDateFakeResponse('2021-07-15T08:20:00Z'))
         .get('/4771039').reply(200, getCommitDateFakeResponse('2021-07-15T09:45:37Z'))
       )
@@ -108,7 +108,7 @@ describe('Version Helper', () => {
         expect(shouldUpdate).to.be.true
       })
     fancy
-      .nock('https://api.github.com/repos/che-incubator/crwctl/commits', api => api
+      .nock('https://api.github.com/repos/che-incubator/dsc/commits', api => api
         .get('/597729a').reply(200, getCommitDateFakeResponse('2021-07-15T08:20:00Z'))
         .get('/4771039').reply(200, getCommitDateFakeResponse('2021-07-15T09:45:37Z'))
       )

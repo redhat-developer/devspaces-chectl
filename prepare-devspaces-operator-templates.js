@@ -12,9 +12,9 @@
 
 const fs = require('fs-extra')
 const path = require('path')
-var deployFolder = path.join(__dirname, 'node_modules', 'codeready-workspaces-operator', 'codeready-workspaces-operator', 'deploy')
-var configFolder = path.join(__dirname, 'node_modules', 'codeready-workspaces-operator', 'codeready-workspaces-operator', 'config')
-var cheOperatorTemplates = path.join(__dirname, 'templates', 'codeready-workspaces-operator')
+var deployFolder = path.join(__dirname, 'node_modules', 'devspaces-operator', 'devspaces-operator', 'deploy')
+var configFolder = path.join(__dirname, 'node_modules', 'devspaces-operator', 'devspaces-operator', 'config')
+var cheOperatorTemplates = path.join(__dirname, 'templates', 'devspaces-operator')
 
 function prepareTemplates() {
     if (fs.existsSync(deployFolder)) {
@@ -44,7 +44,7 @@ function prepareTemplates() {
         fs.copySync(path.join(configFolder, 'crd', 'bases'), path.join(cheOperatorTemplates, 'crds'))
         fs.copySync(path.join(configFolder, 'samples', 'org.eclipse.che_v1_checluster.yaml'), path.join(cheOperatorTemplates, 'crds', 'org_v1_che_cr.yaml'))
     } else {
-        throw new Error("Unable to prepare codeready-operator templates")
+        throw new Error("Unable to prepare devspaces-operator templates")
     }
 }
 
