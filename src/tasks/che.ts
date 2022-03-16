@@ -30,18 +30,18 @@ export class CheTasks {
   oc = new OpenShiftHelper()
   che: CheHelper
   cheNamespace: string
-  cheSelector = 'app=codeready,component=codeready'
+  cheSelector = 'app=devspaces,component=devspaces'
   cheDeploymentName: string
   dashboardDeploymentName = 'che-dashboard'
-  dashboardSelector = 'app=codeready,component=codeready-dashboard'
+  dashboardSelector = 'app=devspaces,component=devspaces-dashboard'
   keycloakDeploymentName = 'keycloak'
-  keycloakSelector = 'app=codeready,component=keycloak'
+  keycloakSelector = 'app=devspaces,component=keycloak'
   postgresDeploymentName = 'postgres'
-  postgresSelector = 'app=codeready,component=postgres'
+  postgresSelector = 'app=devspaces,component=postgres'
   devfileRegistryDeploymentName = 'devfile-registry'
-  devfileRegistrySelector = 'app=codeready,component=devfile-registry'
+  devfileRegistrySelector = 'app=devspaces,component=devfile-registry'
   pluginRegistryDeploymentName = 'plugin-registry'
-  pluginRegistrySelector = 'app=codeready,component=plugin-registry'
+  pluginRegistrySelector = 'app=devspaces,component=plugin-registry'
   cheConsoleLinkName = 'che'
 
   constructor(flags: any) {
