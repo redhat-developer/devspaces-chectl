@@ -151,7 +151,7 @@ export namespace VersionHelper {
   }
 
   /**
-   * Returns CodeReady Workspaces version.
+   * Returns Red Hat OpenShift Dev Spaces version.
    */
   export async function getCheVersion(flags: any): Promise<string> {
     const kube = new KubeHelper(flags)
@@ -307,7 +307,7 @@ export namespace VersionHelper {
   }
 
   /**
-   * Indicates if stable version of CodeReady Workspaces is specified or meant implicitly.
+   * Indicates if stable version of Red Hat OpenShift Dev Spaces is specified or meant implicitly.
    */
   export function isDeployingStableVersion(_flags: any): boolean {
     return !ChectlContext.get().isDevVersion

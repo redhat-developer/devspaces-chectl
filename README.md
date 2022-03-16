@@ -1,7 +1,7 @@
 dsc
 ======
 
-The [Red Hat OpenShift Dev Spaces (formerly Red Hat CodeReady Workspaces)](https://developers.redhat.com/products/codeready-workspaces/overview) CLI for OpenShift is `dsc`.
+The [Red Hat OpenShift Dev Spaces (formerly Red Hat OpenShift Dev Spaces)](https://developers.redhat.com/products/codeready-workspaces/overview) CLI for OpenShift is `dsc`.
 
 For OpenShift 4, can also use the OperatorHub installation method:
 
@@ -89,7 +89,7 @@ _See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomp
 
 ## `dsc cacert:export`
 
-Retrieves CodeReady Workspaces self-signed certificate
+Retrieves Red Hat OpenShift Dev Spaces self-signed certificate
 
 ```
 USAGE
@@ -106,7 +106,7 @@ OPTIONS
       show CLI help
 
   -n, --chenamespace=chenamespace
-      CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
+      Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-workspaces'
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
@@ -119,7 +119,7 @@ _See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/d
 
 ## `dsc dashboard:open`
 
-Open CodeReady Workspaces dashboard
+Open Red Hat OpenShift Dev Spaces dashboard
 
 ```
 USAGE
@@ -127,7 +127,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-workspaces'
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
@@ -152,7 +152,7 @@ _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.1
 
 ## `dsc server:debug`
 
-Enable local debug of CodeReady Workspaces server
+Enable local debug of Red Hat OpenShift Dev Spaces server
 
 ```
 USAGE
@@ -160,8 +160,8 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
-  --debug-port=debug-port          [default: 8000] CodeReady Workspaces server debug port
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-workspaces'
+  --debug-port=debug-port          [default: 8000] Red Hat OpenShift Dev Spaces server debug port
   --skip-kubernetes-health-check   Skip Kubernetes health check
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
@@ -170,7 +170,7 @@ _See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/de
 
 ## `dsc server:delete`
 
-delete any CodeReady Workspaces related resource: Kubernetes/OpenShift
+delete any Red Hat OpenShift Dev Spaces related resource: Kubernetes/OpenShift
 
 ```
 USAGE
@@ -178,16 +178,16 @@ USAGE
 
 OPTIONS
   -h, --help                         show CLI help
-  -n, --chenamespace=chenamespace    CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
+  -n, --chenamespace=chenamespace    Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-workspaces'
 
   -y, --yes                          Automatic yes to prompts; assume "yes" as answer to all prompts and run
                                      non-interactively
 
   --batch                            Batch mode. Running a command without end user interaction.
 
-  --delete-namespace                 Indicates that a CodeReady Workspaces namespace will be deleted as well
+  --delete-namespace                 Indicates that a Red Hat OpenShift Dev Spaces namespace will be deleted as well
 
-  --deployment-name=deployment-name  [default: devspaces] CodeReady Workspaces deployment name
+  --deployment-name=deployment-name  [default: devspaces] Red Hat OpenShift Dev Spaces deployment name
 
   --skip-kubernetes-health-check     Skip Kubernetes health check
 
@@ -198,7 +198,7 @@ _See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/d
 
 ## `dsc server:deploy`
 
-Deploy CodeReady Workspaces server
+Deploy Red Hat OpenShift Dev Spaces server
 
 ```
 USAGE
@@ -215,13 +215,13 @@ OPTIONS
       show CLI help
 
   -i, --cheimage=cheimage
-      CodeReady Workspaces server container image
+      Red Hat OpenShift Dev Spaces server container image
 
   -n, --chenamespace=chenamespace
-      CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
+      Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-workspaces'
 
   -o, --cheboottimeout=cheboottimeout
-      (required) [default: 40000] CodeReady Workspaces server bootstrap timeout (in milliseconds)
+      (required) [default: 40000] Red Hat OpenShift Dev Spaces server bootstrap timeout (in milliseconds)
 
   -p, --platform=openshift|crc
       [default: openshift] Type of OpenShift platform. Valid values are "openshift", "crc (for CodeReady Containers)".
@@ -230,8 +230,8 @@ OPTIONS
       Path to the templates folder
 
   --[no-]auto-update
-      Auto update approval strategy for installation CodeReady Workspaces.
-      With this strategy will be provided auto-update CodeReady Workspaces without any human interaction.
+      Auto update approval strategy for installation Red Hat OpenShift Dev Spaces.
+      With this strategy will be provided auto-update Red Hat OpenShift Dev Spaces without any human interaction.
       By default this flag is enabled.
       This parameter is used only when the installer is 'olm'.
 
@@ -239,15 +239,15 @@ OPTIONS
       Batch mode. Running a command without end user interaction.
 
   --catalog-source-name=catalog-source-name
-      OLM catalog source to install CodeReady Workspaces operator.
+      OLM catalog source to install Red Hat OpenShift Dev Spaces operator.
       This parameter is used only when the installer is the 'olm'.
 
   --catalog-source-namespace=catalog-source-namespace
-      Namespace for OLM catalog source to install CodeReady Workspaces operator.
+      Namespace for OLM catalog source to install Red Hat OpenShift Dev Spaces operator.
       This parameter is used only when the installer is the 'olm'.
 
   --catalog-source-yaml=catalog-source-yaml
-      Path to a yaml file that describes custom catalog source for installation CodeReady Workspaces operator.
+      Path to a yaml file that describes custom catalog source for installation Red Hat OpenShift Dev Spaces operator.
       Catalog source will be applied to the namespace with Che operator.
       Also you need define 'olm-channel' name and 'package-manifest-name'.
       This parameter is used only when the installer is the 'olm'.
@@ -264,15 +264,15 @@ OPTIONS
       Container image of the operator. This parameter is used only when the installer is the operator or OLM.
 
   --cluster-monitoring
-      Enable cluster monitoring to scrape CodeReady Workspaces metrics in Prometheus.
+      Enable cluster monitoring to scrape Red Hat OpenShift Dev Spaces metrics in Prometheus.
       This parameter is used only when the platform is 'openshift'.
 
   --debug
-      Enables the debug mode for CodeReady Workspaces server. To debug CodeReady Workspaces server from localhost use
+      Enables the debug mode for Red Hat OpenShift Dev Spaces server. To debug Red Hat OpenShift Dev Spaces server from localhost use
       'server:debug' command.
 
   --deployment-name=deployment-name
-      [default: devspaces] CodeReady Workspaces deployment name
+      [default: devspaces] Red Hat OpenShift Dev Spaces deployment name
 
   --devfile-registry-url=devfile-registry-url
       The URL of the external Devfile registry.
@@ -290,24 +290,24 @@ OPTIONS
       [default: 600000] Waiting time for Pod scheduled condition (in milliseconds)
 
   --olm-channel=olm-channel
-      Olm channel to install CodeReady Workspaces, f.e. stable.
+      Olm channel to install Red Hat OpenShift Dev Spaces, f.e. stable.
       If options was not set, will be used default version for package manifest.
       This parameter is used only when the installer is the 'olm'.
 
   --[no-]olm-suggested-namespace
-      Indicate to deploy CodeReady Workspaces in OLM suggested namespace: 'openshift-workspaces'.
+      Indicate to deploy Red Hat OpenShift Dev Spaces in OLM suggested namespace: 'openshift-workspaces'.
       Flag 'chenamespace' is ignored in this case
       This parameter is used only when the installer is 'olm'.
 
   --package-manifest-name=package-manifest-name
-      Package manifest name to subscribe to CodeReady Workspaces OLM package manifest.
+      Package manifest name to subscribe to Red Hat OpenShift Dev Spaces OLM package manifest.
       This parameter is used only when the installer is the 'olm'.
 
   --plugin-registry-url=plugin-registry-url
       The URL of the external plugin registry.
 
   --postgres-pvc-storage-class-name=postgres-pvc-storage-class-name
-      persistent volume storage class name to use to store CodeReady Workspaces postgres database
+      persistent volume storage class name to use to store Red Hat OpenShift Dev Spaces postgres database
 
   --skip-cluster-availability-check
       Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.
@@ -322,10 +322,10 @@ OPTIONS
       Skip minimal versions check.
 
   --starting-csv=starting-csv
-      Starting cluster service version(CSV) for installation CodeReady Workspaces.
+      Starting cluster service version(CSV) for installation Red Hat OpenShift Dev Spaces.
       Flags uses to set up start installation version Che.
       For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
-      Then OLM will install CodeReady Workspaces with version 7.10.0.
+      Then OLM will install Red Hat OpenShift Dev Spaces with version 7.10.0.
       Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known
       version.
       This parameter is used only when the installer is 'olm'.
@@ -334,14 +334,14 @@ OPTIONS
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 
   --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
-      persistent volume(s) storage class name to use to store CodeReady Workspaces workspaces data
+      persistent volume(s) storage class name to use to store Red Hat OpenShift Dev Spaces workspaces data
 ```
 
 _See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.0.0-CI-redhat/src/commands/server/deploy.ts)_
 
 ## `dsc server:logs`
 
-Collect CodeReady Workspaces logs
+Collect Red Hat OpenShift Dev Spaces logs
 
 ```
 USAGE
@@ -350,8 +350,8 @@ USAGE
 OPTIONS
   -d, --directory=directory          Directory to store logs into
   -h, --help                         show CLI help
-  -n, --chenamespace=chenamespace    CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
-  --deployment-name=deployment-name  [default: devspaces] CodeReady Workspaces deployment name
+  -n, --chenamespace=chenamespace    Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-workspaces'
+  --deployment-name=deployment-name  [default: devspaces] Red Hat OpenShift Dev Spaces deployment name
   --skip-kubernetes-health-check     Skip Kubernetes health check
   --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
@@ -360,7 +360,7 @@ _See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/dev
 
 ## `dsc server:start`
 
-Start CodeReady Workspaces server
+Start Red Hat OpenShift Dev Spaces server
 
 ```
 USAGE
@@ -370,12 +370,12 @@ OPTIONS
   -d, --directory=directory                                Directory to store logs into
   -h, --help                                               show CLI help
 
-  -n, --chenamespace=chenamespace                          CodeReady Workspaces Openshift Project. Default to
+  -n, --chenamespace=chenamespace                          Red Hat OpenShift Dev Spaces Openshift Project. Default to
                                                            'openshift-workspaces'
 
   --batch                                                  Batch mode. Running a command without end user interaction.
 
-  --deployment-name=deployment-name                        [default: devspaces] CodeReady Workspaces deployment name
+  --deployment-name=deployment-name                        [default: devspaces] Red Hat OpenShift Dev Spaces deployment name
 
   --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 600000] Waiting time for Pod downloading image (in
                                                            milliseconds)
@@ -396,7 +396,7 @@ _See code: [src/commands/server/start.ts](https://github.com/redhat-developer/de
 
 ## `dsc server:status`
 
-Status CodeReady Workspaces server
+Status Red Hat OpenShift Dev Spaces server
 
 ```
 USAGE
@@ -404,7 +404,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-workspaces'
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
@@ -412,7 +412,7 @@ _See code: [src/commands/server/status.ts](https://github.com/redhat-developer/d
 
 ## `dsc server:stop`
 
-stop CodeReady Workspaces server
+stop Red Hat OpenShift Dev Spaces server
 
 ```
 USAGE
@@ -420,18 +420,18 @@ USAGE
 
 OPTIONS
   -h, --help                         show CLI help
-  -n, --chenamespace=chenamespace    CodeReady Workspaces Openshift Project. Default to 'openshift-workspaces'
+  -n, --chenamespace=chenamespace    Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-workspaces'
 
-  --access-token=access-token        CodeReady Workspaces OIDC Access Token. See the documentation how to obtain token:
+  --access-token=access-token        Red Hat OpenShift Dev Spaces OIDC Access Token. See the documentation how to obtain token:
                                      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#o
                                      btaining-the-token-from-keycloak_authenticating-to-the-che-server and https://www.e
                                      clipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-
                                      token-from-openshift-token-through-keycloak_authenticating-to-the-che-server.
 
-  --che-selector=che-selector        [default: app=codeready,component=codeready] Selector for CodeReady Workspaces
+  --che-selector=che-selector        [default: app=codeready,component=codeready] Selector for Red Hat OpenShift Dev Spaces
                                      server resources
 
-  --deployment-name=deployment-name  [default: devspaces] CodeReady Workspaces deployment name
+  --deployment-name=deployment-name  [default: devspaces] Red Hat OpenShift Dev Spaces deployment name
 
   --skip-kubernetes-health-check     Skip Kubernetes health check
 
@@ -442,7 +442,7 @@ _See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/dev
 
 ## `dsc server:update`
 
-Update CodeReady Workspaces server.
+Update Red Hat OpenShift Dev Spaces server.
 
 ```
 USAGE
@@ -451,7 +451,7 @@ USAGE
 OPTIONS
   -h, --help                                               show CLI help
 
-  -n, --chenamespace=chenamespace                          CodeReady Workspaces Openshift Project. Default to
+  -n, --chenamespace=chenamespace                          Red Hat OpenShift Dev Spaces Openshift Project. Default to
                                                            'openshift-workspaces'
 
   -p, --platform=openshift|crc                             [default: openshift] Type of OpenShift platform. Valid values
@@ -468,7 +468,7 @@ OPTIONS
                                                            CheCluster CR used by the operator. This parameter is used
                                                            only when the installer is the 'operator' or the 'olm'.
 
-  --deployment-name=deployment-name                        [default: devspaces] CodeReady Workspaces deployment name
+  --deployment-name=deployment-name                        [default: devspaces] Red Hat OpenShift Dev Spaces deployment name
 
   --skip-kubernetes-health-check                           Skip Kubernetes health check
 
@@ -476,13 +476,13 @@ OPTIONS
                                                            enable/disable telemetry
 
 EXAMPLES
-  # Update CodeReady Workspaces:
+  # Update Red Hat OpenShift Dev Spaces:
   dsc server:update
 
-  # Update CodeReady Workspaces in 'eclipse-che' namespace:
+  # Update Red Hat OpenShift Dev Spaces in 'eclipse-che' namespace:
   dsc server:update -n eclipse-che
 
-  # Update CodeReady Workspaces and update its configuration in the custom resource:
+  # Update Red Hat OpenShift Dev Spaces and update its configuration in the custom resource:
   dsc server:update --che-operator-cr-patch-yaml patch.yaml
 ```
 

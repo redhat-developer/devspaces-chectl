@@ -12,7 +12,7 @@ spec:
     devfileRegistryImage: 'quay.io/devspaces/devfileregistry-rhel8:latest'
     # image:tag used in plugin registry deployment
     pluginRegistryImage: 'quay.io/devspaces/pluginregistry-rhel8:latest'
-    # defaults to `che`. When set to `codeready`, CodeReady Workspaces is deployed
+    # defaults to `che`. When set to `codeready`, Red Hat OpenShift Dev Spaces is deployed
     # the difference is in images, labels, exec commands
     cheFlavor: 'devspaces'
     # specifies a custom cluster role to user for the Che workspaces

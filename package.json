@@ -1,7 +1,7 @@
 {
   "name": "dsc",
   "version": "3.0.0-CI-redhat",
-  "description": "CodeReady Workspaces CLI",
+  "description": "Red Hat OpenShift Dev Spaces CLI",
   "keywords": [
     "oclif"
   ],
@@ -152,7 +152,7 @@
     ],
     "topics": {
       "server": {
-        "description": "Control CodeReady Workspaces server"
+        "description": "Control Red Hat OpenShift Dev Spaces server"
       }
     },
     "update": {

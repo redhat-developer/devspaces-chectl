@@ -104,8 +104,8 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|devspaces-operator-(cr.+yaml)|che-operator-\1|g" \
 			-e "s|devspaces-operator-image|che-operator-image|g" \
 			-e "s|CHE_CLUSTER_CR_NAME = 'eclipse-che'|CHE_CLUSTER_CR_NAME = 'devspaces'|g" \
-			-e "s|Eclipse Che|CodeReady Workspaces|g" \
-			-e "s|Che workspaces|CodeReady Workspaces workspaces|g" \
+			-e "s|Eclipse Che|Red Hat OpenShift Dev Spaces|g" \
+			-e "s|Che workspaces|Red Hat OpenShift Dev Spaces workspaces|g" \
 			\
 			-e "s| when both minishift and OpenShift are stopped||" \
 			-e "s|resource: Kubernetes/OpenShift/Helm|resource|g" \
@@ -132,7 +132,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|(const LEGACY_CHE_NAMESPACE =).+|\1 'workspaces'|g" \
 			-e "s|(CVS_PREFIX =).+|\1 'devspacesoperator'|g" \
 			\
-			-e "s|\"CodeReady Workspaces will be deployed in Multi-User mode.+mode.\"|'CodeReady Workspaces can only be deployed in Multi-User mode.'|" \
+			-e "s|\"Red Hat OpenShift Dev Spaces will be deployed in Multi-User mode.+mode.\"|'Red Hat OpenShift Dev Spaces can only be deployed in Multi-User mode.'|" \
 		"$d" > "${TARGETDIR}/${d}"
 	done <   <(find src test resources configs prepare-che-operator-templates.js package.json .ci/obfuscate/gnirts.js .eslintrc.js -type f -name "*" -print0) # include package.json in here too
 popd >/dev/null
@@ -174,7 +174,7 @@ installerString="    installer: string({\n\
 clusterMonitoringString="    'cluster-monitoring': boolean({\n\
       default: false,\n\
       hidden: false,\n\
-      description: \`Enable cluster monitoring to scrape CodeReady Workspaces metrics in Prometheus.\n\
+      description: \`Enable cluster monitoring to scrape Red Hat OpenShift Dev Spaces metrics in Prometheus.\n\
 	                  This parameter is used only when the platform is 'openshift'.\`,\n\
     }),"; # echo -e "$clusterMonitoringString"
 
@@ -193,7 +193,7 @@ pushd "${TARGETDIR}" >/dev/null
 		sed -i '/domain: string({/,/}),/d' "${TARGETDIR}/${d}"
 
 		# Change multi-user flag description. Code Ready Workspaces support multi-user by default. https://issues.redhat.com/browse/CRW-1174
-		sed -i "s|'Starts CodeReady Workspaces in multi-user mode'|\`Deploys CodeReady Workspaces in multi-user mode.\n\ \
+		sed -i "s|'Starts Red Hat OpenShift Dev Spaces in multi-user mode'|\`Deploys Red Hat OpenShift Dev Spaces in multi-user mode.\n\ \
 		                Note, this option is turned on by default.\`|g" "${TARGETDIR}/${d}"
 
 		# Enable cluster monitoring description in Readme. Cluster Monitoring actually is available only for downstream
@@ -298,7 +298,7 @@ if [[ -f ${replaceFile} ]]; then
 	declare -A package_replacements=(
 		["https://github.com/redhat-developer/devspaces-images#${MIDSTM_BRANCH}"]='.dependencies["devspaces-operator"]'
 		["dsc"]='.name'
-		["CodeReady Workspaces CLI"]='.description'
+		["Red Hat OpenShift Dev Spaces CLI"]='.description'
 		["${DEFAULT_TAG}.0-CI-redhat"]='.version'
 		["./bin/run"]='.bin["dsc"]'
 		["https://issues.jboss.org/projects/CRW/issues"]='.bugs'

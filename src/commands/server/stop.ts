@@ -22,14 +22,14 @@ import { ApiTasks } from '../../tasks/platforms/api'
 import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Stop extends Command {
-  static description = 'stop CodeReady Workspaces server'
+  static description = 'stop Red Hat OpenShift Dev Spaces server'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'deployment-name': cheDeployment,
     'che-selector': string({
-      description: 'Selector for CodeReady Workspaces server resources',
+      description: 'Selector for Red Hat OpenShift Dev Spaces server resources',
       default: 'app=codeready,component=codeready',
       env: 'CHE_SELECTOR',
     }),
@@ -64,7 +64,7 @@ export default class Stop extends Command {
         title: 'Deployment doesn\'t exist',
         enabled: (ctx: any) => !ctx.isCheDeployed,
         task: async () => {
-          await this.error(`E_BAD_DEPLOY - Deployment do not exist.\nA Deployment named "${flags['deployment-name']}" exist in namespace \"${flags.chenamespace}\", CodeReady Workspaces server cannot be stopped.\nFix with: verify the namespace where CodeReady Workspaces is running (oc get projects)\nhttps://github.com/eclipse/che`, { code: 'E_BAD_DEPLOY' })
+          await this.error(`E_BAD_DEPLOY - Deployment do not exist.\nA Deployment named "${flags['deployment-name']}" exist in namespace \"${flags.chenamespace}\", Red Hat OpenShift Dev Spaces server cannot be stopped.\nFix with: verify the namespace where Red Hat OpenShift Dev Spaces is running (oc get projects)\nhttps://github.com/eclipse/che`, { code: 'E_BAD_DEPLOY' })
         },
       },
     ],

@@ -22,7 +22,7 @@ import { ApiTasks } from '../../tasks/platforms/api'
 import { findWorkingNamespace, getCommandSuccessMessage, wrapCommandError } from '../../util'
 
 export default class Logs extends Command {
-  static description = 'Collect CodeReady Workspaces logs'
+  static description = 'Collect Red Hat OpenShift Dev Spaces logs'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
@@ -53,7 +53,7 @@ export default class Logs extends Command {
     tasks.add(cheTasks.serverLogsTasks(flags, false))
 
     try {
-      this.log(`CodeReady Workspaces logs will be available in '${ctx.directory}'`)
+      this.log(`Red Hat OpenShift Dev Spaces logs will be available in '${ctx.directory}'`)
       await tasks.run(ctx)
       this.log(getCommandSuccessMessage())
     } catch (err) {

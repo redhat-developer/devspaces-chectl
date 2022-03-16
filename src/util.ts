@@ -197,7 +197,7 @@ export function wrapCommandError(error: Error): Error {
 
   let commandErrorMessage = `Command ${ctx[ChectlContext.COMMAND_ID]} failed. Error log: ${ctx[ChectlContext.ERROR_LOG]}.`
   if (logDirectory && isDirEmpty(logDirectory)) {
-    commandErrorMessage += ` CodeReady Workspaces logs: ${logDirectory}.`
+    commandErrorMessage += ` Red Hat OpenShift Dev Spaces logs: ${logDirectory}.`
   }
 
   return newError(commandErrorMessage, error)
@@ -219,7 +219,7 @@ export function notifyCommandCompletedSuccessfully(): void {
 export async function askForChectlUpdateIfNeeded(): Promise<void> {
   const ctx = ChectlContext.get()
   if (await VersionHelper.isChectlUpdateAvailable(ctx[ChectlContext.CACHE_DIR])) {
-    cli.info('A more recent version of dsc is available. To deploy the latest version of CodeReady Workspaces, update the dsc tool first.')
+    cli.info('A more recent version of dsc is available. To deploy the latest version of Red Hat OpenShift Dev Spaces, update the dsc tool first.')
     if (await cli.confirm('Do you want to update dsc now? [y/n]')) {
       // Update dsc
       await UpdateCommand.run([])
@@ -305,7 +305,7 @@ export function getEmbeddedTemplatesDirectory(): string {
 }
 
 /**
- * The default CodeReady Workspaces namespace has been changed from 'che' to 'eclipse-che'.
+ * The default Red Hat OpenShift Dev Spaces namespace has been changed from 'che' to 'eclipse-che'.
  * It checks if legacy namespace 'che' exists. If so all dsc commands
  * will launched against that namespace otherwise default 'eclipse-che' namespace will be used.
  */
@@ -436,5 +436,5 @@ export function getTlsSecretName(ctx: any): string {
 export function getWarnVersionFlagMsg(_flags: any): string {
   return `'--version' flag is not supported anymore.
 1. Update dsc to a specific version following the doc https://github.com/redhat-developer/devspaces-chectl#updating
-2. Use dsc of the specific version to deploy or to upgrade CodeReady Workspaces`
+2. Use dsc of the specific version to deploy or to upgrade Red Hat OpenShift Dev Spaces`
 }

@@ -28,14 +28,14 @@ import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedS
 import Listr = require('listr')
 
 export default class Delete extends Command {
-  static description = 'delete any CodeReady Workspaces related resource: Kubernetes/OpenShift'
+  static description = 'delete any Red Hat OpenShift Dev Spaces related resource: Kubernetes/OpenShift'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     batch,
     'delete-namespace': boolean({
-      description: 'Indicates that a CodeReady Workspaces namespace will be deleted as well',
+      description: 'Indicates that a Red Hat OpenShift Dev Spaces namespace will be deleted as well',
       default: false,
     }),
     'deployment-name': cheDeployment,
@@ -100,7 +100,7 @@ export default class Delete extends Command {
 
           return tasks
         }
-        task.title = `${task.title}...Skipped: another CodeReady Workspaces deployment found.`
+        task.title = `${task.title}...Skipped: another Red Hat OpenShift Dev Spaces deployment found.`
       },
     })
 
@@ -134,7 +134,7 @@ export default class Delete extends Command {
     }
 
     if (!flags.batch && !flags.yes) {
-      return cli.confirm(`You're going to remove CodeReady Workspaces server in namespace '${flags.chenamespace}' on server '${cluster ? cluster.server : ''}'. If you want to continue - press Y`)
+      return cli.confirm(`You're going to remove Red Hat OpenShift Dev Spaces server in namespace '${flags.chenamespace}' on server '${cluster ? cluster.server : ''}'. If you want to continue - press Y`)
     }
 
     return true

@@ -22,14 +22,14 @@ import { ApiTasks } from '../../tasks/platforms/api'
 import { findWorkingNamespace, wrapCommandError } from '../../util'
 
 export default class Debug extends Command {
-  static description = 'Enable local debug of CodeReady Workspaces server'
+  static description = 'Enable local debug of Red Hat OpenShift Dev Spaces server'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
     chenamespace: cheNamespace,
     'listr-renderer': listrRenderer,
     'debug-port': integer({
-      description: 'CodeReady Workspaces server debug port',
+      description: 'Red Hat OpenShift Dev Spaces server debug port',
       default: 8000,
     }),
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
@@ -52,7 +52,7 @@ export default class Debug extends Command {
 
     try {
       await tasks.run(ctx)
-      this.log(`CodeReady Workspaces server debug is available on localhost:${flags['debug-port']}.`)
+      this.log(`Red Hat OpenShift Dev Spaces server debug is available on localhost:${flags['debug-port']}.`)
       this.log('The program keeps running to enable port forwarding.')
     } catch (err) {
       this.error(wrapCommandError(err))

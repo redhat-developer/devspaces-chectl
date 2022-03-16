@@ -98,7 +98,7 @@ export function patchingEclipseCheCluster(flags: any, kube: KubeHelper, command:
       task.title = `${task.title} in the namespace ${flags.chenamespace}`
       const cheCluster = await kube.getCheCluster(flags.chenamespace)
       if (!cheCluster) {
-        command.error(`CodeReady Workspaces cluster CR is not found in the namespace '${flags.chenamespace}'`)
+        command.error(`Red Hat OpenShift Dev Spaces cluster CR is not found in the namespace '${flags.chenamespace}'`)
       }
       await kube.patchCheCluster(cheCluster.metadata.name, flags.chenamespace, ctx[ChectlContext.CR_PATCH])
       task.title = `${task.title}...done.`

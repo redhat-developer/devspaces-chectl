@@ -21,7 +21,7 @@ import { ApiTasks } from '../../tasks/platforms/api'
 import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Start extends Command {
-  static description = 'Start CodeReady Workspaces server'
+  static description = 'Start Red Hat OpenShift Dev Spaces server'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
@@ -45,22 +45,22 @@ export default class Start extends Command {
     const cheTasks = new CheTasks(flags)
     const apiTasks = new ApiTasks()
 
-    // Checks if CodeReady Workspaces is already deployed
+    // Checks if Red Hat OpenShift Dev Spaces is already deployed
     const preInstallTasks = new Listr([
       apiTasks.testApiTasks(flags),
       {
-        title: '👀  Looking for an already existing CodeReady Workspaces instance',
+        title: '👀  Looking for an already existing Red Hat OpenShift Dev Spaces instance',
         task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags)),
       },
     ], ctx.listrOptions)
 
     const logsTasks = new Listr([{
-      title: 'Following CodeReady Workspaces logs',
+      title: 'Following Red Hat OpenShift Dev Spaces logs',
       task: () => new Listr(cheTasks.serverLogsTasks(flags, true)),
     }], ctx.listrOptions)
 
     const startCheTasks = new Listr([{
-      title: 'Starting CodeReady Workspaces',
+      title: 'Starting Red Hat OpenShift Dev Spaces',
       task: () => new Listr(cheTasks.scaleCheUpTasks()),
     }], ctx.listrOptions)
 
@@ -68,9 +68,9 @@ export default class Start extends Command {
       await preInstallTasks.run(ctx)
 
       if (!ctx.isCheDeployed) {
-        cli.warn('CodeReady Workspaces has not been deployed yet. Use server:deploy command to deploy a new CodeReady Workspaces instance.')
+        cli.warn('Red Hat OpenShift Dev Spaces has not been deployed yet. Use server:deploy command to deploy a new Red Hat OpenShift Dev Spaces instance.')
       } else if (ctx.isCheReady) {
-        cli.info('CodeReady Workspaces has been already started.')
+        cli.info('Red Hat OpenShift Dev Spaces has been already started.')
       } else {
         await logsTasks.run(ctx)
         await startCheTasks.run(ctx)

@@ -63,7 +63,7 @@ describe('Export CA certificate', () => {
   })
 })
 
-describe('Get CodeReady Workspaces server status', () => {
+describe('Get Red Hat OpenShift Dev Spaces server status', () => {
   it('server:status command', async () => {
     const { exitCode, stdout, stderr } = await execa(binChectl, ['server:status', `--chenamespace ${NAMESPACE}`, '--telemetry=off'], { shell: true })
 
@@ -73,7 +73,7 @@ describe('Get CodeReady Workspaces server status', () => {
   })
 })
 
-describe('Stop CodeReady Workspaces server', () => {
+describe('Stop Red Hat OpenShift Dev Spaces server', () => {
   it('server:stop command', async () => {
     const { exitCode, stdout, stderr } = await execa(binChectl, ['server:stop', `-n ${NAMESPACE}`, '--telemetry=off'], { shell: true })
 
@@ -83,7 +83,7 @@ describe('Stop CodeReady Workspaces server', () => {
   })
 })
 
-describe('Delete CodeReady Workspaces server', () => {
+describe('Delete Red Hat OpenShift Dev Spaces server', () => {
   it('server:delete command', async () => {
     let result = await execa(binChectl, ['server:delete', `-n ${NAMESPACE}`, '--telemetry=off', '--delete-namespace', '--yes'], { shell: true })
 

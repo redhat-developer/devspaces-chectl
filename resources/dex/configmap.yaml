@@ -22,7 +22,7 @@ data:
     - id: {{CLIENT_ID}}
       redirectURIs:
       - 'https://{{DOMAIN}}/oauth/callback'
-      name: 'CodeReady Workspaces'
+      name: 'Red Hat OpenShift Dev Spaces'
       secret: {{CLIENT_SECRET}}
     enablePasswordDB: true
     staticPasswords:

@@ -28,14 +28,14 @@ import { ApiTasks } from '../../tasks/platforms/api'
 import { askForChectlUpdateIfNeeded, findWorkingNamespace, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, getProjectVersion, getWarnVersionFlagMsg, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Update extends Command {
-  static description = 'Update CodeReady Workspaces server.'
+  static description = 'Update Red Hat OpenShift Dev Spaces server.'
 
   static examples = [
-    '# Update CodeReady Workspaces:\n' +
+    '# Update Red Hat OpenShift Dev Spaces:\n' +
     'dsc server:update',
-    '\n# Update CodeReady Workspaces in \'eclipse-che\' namespace:\n' +
+    '\n# Update Red Hat OpenShift Dev Spaces in \'eclipse-che\' namespace:\n' +
     'dsc server:update -n eclipse-che',
-    '\n# Update CodeReady Workspaces and update its configuration in the custom resource:\n' +
+    '\n# Update Red Hat OpenShift Dev Spaces and update its configuration in the custom resource:\n' +
     `dsc server:update --${CHE_OPERATOR_CR_PATCH_YAML_KEY} patch.yaml`,
   ]
 
@@ -188,12 +188,12 @@ export default class Update extends Command {
       }
 
       if (cheCluster.spec.server.cheImage) {
-        imagesListMsg += `\n - CodeReady Workspaces server image name: ${cheCluster.spec.server.cheImage}`
+        imagesListMsg += `\n - Red Hat OpenShift Dev Spaces server image name: ${cheCluster.spec.server.cheImage}`
         merge(resetImagesCrPatch, { spec: { server: { cheImage: '' } } })
       }
 
       if (cheCluster.spec.server.cheImageTag) {
-        imagesListMsg += `\n - CodeReady Workspaces server image tag: ${cheCluster.spec.server.cheImageTag}`
+        imagesListMsg += `\n - Red Hat OpenShift Dev Spaces server image tag: ${cheCluster.spec.server.cheImageTag}`
         merge(resetImagesCrPatch, { spec: { server: { cheImageTag: '' } } })
       }
 
@@ -221,24 +221,24 @@ export default class Update extends Command {
    */
   private async checkAbilityToUpdateCheOperatorAndAskUser(flags: any): Promise<boolean> {
     const ctx = ChectlContext.get()
-    cli.info(`Existing CodeReady Workspaces operator: ${ctx.deployedCheOperatorImage}`)
-    cli.info(`New CodeReady Workspaces operator     : ${ctx.newCheOperatorImage}`)
+    cli.info(`Existing Red Hat OpenShift Dev Spaces operator: ${ctx.deployedCheOperatorImage}`)
+    cli.info(`New Red Hat OpenShift Dev Spaces operator     : ${ctx.newCheOperatorImage}`)
 
     if (ctx.deployedCheOperatorImageName === DEFAULT_CHE_OPERATOR_IMAGE_NAME && ctx.newCheOperatorImageName === DEFAULT_CHE_OPERATOR_IMAGE_NAME) {
       // Official images
 
       if (ctx.deployedCheOperatorImage === ctx.newCheOperatorImage) {
         if (ctx.newCheOperatorImageTag === NEXT_TAG) {
-          cli.info(`Updating current CodeReady Workspaces ${NEXT_TAG} version to a new one.`)
+          cli.info(`Updating current Red Hat OpenShift Dev Spaces ${NEXT_TAG} version to a new one.`)
           return true
         }
 
         if (flags[CHE_OPERATOR_CR_PATCH_YAML_KEY]) {
           // Despite the operator image is the same, CR patch might contain some changes.
-          cli.info('Patching existing CodeReady Workspaces installation.')
+          cli.info('Patching existing Red Hat OpenShift Dev Spaces installation.')
           return true
         } else {
-          cli.info('CodeReady Workspaces is already up to date.')
+          cli.info('Red Hat OpenShift Dev Spaces is already up to date.')
           return false
         }
       }
@@ -250,18 +250,18 @@ export default class Update extends Command {
         if (!ctx.isDevVersion && (ctx.newCheOperatorImageTag === NEXT_TAG || semver.lt(currentChectlVersion, ctx.newCheOperatorImageTag))) {
           // Upgrade is not allowed
           if (ctx.newCheOperatorImageTag === NEXT_TAG) {
-            cli.warn(`Stable ${getProjectName()} cannot update stable CodeReady Workspaces to ${NEXT_TAG} version`)
+            cli.warn(`Stable ${getProjectName()} cannot update stable Red Hat OpenShift Dev Spaces to ${NEXT_TAG} version`)
           } else {
-            cli.warn(`It is not possible to update CodeReady Workspaces to a newer version using the current '${currentChectlVersion}' version of dsc. Please, update '${getProjectName()}' to a newer version using command '${getProjectName()} update' and then try again.`)
+            cli.warn(`It is not possible to update Red Hat OpenShift Dev Spaces to a newer version using the current '${currentChectlVersion}' version of dsc. Please, update '${getProjectName()}' to a newer version using command '${getProjectName()} update' and then try again.`)
           }
           return false
         }
 
         // Upgrade allowed
         if (ctx.newCheOperatorImageTag === NEXT_TAG) {
-          cli.info(`You are going to update CodeReady Workspaces ${ctx.deployedCheOperatorImageTag} to ${NEXT_TAG} version.`)
+          cli.info(`You are going to update Red Hat OpenShift Dev Spaces ${ctx.deployedCheOperatorImageTag} to ${NEXT_TAG} version.`)
         } else {
-          cli.info(`You are going to update CodeReady Workspaces ${ctx.deployedCheOperatorImageTag} to ${ctx.newCheOperatorImageTag}`)
+          cli.info(`You are going to update Red Hat OpenShift Dev Spaces ${ctx.deployedCheOperatorImageTag} to ${ctx.newCheOperatorImageTag}`)
         }
       } else {
         // Downgrade
@@ -273,7 +273,7 @@ export default class Update extends Command {
       // Print message
       if (ctx.deployedCheOperatorImage === ctx.newCheOperatorImage) {
         // Despite the image is the same it could be updated image, replace anyway.
-        cli.info(`You are going to replace CodeReady Workspaces operator image ${ctx.newCheOperatorImage}.`)
+        cli.info(`You are going to replace Red Hat OpenShift Dev Spaces operator image ${ctx.newCheOperatorImage}.`)
       } else if (ctx.deployedCheOperatorImageName !== DEFAULT_CHE_OPERATOR_IMAGE_NAME && ctx.newCheOperatorImageName !== DEFAULT_CHE_OPERATOR_IMAGE_NAME) {
         // Both images are custom
         cli.info(`You are going to update ${ctx.deployedCheOperatorImage} to ${ctx.newCheOperatorImage}`)

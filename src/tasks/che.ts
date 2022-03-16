@@ -22,7 +22,7 @@ import { addTrailingSlash, base64Decode, isDevWorkspaceEnabled, newError } from 
 import { KubeTasks } from './kube'
 
 /**
- * Holds tasks to work with CodeReady Workspaces component.
+ * Holds tasks to work with Red Hat OpenShift Dev Spaces component.
  */
 export class CheTasks {
   kube: KubeHelper
@@ -62,9 +62,9 @@ export class CheTasks {
   }
 
   /**
-   * Returns tasks list that waits until every CodeReady Workspaces component will be started.
+   * Returns tasks list that waits until every Red Hat OpenShift Dev Spaces component will be started.
    *
-   * Note that CodeReady Workspaces components statuses should be already set in context.
+   * Note that Red Hat OpenShift Dev Spaces components statuses should be already set in context.
    *
    * @see che.checkIfCheIsInstalledTasks
    */
@@ -99,12 +99,12 @@ export class CheTasks {
         task: () => this.kubeTasks.podStartTasks(this.pluginRegistrySelector, this.cheNamespace),
       },
       {
-        title: 'CodeReady Workspaces Dashboard pod bootstrap',
+        title: 'Red Hat OpenShift Dev Spaces Dashboard pod bootstrap',
         enabled: ctx => ctx.isDashboardDeployed && !ctx.isDashboardReady,
         task: () => this.kubeTasks.podStartTasks(this.dashboardSelector, this.cheNamespace),
       },
       {
-        title: 'CodeReady Workspaces Server pod bootstrap',
+        title: 'Red Hat OpenShift Dev Spaces Server pod bootstrap',
         enabled: ctx => !ctx.isCheReady,
         task: () => this.kubeTasks.podStartTasks(this.cheSelector, this.cheNamespace),
       },
@@ -113,7 +113,7 @@ export class CheTasks {
   }
 
   /**
-   * Returns list of tasks that checks if CodeReady Workspaces is already installed.
+   * Returns list of tasks that checks if Red Hat OpenShift Dev Spaces is already installed.
    *
    * After executing the following properties are set in context:
    * is[Component]Deployed, is[Component]Stopped, is[Component]Ready
@@ -122,7 +122,7 @@ export class CheTasks {
   checkIfCheIsInstalledTasks(_flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: `Verify if CodeReady Workspaces is deployed into namespace \"${this.cheNamespace}\"`,
+        title: `Verify if Red Hat OpenShift Dev Spaces is deployed into namespace \"${this.cheNamespace}\"`,
         task: async (ctx: any, task: any) => {
           if (await this.kube.isDeploymentExist(this.cheDeploymentName, this.cheNamespace)) {
             ctx.isCheDeployed = true
@@ -178,7 +178,7 @@ export class CheTasks {
             return new Listr([
               {
                 enabled: () => ctx.isCheDeployed,
-                title: `Found ${ctx.isCheStopped ? 'stopped' : 'running'} CodeReady Workspaces deployment`,
+                title: `Found ${ctx.isCheStopped ? 'stopped' : 'running'} Red Hat OpenShift Dev Spaces deployment`,
                 task: () => { },
               },
               {
@@ -206,7 +206,7 @@ export class CheTasks {
         },
       },
       {
-        title: 'Check CodeReady Workspaces server status',
+        title: 'Check Red Hat OpenShift Dev Spaces server status',
         enabled: (ctx: any) => ctx.isCheDeployed && ctx.isCheReady,
         task: async (_ctx: any, task: any) => {
           let cheURL = ''
@@ -216,7 +216,7 @@ export class CheTasks {
             const status = await cheApi.getCheServerStatus()
             task.title = `${task.title}...${status}`
           } catch (error) {
-            return newError(`Failed to check CodeReady Workspaces status (URL: ${cheURL}).`, error)
+            return newError(`Failed to check Red Hat OpenShift Dev Spaces status (URL: ${cheURL}).`, error)
           }
         },
       },
@@ -224,7 +224,7 @@ export class CheTasks {
   }
 
   /**
-   * Returns tasks list which scale up all CodeReady Workspaces components which are deployed.
+   * Returns tasks list which scale up all Red Hat OpenShift Dev Spaces components which are deployed.
    * It requires {@link this#checkIfCheIsInstalledTasks} to be executed before.
    *
    * @see [CheTasks](#checkIfCheIsInstalledTasks)
@@ -270,7 +270,7 @@ export class CheTasks {
         },
       },
       {
-        title: 'CodeReady Workspaces Dashboard pod bootstrap',
+        title: 'Red Hat OpenShift Dev Spaces Dashboard pod bootstrap',
         enabled: ctx => ctx.isDashboardDeployed && !ctx.isDashboardReady,
         task: async () => {
           await this.kube.scaleDeployment(this.dashboardDeploymentName, this.cheNamespace, 1)
@@ -278,7 +278,7 @@ export class CheTasks {
         },
       },
       {
-        title: 'CodeReady Workspaces Server pod bootstrap',
+        title: 'Red Hat OpenShift Dev Spaces Server pod bootstrap',
         enabled: ctx => ctx.isCheDeployed && !ctx.isCheReady,
         task: async () => {
           await this.kube.scaleDeployment(this.cheDeploymentName, this.cheNamespace, 1)
@@ -290,7 +290,7 @@ export class CheTasks {
   }
 
   /**
-   * Returns tasks list which scale down all CodeReady Workspaces components which are deployed.
+   * Returns tasks list which scale down all Red Hat OpenShift Dev Spaces components which are deployed.
    * It requires {@link this#checkIfCheIsInstalledTasks} to be executed before.
    *
    * @see [CheTasks](#checkIfCheIsInstalledTasks)
@@ -371,7 +371,7 @@ export class CheTasks {
   }
 
   /**
-   * Returns tasks which remove all CodeReady Workspaces related resources.
+   * Returns tasks which remove all Red Hat OpenShift Dev Spaces related resources.
    */
   deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
@@ -406,7 +406,7 @@ export class CheTasks {
         },
       },
       {
-        title: 'Delete configmaps for CodeReady Workspaces server and operator',
+        title: 'Delete configmaps for Red Hat OpenShift Dev Spaces server and operator',
         task: async (_ctx: any, task: any) => {
           await this.kube.deleteConfigMap('che', flags.chenamespace)
           await this.kube.deleteConfigMap('devspaces-operator', flags.chenamespace)
@@ -461,14 +461,14 @@ export class CheTasks {
   waitPodsDeletedTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Wait until CodeReady Workspaces Server pod is deleted',
+        title: 'Wait until Red Hat OpenShift Dev Spaces Server pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.cheSelector, this.cheNamespace)
           task.title = `${task.title}...done.`
         },
       },
       {
-        title: 'Wait until CodeReady Workspaces Dashboard pod is deleted',
+        title: 'Wait until Red Hat OpenShift Dev Spaces Dashboard pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.dashboardSelector, this.cheNamespace)
           task.title = `${task.title}...done.`
@@ -530,7 +530,7 @@ export class CheTasks {
   }
 
   /**
-   * Return tasks to collect CodeReady Workspaces logs.
+   * Return tasks to collect Red Hat OpenShift Dev Spaces logs.
    */
   serverLogsTasks(flags: any, follow: boolean): ReadonlyArray<Listr.ListrTask> {
     return [
@@ -542,7 +542,7 @@ export class CheTasks {
         },
       },
       {
-        title: `${follow ? 'Start following' : 'Read'} CodeReady Workspaces Server logs`,
+        title: `${follow ? 'Start following' : 'Read'} Red Hat OpenShift Dev Spaces Server logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.cheSelector, ctx.directory, follow)
           task.title = `${task.title}...done`
@@ -577,7 +577,7 @@ export class CheTasks {
         },
       },
       {
-        title: `${follow ? 'Start following' : 'Read'} CodeReady Workspaces Dashboard logs`,
+        title: `${follow ? 'Start following' : 'Read'} Red Hat OpenShift Dev Spaces Dashboard logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.dashboardSelector, ctx.directory, follow)
           task.title = `${task.title}...done`
@@ -596,11 +596,11 @@ export class CheTasks {
   debugTask(flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Find CodeReady Workspaces Server pod',
+        title: 'Find Red Hat OpenShift Dev Spaces Server pod',
         task: async (ctx: any, task: any) => {
           const chePods = await this.kube.listNamespacedPod(flags.chenamespace, undefined, this.cheSelector)
           if (chePods.items.length === 0) {
-            throw new Error(`CodeReady Workspaces server pod not found in the namespace '${flags.chenamespace}'`)
+            throw new Error(`Red Hat OpenShift Dev Spaces server pod not found in the namespace '${flags.chenamespace}'`)
           }
           ctx.podName = chePods.items[0].metadata!.name!
           task.title = `${task.title}...done`
@@ -611,7 +611,7 @@ export class CheTasks {
         task: async (task: any) => {
           const configMap = await this.kube.getConfigMap('che', flags.chenamespace)
           if (!configMap || configMap.data!.CHE_DEBUG_SERVER !== 'true') {
-            throw new Error('CodeReady Workspaces server should be redeployed with \'--debug\' flag')
+            throw new Error('Red Hat OpenShift Dev Spaces server should be redeployed with \'--debug\' flag')
           }
 
           task.title = `${task.title}...done`
@@ -635,7 +635,7 @@ export class CheTasks {
           const messages: string[] = []
 
           const version = await VersionHelper.getCheVersion(flags)
-          messages.push(`CodeReady Workspaces '${version.trim()}' has been successfully deployed.`)
+          messages.push(`Red Hat OpenShift Dev Spaces '${version.trim()}' has been successfully deployed.`)
           messages.push(`Documentation             : ${DOC_LINK}`)
           if (DOC_LINK_RELEASE_NOTES) {
             messages.push(`Release Notes           : ${DOC_LINK_RELEASE_NOTES}`)
@@ -707,7 +707,7 @@ export class CheTasks {
   checkEclipseCheStatus(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'CodeReady Workspaces status check',
+        title: 'Red Hat OpenShift Dev Spaces status check',
         task: async (ctx, task) => {
           const cheApi = CheApiClient.getInstance(ctx.cheURL + '/api')
           task.title = `${task.title}...done`

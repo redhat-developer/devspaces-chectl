@@ -1,17 +1,17 @@
-= Red Hat CodeReady Workspaces CLI README
+= Red Hat OpenShift Dev Spaces CLI README
 
-Red Hat CodeReady Workspaces CLI
+Red Hat OpenShift Dev Spaces CLI
 
-== About CodeReady Workspaces
+== About Red Hat OpenShift Dev Spaces
 
 See product _Release Notes and Known Issues_ for more information about the product and the current version:
 
 https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.0/html/release_notes_and_known_issues/
 
 
-== Installing CodeReady Workspaces
+== Installing Red Hat OpenShift Dev Spaces
 
-See the CodeReady Workspaces _Administration Guide_ for instructions on how to deploy the product using various configurations and on different flavors of the OpenShift platform. The _Administration Guide_ includes instructions on how to:
+See the Red Hat OpenShift Dev Spaces _Administration Guide_ for instructions on how to deploy the product using various configurations and on different flavors of the OpenShift platform. The _Administration Guide_ includes instructions on how to:
 
 * deploy with different parameters on Red Hat OpenShift Container Platform 3.11 **[no longer supported after 2.15]**
 * deploy on Red Hat OpenShift Container Platform 4.x
@@ -24,7 +24,7 @@ https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.0/h
 
 == Installing with OperatorHub
 
-On Openshift 4.x, the recommended way to install Workspaces is via OperatorHub. See link:https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.0/html-single/installation_guide/index#installing-codeready-workspaces-on-openshift-4-from-operatorhub_installing-codeready-workspaces-on-openshift-container-platform-4[Installing CodeReady Workspaces on OpenShift 4 from OperatorHub].
+On Openshift 4.x, the recommended way to install Workspaces is via OperatorHub. See link:https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.0/html-single/installation_guide/index#installing-codeready-workspaces-on-openshift-4-from-operatorhub_installing-codeready-workspaces-on-openshift-container-platform-4[Installing Red Hat OpenShift Dev Spaces on OpenShift 4 from OperatorHub].
 
 However, the instructions below should also work, as dsc is the recommended solution for installing Workspaces to an airgapped (restricted) environment, or for offline installs.
 

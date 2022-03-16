@@ -154,7 +154,7 @@ export class OperatorTasks {
     const ctx = ChectlContext.get()
     ctx.resourcesPath = path.join(flags.templates, OPERATOR_TEMPLATE_DIR)
     if (VersionHelper.isDeployingStableVersion(flags) && !await kube.isOpenShift3()) {
-      command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of CodeReady Workspaces (--installer=olm).')
+      command.warn('Consider using the more reliable \'OLM\' installer when deploying a stable release of Red Hat OpenShift Dev Spaces (--installer=olm).')
     }
     return [
       {
@@ -211,7 +211,7 @@ export class OperatorTasks {
         task: () => kubeTasks.podStartTasks(CHE_OPERATOR_SELECTOR, flags.chenamespace),
       },
       {
-        title: 'Prepare CodeReady Workspaces cluster CR',
+        title: 'Prepare Red Hat OpenShift Dev Spaces cluster CR',
         task: async (ctx: any, task: any) => {
           const cheCluster = await kube.getCheCluster(flags.chenamespace)
           if (cheCluster) {
@@ -241,7 +241,7 @@ export class OperatorTasks {
         task: async (ctx: any, task: any) => {
           const operatorDeployment = await kube.getDeployment(OPERATOR_DEPLOYMENT_NAME, flags.chenamespace)
           if (!operatorDeployment) {
-            command.error(`${OPERATOR_DEPLOYMENT_NAME} deployment is not found in namespace ${flags.chenamespace}.\nProbably CodeReady Workspaces was initially deployed with another installer`)
+            command.error(`${OPERATOR_DEPLOYMENT_NAME} deployment is not found in namespace ${flags.chenamespace}.\nProbably Red Hat OpenShift Dev Spaces was initially deployed with another installer`)
           }
           ctx.deployedCheOperatorYaml = operatorDeployment
           task.title = `${task.title}...done`
@@ -309,7 +309,7 @@ export class OperatorTasks {
       this.getReadRolesAndBindingsTask(kube),
       this.getCreateOrUpdateRolesAndBindingsTask(flags, 'Updating Roles and Bindings', true),
       {
-        title: `Updating CodeReady Workspaces cluster CRD ${CHE_CLUSTER_CRD}`,
+        title: `Updating Red Hat OpenShift Dev Spaces cluster CRD ${CHE_CLUSTER_CRD}`,
         task: async (ctx: any, task: any) => {
           const existedCRD = await kube.getCrd(CHE_CLUSTER_CRD)
           const newCRDPath = await this.getCRDPath(ctx, flags)
@@ -361,7 +361,7 @@ export class OperatorTasks {
   }
 
   /**
-   * Returns list of tasks which remove CodeReady Workspaces operator related resources
+   * Returns list of tasks which remove Red Hat OpenShift Dev Spaces operator related resources
    */
   deleteTasks(flags: any): ReadonlyArray<Listr.ListrTask> {
     const kh = new KubeHelper(flags)
@@ -419,7 +419,7 @@ export class OperatorTasks {
       task: async (_ctx: any, task: any) => {
         const checlusters = await kh.getAllCheClusters()
         if (checlusters.length > 0) {
-          task.title = `${task.title}...Skipped: another CodeReady Workspaces deployment found.`
+          task.title = `${task.title}...Skipped: another Red Hat OpenShift Dev Spaces deployment found.`
         } else {
           await kh.deleteCrd(CHE_CLUSTER_CRD)
           task.title = `${task.title}...OK`
