@@ -13,7 +13,7 @@ To build locally:
 rm -fr $HOME/.cache/yarn/v6/
 
 # sync from upstream chectl
-./build/scripts/sync.sh -b crw-2-rhel-8 \
+./build/scripts/sync.sh -b devspaces-3-rhel-8 \
   -s ${WORKSPACE}/chectl \
   -t ${WORKSPACE}/dsc \
 	--server-tag 3.y-zz --operator-tag 3.y-zzz

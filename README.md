@@ -268,8 +268,8 @@ OPTIONS
       This parameter is used only when the platform is 'openshift'.
 
   --debug
-      Enables the debug mode for Red Hat OpenShift Dev Spaces server. To debug Red Hat OpenShift Dev Spaces server from localhost use
-      'server:debug' command.
+      Enables the debug mode for Red Hat OpenShift Dev Spaces server. To debug Red Hat OpenShift Dev Spaces server from
+      localhost use 'server:debug' command.
 
   --deployment-name=deployment-name
       [default: devspaces] Red Hat OpenShift Dev Spaces deployment name
@@ -375,7 +375,8 @@ OPTIONS
 
   --batch                                                  Batch mode. Running a command without end user interaction.
 
-  --deployment-name=deployment-name                        [default: devspaces] Red Hat OpenShift Dev Spaces deployment name
+  --deployment-name=deployment-name                        [default: devspaces] Red Hat OpenShift Dev Spaces deployment
+                                                           name
 
   --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 600000] Waiting time for Pod downloading image (in
                                                            milliseconds)
@@ -419,23 +420,29 @@ USAGE
   $ dsc server:stop
 
 OPTIONS
-  -h, --help                         show CLI help
-  -n, --chenamespace=chenamespace    Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-workspaces'
+  -h, --help
+      show CLI help
 
-  --access-token=access-token        Red Hat OpenShift Dev Spaces OIDC Access Token. See the documentation how to obtain token:
-                                     https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#o
-                                     btaining-the-token-from-keycloak_authenticating-to-the-che-server and https://www.e
-                                     clipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-
-                                     token-from-openshift-token-through-keycloak_authenticating-to-the-che-server.
+  -n, --chenamespace=chenamespace
+      Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-workspaces'
 
-  --che-selector=che-selector        [default: app=codeready,component=codeready] Selector for Red Hat OpenShift Dev Spaces
-                                     server resources
+  --access-token=access-token
+      Red Hat OpenShift Dev Spaces OIDC Access Token. See the documentation how to obtain token:
+      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
+      authenticating-to-the-che-server and https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-user
+      s/#obtaining-the-token-from-openshift-token-through-keycloak_authenticating-to-the-che-server.
 
-  --deployment-name=deployment-name  [default: devspaces] Red Hat OpenShift Dev Spaces deployment name
+  --che-selector=che-selector
+      [default: app=devspaces,component=devspaces] Selector for Red Hat OpenShift Dev Spaces server resources
 
-  --skip-kubernetes-health-check     Skip Kubernetes health check
+  --deployment-name=deployment-name
+      [default: devspaces] Red Hat OpenShift Dev Spaces deployment name
 
-  --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+  --skip-kubernetes-health-check
+      Skip Kubernetes health check
+
+  --telemetry=on|off
+      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
 _See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.0.0-CI-redhat/src/commands/server/stop.ts)_
@@ -468,7 +475,8 @@ OPTIONS
                                                            CheCluster CR used by the operator. This parameter is used
                                                            only when the installer is the 'operator' or the 'olm'.
 
-  --deployment-name=deployment-name                        [default: devspaces] Red Hat OpenShift Dev Spaces deployment name
+  --deployment-name=deployment-name                        [default: devspaces] Red Hat OpenShift Dev Spaces deployment
+                                                           name
 
   --skip-kubernetes-health-check                           Skip Kubernetes health check
 
