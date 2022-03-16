@@ -164,9 +164,9 @@ if [[ ! $CRW_SERVER_TAG ]] && [[ ! $CRW_OPERATOR_TAG ]]; then
     fi
     CRW_SERVER_TAG=${CRW_SERVER_TAG##*:}
 
-    set -x; CRW_OPERATOR_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/crw-2-rhel8-operator" --tag "${CRW_VERSION}-" ${repoFlag}); set +x
+    set -x; CRW_OPERATOR_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/devspaces-rhel8-operator" --tag "${CRW_VERSION}-" ${repoFlag}); set +x
     if [[ $CRW_OPERATOR_TAG == *":???" ]]; then
-        set -x; CRW_OPERATOR_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/crw-2-rhel8-operator" --tag "${CRW_VERSION}-" --rhec --freshmaker); set +x
+        set -x; CRW_OPERATOR_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/devspaces-rhel8-operator" --tag "${CRW_VERSION}-" --rhec --freshmaker); set +x
     fi
     if [[ $CRW_OPERATOR_TAG == *":???" ]]; then
         echo "[ERROR] Operator tag not found: $CRW_OPERATOR_TAG"
