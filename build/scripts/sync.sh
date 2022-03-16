@@ -145,7 +145,6 @@ pushd "${TARGETDIR}" >/dev/null
 	done <   <(find . -regextype posix-extended -iregex '.+/(helm|minishift|minishift-addon|minikube|microk8s|k8s|docker-desktop)(.test|).ts' -print0)
 popd >/dev/null
 
-# @since 2.11: CRW-2150 - sources have moved to https://github.com/redhat-developer/devspaces-images/tree/crw-2-rhel-8/devspaces-operator
 # Update prepare-che-operator-templates.js
 pushd "${TARGETDIR}" >/dev/null
 	while IFS= read -r -d '' d; do
@@ -294,7 +293,6 @@ if [[ -f ${replaceFile} ]]; then
 		-e "s|devspaces-operator|devspaces-operator|g"
 
 	echo "[INFO] Convert package.json (jq #1)"
-  # @since 2.11: CRW-2150 - sources have moved to https://github.com/redhat-developer/devspaces-images/tree/crw-2-rhel-8/devspaces-operator
 	declare -A package_replacements=(
 		["https://github.com/redhat-developer/devspaces-images#${MIDSTM_BRANCH}"]='.dependencies["devspaces-operator"]'
 		["dsc"]='.name'
