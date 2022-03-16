@@ -17,7 +17,7 @@ import * as path from 'path'
 import { ChectlContext } from './context'
 
 /**
- * ChectlConfig contains necessary methods to interact with cache configDir of crwctl.
+ * ChectlConfig contains necessary methods to interact with cache configDir of dsc.
  */
 export class ConfigManager {
   private static configManager: ConfigManager

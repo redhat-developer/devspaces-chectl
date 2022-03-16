@@ -25,15 +25,15 @@ const CHE_VERSION_TIMEOUT_MS = 10 * 60 * 1000
 describe('Test Che upgrade', () => {
   describe('Prepare latest stable Che', () => {
     it(`Deploy Che using ${INSTALLER} installer and self signed certificates`, async () => {
-      // uses installed crwctl (from a stable channel)
+      // uses installed dsc (from a stable channel)
       // see github workflow
-      const deployCommand = `crwctl server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off`
+      const deployCommand = `dsc server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off`
       await helper.runCliCommand(deployCommand)
     })
   })
 
   describe('Test Che update', () => {
-    it('Update CodeReady Workspaces Version', async () => {
+    it('Update Red Hat OpenShift Dev Spaces Version', async () => {
       const binChectl = E2eHelper.getChectlBinaries()
       await helper.runCliCommand(binChectl, ['server:update', '-y', `-n ${NAMESPACE}`, '--telemetry=off'])
       await helper.waitForCheServerImageTag(helper.getNewVersion(), UPDATE_CHE_TIMEOUT_MS)

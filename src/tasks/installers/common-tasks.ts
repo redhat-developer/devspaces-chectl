@@ -58,9 +58,9 @@ export function createEclipseCheCluster(flags: any, kube: KubeHelper): Listr.Lis
       ctx.isDashboardDeployed = false
 
       // Check if the installed version support dashboard deployment checking `RELATED_IMAGE_dashboard` operator environment
-      const operatorDeployment = await kube.getDeployment('codeready-operator', flags.chenamespace)
+      const operatorDeployment = await kube.getDeployment('devspaces-operator', flags.chenamespace)
       if (operatorDeployment && operatorDeployment.spec && operatorDeployment.spec.template.spec) {
-        const operatorContainer = operatorDeployment.spec.template.spec.containers.find(c => c.name === 'codeready-operator')
+        const operatorContainer = operatorDeployment.spec.template.spec.containers.find(c => c.name === 'devspaces-operator')
         if (operatorContainer && operatorContainer.env) {
           ctx.isDashboardDeployed = operatorContainer.env.some(env => env.name === 'RELATED_IMAGE_dashboard')
         }
@@ -98,7 +98,7 @@ export function patchingEclipseCheCluster(flags: any, kube: KubeHelper, command:
       task.title = `${task.title} in the namespace ${flags.chenamespace}`
       const cheCluster = await kube.getCheCluster(flags.chenamespace)
       if (!cheCluster) {
-        command.error(`CodeReady Workspaces cluster CR is not found in the namespace '${flags.chenamespace}'`)
+        command.error(`Red Hat OpenShift Dev Spaces cluster CR is not found in the namespace '${flags.chenamespace}'`)
       }
       await kube.patchCheCluster(cheCluster.metadata.name, flags.chenamespace, ctx[ChectlContext.CR_PATCH])
       task.title = `${task.title}...done.`

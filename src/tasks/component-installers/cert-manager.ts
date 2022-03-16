@@ -147,7 +147,7 @@ export class CertManagerTasks {
   getCreateCertificateIssuerTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Set up CodeReady Workspaces certificates issuer',
+        title: 'Set up Red Hat OpenShift Dev Spaces certificates issuer',
         task: async (ctx: any, task: any) => {
           let clusterIssuers = await this.kubeHelper.listClusterIssuers(ctx.certManagerK8sApiVersion, CHE_RELATED_COMPONENT_LABEL)
           if (clusterIssuers.length > 1) {
@@ -194,7 +194,7 @@ export class CertManagerTasks {
         title: `Request certificate for dnsNames: [${dnsNames}]`,
         task: async (ctx: any, task: any) => {
           if (ctx.cheCertificateExists) {
-            throw new Error('CodeReady Workspaces certificate already exists.')
+            throw new Error('Red Hat OpenShift Dev Spaces certificate already exists.')
           }
           if (ctx.clusterIssuersName === DEFAULT_CHE_CLUSTER_ISSUER_NAME) {
             task.title = 'Request self-signed certificate'

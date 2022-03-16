@@ -20,7 +20,7 @@ import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { findWorkingNamespace } from '../../util'
 
 export default class Open extends Command {
-  static description = 'Open CodeReady Workspaces dashboard'
+  static description = 'Open Red Hat OpenShift Dev Spaces dashboard'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),

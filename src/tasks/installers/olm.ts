@@ -27,7 +27,7 @@ import Listr = require('listr')
 
 export const TASK_TITLE_SET_CUSTOM_OPERATOR_IMAGE = 'Set custom operator image'
 export const TASK_TITLE_CREATE_CUSTOM_CATALOG_SOURCE_FROM_FILE = 'Create custom catalog source from file'
-export const TASK_TITLE_PREPARE_CHE_CLUSTER_CR = 'Prepare CodeReady Workspaces cluster CR'
+export const TASK_TITLE_PREPARE_CHE_CLUSTER_CR = 'Prepare Red Hat OpenShift Dev Spaces cluster CR'
 
 export const TASK_TITLE_DELETE_CUSTOM_CATALOG_SOURCE = `Delete(OLM) custom catalog source ${CUSTOM_CATALOG_SOURCE_NAME}`
 export const TASK_TITLE_DELETE_NEXT_CATALOG_SOURCE = `Delete(OLM) nigthly catalog source ${NEXT_CATALOG_SOURCE_NAME}`
@@ -223,7 +223,7 @@ export class OLMTasks {
         task: async (ctx: any, task: any) => {
           const csvs = await this.kube.getCSVWithPrefix(CSV_PREFIX, ctx.operatorNamespace)
           if (csvs.length !== 1) {
-            throw new Error('CodeReady Workspaces operator CSV not found.')
+            throw new Error('Red Hat OpenShift Dev Spaces operator CSV not found.')
           }
           const jsonPatch = [{ op: 'replace', path: '/spec/install/spec/deployments/0/spec/template/spec/containers/0/image', value: flags['che-operator-image'] }]
           await this.kube.patchClusterServiceVersion(csvs[0].metadata.namespace!, csvs[0].metadata.name!, jsonPatch)
@@ -271,7 +271,7 @@ export class OLMTasks {
                 task: () => { },
               },
               {
-                title: '[Warning] Use \'crwctl server:update\' command only with \'Manual\' installation plan approval.',
+                title: '[Warning] Use \'dsc server:update\' command only with \'Manual\' installation plan approval.',
                 task: () => {
                   command.exit(0)
                 },
@@ -288,16 +288,16 @@ export class OLMTasks {
           if (ctx.operatorNamespace === DEFAULT_OPENSHIFT_OPERATORS_NS_NAME) {
             const cheClusters = await this.kube.getAllCheClusters()
             if (cheClusters.length === 0) {
-              command.error(`CodeReady Workspaces cluster CR was not found in the namespace '${flags.chenamespace}'`)
+              command.error(`Red Hat OpenShift Dev Spaces cluster CR was not found in the namespace '${flags.chenamespace}'`)
             }
             if (cheClusters.length > 0) {
-              command.error('CodeReady Workspaces does not support more than one installation in all namespaces mode.')
+              command.error('Red Hat OpenShift Dev Spaces does not support more than one installation in all namespaces mode.')
             }
             ctx.checlusterNamespace = cheClusters[0].metadata.namespace
           } else {
             const cheCluster = await this.kube.getCheCluster(ctx.operatorNamespace)
             if (!cheCluster) {
-              command.error(`CodeReady Workspaces cluster CR was not found in the namespace '${flags.chenamespace}'`)
+              command.error(`Red Hat OpenShift Dev Spaces cluster CR was not found in the namespace '${flags.chenamespace}'`)
             }
             ctx.checlusterNamespace = cheCluster.metadata.namespace
           }
@@ -403,7 +403,7 @@ export class OLMTasks {
         },
       },
       {
-        title: 'Delete CodeReady Workspaces cluster service versions',
+        title: 'Delete Red Hat OpenShift Dev Spaces cluster service versions',
         enabled: ctx => ctx.isPreInstalledOLM,
         task: async (ctx: any, task: any) => {
           const csvs = await kube.getCSVWithPrefix(CSV_PREFIX, ctx.operatorNamespace)
@@ -463,7 +463,7 @@ export class OLMTasks {
         if (!await this.kube.isPreInstalledOLM()) {
           cli.warn('Looks like your platform hasn\'t got embedded OLM, so you should install it manually. For quick start you can use:')
           cli.url('install.sh', 'https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/install.sh')
-          command.error('OLM is required for installation of CodeReady Workspaces with installer flag \'olm\'')
+          command.error('OLM is required for installation of Red Hat OpenShift Dev Spaces with installer flag \'olm\'')
         }
         task.title = `${task.title}...[OK]`
       },

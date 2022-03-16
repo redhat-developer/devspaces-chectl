@@ -23,7 +23,7 @@ import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CA_CERT_FILE_NAME } from '../../con
 import { findWorkingNamespace, wrapCommandError } from '../../util'
 
 export default class Export extends Command {
-  static description = 'Retrieves CodeReady Workspaces self-signed certificate'
+  static description = 'Retrieves Red Hat OpenShift Dev Spaces self-signed certificate'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
@@ -62,7 +62,7 @@ export default class Export extends Command {
       if (cheCaCert) {
         const targetFile = this.getTargetFile(flags.destination)
         fs.writeFileSync(targetFile, cheCaCert)
-        this.log(`CodeReady Workspaces self-signed CA certificate is exported to ${targetFile}`)
+        this.log(`Red Hat OpenShift Dev Spaces self-signed CA certificate is exported to ${targetFile}`)
       } else {
         this.log('Self signed certificate secret not found. Is commonly trusted certificate used?')
       }

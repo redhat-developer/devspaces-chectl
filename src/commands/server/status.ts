@@ -21,7 +21,7 @@ import { DEFAULT_ANALYTIC_HOOK_NAME } from '../../constants'
 import { findWorkingNamespace } from '../../util'
 
 export default class Status extends Command {
-  static description = 'Status CodeReady Workspaces server'
+  static description = 'Status Red Hat OpenShift Dev Spaces server'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
@@ -39,7 +39,7 @@ export default class Status extends Command {
     const che = new CheHelper(flags)
     const cheVersion = await VersionHelper.getCheVersion(flags)
 
-    cli.log(`CodeReady Workspaces Version    : ${cheVersion}`)
-    cli.log(`CodeReady Workspaces Url        : ${che.buildDashboardURL(await che.cheURL(flags.chenamespace))}`)
+    cli.log(`Red Hat OpenShift Dev Spaces Version    : ${cheVersion}`)
+    cli.log(`Red Hat OpenShift Dev Spaces Url        : ${che.buildDashboardURL(await che.cheURL(flags.chenamespace))}`)
   }
 }

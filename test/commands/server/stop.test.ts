@@ -16,7 +16,7 @@ describe('stop', () => {
   test
     .stdout()
     .command(['stop'])
-    .it('stop CodeReady Workspaces server', ctx => {
+    .it('stop Red Hat OpenShift Dev Spaces server', ctx => {
       expect(ctx.stdout).to.contain('Successfully stopped')
     })
 })

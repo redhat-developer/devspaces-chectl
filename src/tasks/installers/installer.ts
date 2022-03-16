@@ -30,12 +30,12 @@ export class InstallerTasks {
     let task: any
 
     if (flags.installer === 'operator') {
-      title = '🏃‍  Running the CodeReady Workspaces operator Update'
+      title = '🏃‍  Running the Red Hat OpenShift Dev Spaces operator Update'
       task = (ctx: any) => {
         return new Listr(operatorTasks.updateTasks(flags, command), ctx.listrOptions)
       }
     } else if (flags.installer === 'olm') {
-      title = '🏃‍  Running the CodeReady Workspaces operator Update using OLM'
+      title = '🏃‍  Running the Red Hat OpenShift Dev Spaces operator Update using OLM'
       task = () => {
         return olmTasks.updateTasks(flags, command)
       }
@@ -60,12 +60,12 @@ export class InstallerTasks {
     let task: any
 
     if (flags.installer === 'operator') {
-      title = '🏃‍  Running the CodeReady Workspaces operator Update'
+      title = '🏃‍  Running the Red Hat OpenShift Dev Spaces operator Update'
       task = () => {
         return operatorTasks.preUpdateTasks(flags, command)
       }
     } else if (flags.installer === 'olm') {
-      title = '🏃‍  Running the CodeReady Workspaces operator Update using OLM'
+      title = '🏃‍  Running the Red Hat OpenShift Dev Spaces operator Update using OLM'
       task = () => {
         return olmTasks.preUpdateTasks(flags, command)
       }
@@ -92,12 +92,12 @@ export class InstallerTasks {
     let task: any
 
     if (flags.installer === 'operator') {
-      title = '🏃‍  Running the CodeReady Workspaces operator'
+      title = '🏃‍  Running the Red Hat OpenShift Dev Spaces operator'
       task = async () => {
         return new Listr(await operatorTasks.deployTasks(flags, command), ctx.listrOptions)
       }
     } else if (flags.installer === 'olm') {
-      title = '🏃‍  Running Olm installation CodeReady Workspaces'
+      title = '🏃‍  Running Olm installation Red Hat OpenShift Dev Spaces'
       task = () => new Listr(olmTasks.startTasks(flags, command), ctx.listrOptions)
     } else {
       title = '🏃‍  Installer preflight check'

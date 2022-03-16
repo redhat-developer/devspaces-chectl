@@ -6,10 +6,10 @@
 /package-lock.json
 /tmp
 node_modules
-crwctl-v*.tgz
+dsc-v*.tgz
 coverage
 .vscode
-bin/crwctl-*
+bin/dsc-*
 tsconfig.tsbuildinfo
 oclif.manifest.json
 # templates are added at post-install step

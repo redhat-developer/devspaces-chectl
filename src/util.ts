@@ -197,7 +197,7 @@ export function wrapCommandError(error: Error): Error {
 
   let commandErrorMessage = `Command ${ctx[ChectlContext.COMMAND_ID]} failed. Error log: ${ctx[ChectlContext.ERROR_LOG]}.`
   if (logDirectory && isDirEmpty(logDirectory)) {
-    commandErrorMessage += ` CodeReady Workspaces logs: ${logDirectory}.`
+    commandErrorMessage += ` Red Hat OpenShift Dev Spaces logs: ${logDirectory}.`
   }
 
   return newError(commandErrorMessage, error)
@@ -211,7 +211,7 @@ export function newError(message: string, cause: Error): Error {
 
 export function notifyCommandCompletedSuccessfully(): void {
   notifier.notify({
-    title: 'crwctl',
+    title: 'dsc',
     message: getCommandSuccessMessage(),
   })
 }
@@ -219,9 +219,9 @@ export function notifyCommandCompletedSuccessfully(): void {
 export async function askForChectlUpdateIfNeeded(): Promise<void> {
   const ctx = ChectlContext.get()
   if (await VersionHelper.isChectlUpdateAvailable(ctx[ChectlContext.CACHE_DIR])) {
-    cli.info('A more recent version of crwctl is available. To deploy the latest version of CodeReady Workspaces, update the crwctl tool first.')
-    if (await cli.confirm('Do you want to update crwctl now? [y/n]')) {
-      // Update crwctl
+    cli.info('A more recent version of dsc is available. To deploy the latest version of Red Hat OpenShift Dev Spaces, update the dsc tool first.')
+    if (await cli.confirm('Do you want to update dsc now? [y/n]')) {
+      // Update dsc
       await UpdateCommand.run([])
       cli.exit(0)
     }
@@ -241,14 +241,14 @@ export function isDirEmpty(dirname: string): boolean {
 }
 
 /**
- * Returns current crwctl version defined in package.json.
+ * Returns current dsc version defined in package.json.
  */
 export function getProjectVersion(): string {
   return pkjson.version
 }
 
 /**
- * Returns current crwctl version defined in package.json.
+ * Returns current dsc version defined in package.json.
  */
 export function getProjectName(): string {
   return pkjson.name
@@ -290,7 +290,7 @@ export async function downloadYaml(url: string): Promise<any> {
 
 export function getEmbeddedTemplatesDirectory(): string {
   // Embedded templates are located in the templates directory that is in the project/installation root:
-  // crwctl
+  // dsc
   //  |- templates
   //  |- src
   //  |   |- util.ts
@@ -305,8 +305,8 @@ export function getEmbeddedTemplatesDirectory(): string {
 }
 
 /**
- * The default CodeReady Workspaces namespace has been changed from 'che' to 'eclipse-che'.
- * It checks if legacy namespace 'che' exists. If so all crwctl commands
+ * The default Red Hat OpenShift Dev Spaces namespace has been changed from 'che' to 'eclipse-che'.
+ * It checks if legacy namespace 'che' exists. If so all dsc commands
  * will launched against that namespace otherwise default 'eclipse-che' namespace will be used.
  */
 export async function findWorkingNamespace(flags: any): Promise<string> {
@@ -329,7 +329,7 @@ export async function findWorkingNamespace(flags: any): Promise<string> {
 }
 
 /**
- * Return linux distribution if crwctl command is executed in linux
+ * Return linux distribution if dsc command is executed in linux
  */
 export async function getDistribution(): Promise<string | undefined> {
   if (os.platform() === 'linux') {
@@ -435,6 +435,6 @@ export function getTlsSecretName(ctx: any): string {
 
 export function getWarnVersionFlagMsg(_flags: any): string {
   return `'--version' flag is not supported anymore.
-1. Update crwctl to a specific version following the doc https://github.com/redhat-developer/codeready-workspaces-chectl#updating
-2. Use crwctl of the specific version to deploy or to upgrade CodeReady Workspaces`
+1. Update dsc to a specific version following the doc https://github.com/redhat-developer/devspaces-dsc#updating
+2. Use dsc of the specific version to deploy or to upgrade Red Hat OpenShift Dev Spaces`
 }

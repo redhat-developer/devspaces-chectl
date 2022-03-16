@@ -28,7 +28,7 @@ import { PlatformTasks } from '../../tasks/platforms/platform'
 import { askForChectlUpdateIfNeeded, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getTlsSupport, getWarnVersionFlagMsg, isDevWorkspaceEnabled, isKubernetesPlatformFamily, isOpenshiftPlatformFamily, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
 
 export default class Deploy extends Command {
-  static description = 'Deploy CodeReady Workspaces server'
+  static description = 'Deploy Red Hat OpenShift Dev Spaces server'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),
@@ -38,7 +38,7 @@ export default class Deploy extends Command {
     'deployment-name': cheDeployment,
     cheimage: string({
       char: 'i',
-      description: 'CodeReady Workspaces server container image',
+      description: 'Red Hat OpenShift Dev Spaces server container image',
       env: 'CHE_CONTAINER_IMAGE',
     }),
     templates: string({
@@ -57,7 +57,7 @@ export default class Deploy extends Command {
     }),
     cheboottimeout: string({
       char: 'o',
-      description: 'CodeReady Workspaces server bootstrap timeout (in milliseconds)',
+      description: 'Red Hat OpenShift Dev Spaces server bootstrap timeout (in milliseconds)',
       default: '40000',
       required: true,
       env: 'CHE_SERVER_BOOT_TIMEOUT',
@@ -69,7 +69,7 @@ export default class Deploy extends Command {
     [LOG_DIRECTORY_KEY]: logsDirectory,
     multiuser: flags.boolean({
       char: 'm',
-      description: 'Deprecated. The flag is ignored. CodeReady Workspaces is always deployed in multi-user mode.',
+      description: 'Deprecated. The flag is ignored. Red Hat OpenShift Dev Spaces is always deployed in multi-user mode.',
       default: false,
       hidden: true,
     }),
@@ -80,7 +80,7 @@ export default class Deploy extends Command {
                     To provide own certificate for Kubernetes infrastructure, 'che-tls' secret with TLS certificate must be pre-created in the configured namespace.
                     In case of providing own self-signed certificate 'self-signed-certificate' secret should be also created.
                     For OpenShift, router will use default cluster certificates.
-                    Please see the docs how to deploy CodeReady Workspaces on different infrastructures: ${DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY}`,
+                    Please see the docs how to deploy Red Hat OpenShift Dev Spaces on different infrastructures: ${DOCS_LINK_INSTALL_RUNNING_CHE_LOCALLY}`,
       hidden: true,
     }),
     'self-signed-cert': flags.boolean({
@@ -100,7 +100,7 @@ export default class Deploy extends Command {
       options: ['operator', 'olm'],
     }),
     debug: boolean({
-      description: 'Enables the debug mode for CodeReady Workspaces server. To debug CodeReady Workspaces server from localhost use \'server:debug\' command.',
+      description: 'Enables the debug mode for Red Hat OpenShift Dev Spaces server. To debug Red Hat OpenShift Dev Spaces server from localhost use \'server:debug\' command.',
       default: false,
     }),
     'che-operator-image': string({
@@ -109,12 +109,12 @@ export default class Deploy extends Command {
     [CHE_OPERATOR_CR_YAML_KEY]: cheOperatorCRYaml,
     [CHE_OPERATOR_CR_PATCH_YAML_KEY]: cheOperatorCRPatchYaml,
     'workspace-pvc-storage-class-name': string({
-      description: 'persistent volume(s) storage class name to use to store CodeReady Workspaces workspaces data',
+      description: 'persistent volume(s) storage class name to use to store Red Hat OpenShift Dev Spaces workspaces data',
       env: 'CHE_INFRA_KUBERNETES_PVC_STORAGE__CLASS__NAME',
       default: '',
     }),
     'postgres-pvc-storage-class-name': string({
-      description: 'persistent volume storage class name to use to store CodeReady Workspaces postgres database',
+      description: 'persistent volume storage class name to use to store Red Hat OpenShift Dev Spaces postgres database',
       default: '',
     }),
     'skip-version-check': flags.boolean({
@@ -130,54 +130,54 @@ export default class Deploy extends Command {
       default: false,
     }),
     'auto-update': flags.boolean({
-      description: `Auto update approval strategy for installation CodeReady Workspaces.
-                    With this strategy will be provided auto-update CodeReady Workspaces without any human interaction.
+      description: `Auto update approval strategy for installation Red Hat OpenShift Dev Spaces.
+                    With this strategy will be provided auto-update Red Hat OpenShift Dev Spaces without any human interaction.
                     By default this flag is enabled.
                     This parameter is used only when the installer is 'olm'.`,
       allowNo: true,
       exclusive: ['starting-csv'],
     }),
     'starting-csv': flags.string({
-      description: `Starting cluster service version(CSV) for installation CodeReady Workspaces.
+      description: `Starting cluster service version(CSV) for installation Red Hat OpenShift Dev Spaces.
                     Flags uses to set up start installation version Che.
                     For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
-                    Then OLM will install CodeReady Workspaces with version 7.10.0.
+                    Then OLM will install Red Hat OpenShift Dev Spaces with version 7.10.0.
                     Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known version.
                     This parameter is used only when the installer is 'olm'.`,
     }),
     'olm-channel': string({
-      description: `Olm channel to install CodeReady Workspaces, f.e. stable.
+      description: `Olm channel to install Red Hat OpenShift Dev Spaces, f.e. stable.
                     If options was not set, will be used default version for package manifest.
                     This parameter is used only when the installer is the 'olm'.`,
     }),
     'package-manifest-name': string({
-      description: `Package manifest name to subscribe to CodeReady Workspaces OLM package manifest.
+      description: `Package manifest name to subscribe to Red Hat OpenShift Dev Spaces OLM package manifest.
                     This parameter is used only when the installer is the 'olm'.`,
     }),
     'catalog-source-yaml': string({
-      description: `Path to a yaml file that describes custom catalog source for installation CodeReady Workspaces operator.
+      description: `Path to a yaml file that describes custom catalog source for installation Red Hat OpenShift Dev Spaces operator.
                     Catalog source will be applied to the namespace with Che operator.
                     Also you need define 'olm-channel' name and 'package-manifest-name'.
                     This parameter is used only when the installer is the 'olm'.`,
     }),
     'catalog-source-name': string({
-      description: `OLM catalog source to install CodeReady Workspaces operator.
+      description: `OLM catalog source to install Red Hat OpenShift Dev Spaces operator.
                     This parameter is used only when the installer is the 'olm'.`,
     }),
     'catalog-source-namespace': string({
-      description: `Namespace for OLM catalog source to install CodeReady Workspaces operator.
+      description: `Namespace for OLM catalog source to install Red Hat OpenShift Dev Spaces operator.
                     This parameter is used only when the installer is the 'olm'.`,
     }),
     'cluster-monitoring': boolean({
       default: false,
       hidden: false,
-      description: `Enable cluster monitoring to scrape CodeReady Workspaces metrics in Prometheus.
+      description: `Enable cluster monitoring to scrape Red Hat OpenShift Dev Spaces metrics in Prometheus.
 	                  This parameter is used only when the platform is 'openshift'.`,
     }),
     'olm-suggested-namespace': boolean({
       default: true,
       allowNo: true,
-      description: `Indicate to deploy CodeReady Workspaces in OLM suggested namespace: '${DEFAULT_OLM_SUGGESTED_NAMESPACE}'.
+      description: `Indicate to deploy Red Hat OpenShift Dev Spaces in OLM suggested namespace: '${DEFAULT_OLM_SUGGESTED_NAMESPACE}'.
                     Flag 'chenamespace' is ignored in this case
                     This parameter is used only when the installer is 'olm'.`,
     }),
@@ -205,7 +205,7 @@ export default class Deploy extends Command {
 
     if (flags.installer === 'olm' && flags['olm-suggested-namespace']) {
       flags.chenamespace = DEFAULT_OLM_SUGGESTED_NAMESPACE
-      cli.info(` ❕olm-suggested-namespace flag is turned on. CodeReady Workspaces will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
+      cli.info(` ❕olm-suggested-namespace flag is turned on. Red Hat OpenShift Dev Spaces will be deployed in namespace: ${DEFAULT_OLM_SUGGESTED_NAMESPACE}.`)
     }
 
     if (!flags.templates) {
@@ -309,11 +309,11 @@ export default class Deploy extends Command {
     // Platform Checks
     const platformCheckTasks = new Listr(platformTasks.preflightCheckTasks(flags, this), ctx.listrOptions)
 
-    // Checks if CodeReady Workspaces is already deployed
+    // Checks if Red Hat OpenShift Dev Spaces is already deployed
     const preInstallTasks = new Listr(undefined, ctx.listrOptions)
     preInstallTasks.add(apiTasks.testApiTasks(flags))
     preInstallTasks.add({
-      title: '👀  Looking for an already existing CodeReady Workspaces instance',
+      title: '👀  Looking for an already existing Red Hat OpenShift Dev Spaces instance',
       task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags)),
     })
     preInstallTasks.add(ensureOIDCProviderInstalled(flags))
@@ -342,7 +342,7 @@ export default class Deploy extends Command {
     ], ctx.listrOptions)
 
     const logsTasks = new Listr([{
-      title: 'Following CodeReady Workspaces logs',
+      title: 'Following Red Hat OpenShift Dev Spaces logs',
       task: () => new Listr(cheTasks.serverLogsTasks(flags, true)),
     }], ctx.listrOptions)
 
@@ -350,9 +350,9 @@ export default class Deploy extends Command {
       await preInstallTasks.run(ctx)
 
       if (ctx.isCheDeployed) {
-        let message = 'CodeReady Workspaces has been already deployed.'
+        let message = 'Red Hat OpenShift Dev Spaces has been already deployed.'
         if (!ctx.isCheReady) {
-          message += ' Use server:start command to start a stopped CodeReady Workspaces instance.'
+          message += ' Use server:start command to start a stopped Red Hat OpenShift Dev Spaces instance.'
         }
         cli.warn(message)
       } else {
@@ -421,7 +421,7 @@ function ensureOIDCProviderInstalled(flags: any): Listr.ListrTask {
 }
 
 /**
- * Sets default installer which is `olm` for OpenShift 4 with stable version of crwctl
+ * Sets default installer which is `olm` for OpenShift 4 with stable version of dsc
  * and `operator` for other cases.
  */
 export async function setDefaultInstaller(flags: any): Promise<void> {

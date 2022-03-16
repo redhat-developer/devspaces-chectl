@@ -58,7 +58,7 @@ export class KubeTasks {
 
               if (cheClusterFailState) {
                 task.title = `${task.title}...failed`
-                throw new Error(`CodeReady Workspaces operator failed, reason: ${cheClusterFailState.reason}, message: ${cheClusterFailState.message}. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
+                throw new Error(`Red Hat OpenShift Dev Spaces operator failed, reason: ${cheClusterFailState.reason}, message: ${cheClusterFailState.message}. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
               }
 
               if (podFailState) {
@@ -144,7 +144,7 @@ export class KubeTasks {
 
               if (cheClusterFailState) {
                 task.title = `${task.title}...failed`
-                throw new Error(`CodeReady Workspaces operator failed, reason: ${cheClusterFailState.reason}, message: ${cheClusterFailState.message}. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
+                throw new Error(`Red Hat OpenShift Dev Spaces operator failed, reason: ${cheClusterFailState.reason}, message: ${cheClusterFailState.message}. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
               }
 
               if (failedState) {
@@ -205,7 +205,7 @@ export class KubeTasks {
   private async getTimeOutErrorMessage(namespace: string, selector: string): Promise<string> {
     const pods = await this.kubeHelper.getPodListByLabel(namespace, selector)
     if (!pods.length) {
-      throw new Error(`Timeout: there are no pods in the namespace: ${namespace}, selector: ${selector}. Check CodeReady Workspaces logs for details. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
+      throw new Error(`Timeout: there are no pods in the namespace: ${namespace}, selector: ${selector}. Check Red Hat OpenShift Dev Spaces logs for details. Consider increasing error recheck timeout with --k8spoderrorrechecktimeout flag.`)
     }
 
     let errorMessage = 'Timeout:'

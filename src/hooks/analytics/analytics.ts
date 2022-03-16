@@ -27,7 +27,7 @@ export const hook = async (options: { command: string, flags: any, config: IConf
     const configManager = ConfigManager.getInstance()
     let segmentTelemetry = configManager.getProperty(SegmentProperties.Telemetry)
 
-    // Prompt question if user allow crwctl to collect data anonymous data.
+    // Prompt question if user allow dsc to collect data anonymous data.
     if (!options.flags.telemetry && !segmentTelemetry) {
       // Do not ask for enabling telemetry in batch mode. Just skip it if the telemetry flag is not set.
       if (options.flags.batch) {
@@ -38,7 +38,7 @@ export const hook = async (options: { command: string, flags: any, config: IConf
       configManager.setProperty(SegmentProperties.Telemetry, segmentTelemetry)
     }
 
-    // If not confirmed, crwctl doesn't collect any data.
+    // If not confirmed, dsc doesn't collect any data.
     if (segmentTelemetry !== 'on') {
       return
     }

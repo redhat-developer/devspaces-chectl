@@ -97,7 +97,7 @@ export class DexTasks {
                 const certs = new Listr(undefined, ctx.listrOptions)
 
                 if (getTlsSecretName(ctx) === '') {
-                  // CodeReady Workspaces will use a default k8s certificate.
+                  // Red Hat OpenShift Dev Spaces will use a default k8s certificate.
                   // No need to generate something for dex
                   certs.add([{
                     title: 'Use default k8s certificate',
@@ -141,7 +141,7 @@ export class DexTasks {
                   },
                 },
                 {
-                  title: 'Add Dex certificate to CodeReady Workspaces certificates bundle',
+                  title: 'Add Dex certificate to Red Hat OpenShift Dev Spaces certificates bundle',
                   task: async (ctx: any, task: any) => {
                     if (await this.kube.isConfigMapExists(DexCaConfigMap.NAME, this.flags.chenamespace)) {
                       task.title = `${task.title}...[Exists]`

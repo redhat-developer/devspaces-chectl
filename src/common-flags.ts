@@ -16,7 +16,7 @@ import { DEFAULT_CHE_NAMESPACE, DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT, DEFAULT_K
 
 export const cheNamespace = string({
   char: 'n',
-  description: `CodeReady Workspaces Openshift Project. Default to '${DEFAULT_CHE_NAMESPACE}'`,
+  description: `Red Hat OpenShift Dev Spaces Openshift Project. Default to '${DEFAULT_CHE_NAMESPACE}'`,
   env: 'CHE_NAMESPACE',
 })
 
@@ -27,8 +27,8 @@ export const batch = boolean({
 })
 
 export const cheDeployment = string({
-  description: 'CodeReady Workspaces deployment name',
-  default: 'codeready',
+  description: 'Red Hat OpenShift Dev Spaces deployment name',
+  default: 'devspaces',
   env: 'CHE_DEPLOYMENT',
 })
 
@@ -41,7 +41,7 @@ export const listrRenderer = string({
 
 export const ACCESS_TOKEN_KEY = 'access-token'
 export const accessToken = string({
-  description: `CodeReady Workspaces OIDC Access Token. See the documentation how to obtain token: ${DOC_LINK_OBTAIN_ACCESS_TOKEN} and ${DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH}.`,
+  description: `Red Hat OpenShift Dev Spaces OIDC Access Token. See the documentation how to obtain token: ${DOC_LINK_OBTAIN_ACCESS_TOKEN} and ${DOC_LINK_OBTAIN_ACCESS_TOKEN_OAUTH}.`,
   env: 'CHE_ACCESS_TOKEN',
 })
 
@@ -52,7 +52,7 @@ export const skipKubeHealthzCheck = boolean({
 
 export const CHE_API_ENDPOINT_KEY = 'che-api-endpoint'
 export const cheApiEndpoint = string({
-  description: 'CodeReady Workspaces server API endpoint',
+  description: 'Red Hat OpenShift Dev Spaces server API endpoint',
   env: 'CHE_API_ENDPOINT',
   required: false,
 })
@@ -80,7 +80,7 @@ export const cheOperatorCRYaml = string({
 export const USERNAME_KEY = 'username'
 export const username = string({
   char: 'u',
-  description: 'CodeReady Workspaces username',
+  description: 'Red Hat OpenShift Dev Spaces username',
   env: 'CHE_USER_NAME',
   required: false,
 })
@@ -124,7 +124,7 @@ export const CHE_TELEMETRY = string({
 export const DEPLOY_VERSION_KEY = 'version'
 export const cheDeployVersion = string({
   char: 'v',
-  description: 'Version to deploy (e.g. 7.15.2). Defaults to the same as crwctl.',
+  description: 'Version to deploy (e.g. 7.15.2). Defaults to the same as dsc.',
   env: 'CHE_DEPLOY_VERSION',
   hidden: true,
 })

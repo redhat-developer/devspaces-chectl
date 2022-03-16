@@ -129,7 +129,7 @@ export class CheHelper {
   }
 
   async cheOpenShiftURL(namespace = ''): Promise<string> {
-    const route_names = ['codeready', 'che-host']
+    const route_names = ['devspaces', 'che-host']
     for (const route_name of route_names) {
       if (await this.oc.routeExist(route_name, namespace)) {
         const protocol = await this.oc.getRouteProtocol(route_name, namespace)
@@ -282,7 +282,7 @@ export class CheHelper {
    * @param destDir destination directory into which the templates should be unpacked
    */
   async downloadAndUnpackTemplates(installer: string, url: string, destDir: string): Promise<void> {
-    // Add codeready-operator folder for operator templates
+    // Add devspaces-operator folder for operator templates
     if (installer === 'operator') {
       destDir = path.join(destDir, OPERATOR_TEMPLATE_DIR)
     }
