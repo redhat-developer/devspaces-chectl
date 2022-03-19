@@ -46,9 +46,6 @@ spec:
       CHE_DOCKER_ALWAYS__PULL__IMAGE: 'true'
       # set by operator, probably don't need to override. Latest in https://github.com/eclipse/che-operator/blob/master/pkg/deploy/defaults.go#L47-L51
       # CHE_INFRA_KUBERNETES_PVC_JOBS_IMAGE: 'registry.access.redhat.com/ubi8-minimal:8.3'
-      CHE_WORKSPACE_PLUGIN__BROKER_METADATA_IMAGE: 'quay.io/devspaces/pluginbroker-metadata-rhel8:latest'
-      CHE_WORKSPACE_PLUGIN__BROKER_ARTIFACTS_IMAGE: 'quay.io/devspaces/pluginbroker-artifacts-rhel8:latest'
-      CHE_SERVER_SECURE__EXPOSER_JWTPROXY_IMAGE: 'quay.io/devspaces/jwtproxy-rhel8:latest'
       CHE_FACTORY_DEFAULT__EDITOR: 'eclipse/che-theia/latest'
       CHE_FACTORY_DEFAULT__PLUGINS: 'eclipse/che-machine-exec-plugin/latest'
       CHE_WORKSPACE_DEVFILE_DEFAULT__EDITOR: 'eclipse/che-theia/latest'
