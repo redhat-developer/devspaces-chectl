@@ -47,9 +47,7 @@ spec:
       # set by operator, probably don't need to override. Latest in https://github.com/eclipse/che-operator/blob/master/pkg/deploy/defaults.go#L47-L51
       # CHE_INFRA_KUBERNETES_PVC_JOBS_IMAGE: 'registry.access.redhat.com/ubi8-minimal:8.3'
       CHE_FACTORY_DEFAULT__EDITOR: 'eclipse/che-theia/latest'
-      CHE_FACTORY_DEFAULT__PLUGINS: 'eclipse/che-machine-exec-plugin/latest'
       CHE_WORKSPACE_DEVFILE_DEFAULT__EDITOR: 'eclipse/che-theia/latest'
-      CHE_WORKSPACE_DEVFILE_DEFAULT__EDITOR_PLUGINS: 'eclipse/che-machine-exec-plugin/latest'
     
   database:
     # when set to true, the operator skips deploying Postgres, and passes connection details of existing DB to Che server
