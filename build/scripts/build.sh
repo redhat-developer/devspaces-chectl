@@ -80,7 +80,7 @@ Example:
 while [[ "$#" -gt 0 ]]; do
   case $1 in
 	'-v') CSV_VERSION="$2"; shift 1;;
-    '-b'|'--crw-branch') MIDSTM_BRANCH="$2"; shift 1;; # branch of redhat-developer/codeready-workspaces/pom.xml to check as default CHE_VERSION
+    '-b'|'--crw-branch') MIDSTM_BRANCH="$2"; shift 1;; # branch of redhat-developer/devspaces/pom.xml to check as default CHE_VERSION
 	# paths to use for input and ouput
 	'-s') SOURCE_DIR="$2"; SOURCE_DIR="${SOURCE_DIR%/}"; shift 1;;
 	'-t') DSC_DIR="$2"; DSC_DIR="${DSC_DIR%/}"; shift 1;;
@@ -134,7 +134,7 @@ TARBALL_PREFIX="devspaces-${CHECTL_VERSION}"
 
 # compute latest tags for server and operator from quay; also set prerelease=false for GA
 repoFlag="--quay"
-repoOrg="crw"
+repoOrg="devspaces"
 if [[ $versionSuffix == "GA" ]]; then
     repoFlag="--stage"
     repoOrg="devspaces"
@@ -150,7 +150,7 @@ fi
 # for RC or GA, compute a 3.yy-zzz tag (not floating tag 3.yy)
 if [[ ! $CRW_SERVER_TAG ]] && [[ ! $CRW_OPERATOR_TAG ]]; then 
     pushd /tmp  >/dev/null
-        curl -sSLO https://raw.githubusercontent.com/redhat-developer/codeready-workspaces/${MIDSTM_BRANCH}/product/getLatestImageTags.sh && \
+        curl -sSLO https://raw.githubusercontent.com/redhat-developer/devspaces/${MIDSTM_BRANCH}/product/getLatestImageTags.sh && \
         chmod +x getLatestImageTags.sh
     popd >/dev/null
     set -x; CRW_SERVER_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/server-rhel8" --tag "${CRW_VERSION}-" ${repoFlag}); set +x
@@ -186,9 +186,9 @@ if [[ $DO_SYNC -eq 1 ]]; then
     ########################################################################
     # CRW-1579 change yamls to use :3.y tag, not :latest or :next - use that only for quay version of dsc
     pushd ${CRWIMG_DIR} >/dev/null
-        FILES="devspaces-operator/config/manager/manager.yaml devspaces-operator-bundle/manifests/codeready-workspaces.csv.yaml"
+        FILES="devspaces-operator/config/manager/manager.yaml devspaces-operator-bundle/manifests/devspaces.csv.yaml"
         for d in ${FILES}; do
-            sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/(.+):(.+)#registry.redhat.io/codeready-workspaces/\1:${CRW_VERSION}#g"
+            sed -i ${d} -r -e "s#registry.redhat.io/devspaces/(.+):(.+)#registry.redhat.io/devspaces/\1:${CRW_VERSION}#g"
         done
     popd >/dev/null
 
@@ -205,7 +205,7 @@ fi
 
 if [[ $DO_REDHAT_BUILD -eq 1 ]]; then 
     ########################################################################
-    echo "[INFO] 2. Build dsc using -redhat suffix and registry.redhat.io/codeready-workspaces/ URLs"
+    echo "[INFO] 2. Build dsc using -redhat suffix and registry.redhat.io/devspaces/ URLs"
     ########################################################################
     pushd $DSC_DIR >/dev/null
         # clean up from previous build if applicable
@@ -247,9 +247,9 @@ if [[ $DO_QUAY_BUILD -eq 1 ]]; then
         git checkout ${MIDSTM_BRANCH}-quay
         # CRW-1579 change yamls to use quay image, and :latest or :next
         # do not use :3.y to allow stable builds to be auto-updated via dsc on ocp3.11 - :latest tag triggers always-update (?)
-        FILES="devspaces-operator/config/manager/manager.yaml devspaces-operator-bundle/manifests/codeready-workspaces.csv.yaml"
+        FILES="devspaces-operator/config/manager/manager.yaml devspaces-operator-bundle/manifests/devspaces.csv.yaml"
         for d in ${FILES}; do
-            sed -i ${d} -r -e "s#registry.redhat.io/codeready-workspaces/(.+):(.+)#quay.io/devspaces/\1:${latestNext}#g"
+            sed -i ${d} -r -e "s#registry.redhat.io/devspaces/(.+):(.+)#quay.io/devspaces/\1:${latestNext}#g"
         done
 
         # push to ${MIDSTM_BRANCH}-quay branch
@@ -296,7 +296,7 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
     # requires hub cli
     if [[ ! -x /tmp/uploadAssetsToGHRelease.sh ]]; then 
         pushd /tmp/ >/dev/null
-        curl -sSLO "https://raw.githubusercontent.com/redhat-developer/codeready-workspaces/${MIDSTM_BRANCH}/product/uploadAssetsToGHRelease.sh" && \
+        curl -sSLO "https://raw.githubusercontent.com/redhat-developer/devspaces/${MIDSTM_BRANCH}/product/uploadAssetsToGHRelease.sh" && \
         chmod +x uploadAssetsToGHRelease.sh
         popd >/dev/null
     fi
@@ -367,7 +367,7 @@ if [[ $PUBLISH_ARTIFACTS_TO_RCM -eq 1 ]]; then
     ${WORKSPACE}/${mnt}-ssh/devspaces-${CSV_VERSION}/
 
     # clone files so we have a dsc3 version too
-    # codeready-workspaces-3.y.z-GA-dsc-linux-x64.tar.gz -> codeready-workspaces-3.y.z-GA-dsc3-linux-x64.tar.gz
+    # devspaces-3.y.z-GA-dsc-linux-x64.tar.gz -> devspaces-3.y.z-GA-dsc3-linux-x64.tar.gz
     # DO NOT INCLUDE the -quay- versions!
     ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/devspaces/devspaces-${CSV_VERSION}/ && for d in ${TARBALL_PREFIX}-dsc-*; do cp \$d \${d/dsc-/dsc3-}; done" || true
 
