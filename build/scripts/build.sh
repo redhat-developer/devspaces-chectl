@@ -64,11 +64,11 @@ If pushing to Github, export your GITHUB_TOKEN:
 usage () {
 	echo "Usage:
 
-  $0 -v 3.yy.z -b MIDSTM_BRANCH -s /path/to/chectl -i /path/to/crw-images/ [-t /path/to/dsc/]  [--suffix RC_or_GA]
+  $0 -v 3.yy.z -b MIDSTM_BRANCH -s /path/to/chectl -i /path/to/devspaces-images/ [-t /path/to/dsc/]  [--suffix RC_or_GA]
 
 Example: 
 
-  $0 -v ${DEFAULT_TAG}.0 -b ${MIDSTM_BRANCH} -s /path/to/chectl/ -i /path/to/crw-images/ -t ${DSC_DIR} --suffix RC"
+  $0 -v ${DEFAULT_TAG}.0 -b ${MIDSTM_BRANCH} -s /path/to/chectl/ -i /path/to/devspaces-images/ -t ${DSC_DIR} --suffix RC"
 	echo ""
 	echo "Options:
     --suffix [RC or GA]  optionally, build an RC (copy to quay) or GA (copy to quay and RCM guest)
@@ -239,7 +239,7 @@ fi
 
 if [[ $DO_QUAY_BUILD -eq 1 ]]; then 
     ########################################################################
-    echo "[INFO] 3a. Prepare ${MIDSTM_BRANCH}-quay branch of crw operator repo"
+    echo "[INFO] 3a. Prepare ${MIDSTM_BRANCH}-quay branch of devspaces operator repo"
     ########################################################################
     # check out from MIDSTM_BRANCH
     pushd ${CRWIMG_DIR} >/dev/null
@@ -352,16 +352,16 @@ if [[ $PUBLISH_ARTIFACTS_TO_RCM -eq 1 ]]; then
     fi
 
     # set up sshfs mount
-    RCMG="${DESTHOST}:/mnt/rcm-guest/staging/crw"
+    RCMG="${DESTHOST}:/mnt/rcm-guest/staging/devspaces"
     sshfs --version
     for mnt in RCMG; do 
         mkdir -p ${WORKSPACE}/${mnt}-ssh; 
         if [[ $(file ${WORKSPACE}/${mnt}-ssh 2>&1) == *"Transport endpoint is not connected"* ]]; then fusermount -uz ${WORKSPACE}/${mnt}-ssh; fi
-        if [[ ! -d ${WORKSPACE}/${mnt}-ssh/crw ]]; then sshfs ${!mnt} ${WORKSPACE}/${mnt}-ssh || true; fi
+        if [[ ! -d ${WORKSPACE}/${mnt}-ssh/devspaces ]]; then sshfs ${!mnt} ${WORKSPACE}/${mnt}-ssh || true; fi
     done
 
     # copy files to rcm-guest
-    ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/crw && mkdir -p devspaces-${CSV_VERSION}/ && ls -la . "
+    ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/devspaces && mkdir -p devspaces-${CSV_VERSION}/ && ls -la . "
     rsync -zrlt --rsh=ssh --protocol=28 --exclude "dsc*.tar.gz" --exclude "*-quay-*.tar.gz" \
     ${DSC_DIR}/dist/channels/redhat/*gz \
     ${WORKSPACE}/${mnt}-ssh/devspaces-${CSV_VERSION}/
