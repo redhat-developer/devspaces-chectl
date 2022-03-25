@@ -135,20 +135,20 @@ _See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/
 
 ## `dsc help [COMMAND]`
 
-display help for dsc
+Display help for dsc.
 
 ```
 USAGE
   $ dsc help [COMMAND]
 
 ARGUMENTS
-  COMMAND  command to show help for
+  COMMAND  Command to show help for.
 
 OPTIONS
-  --all  see all commands in CLI
+  -n, --nested-commands  Include all nested commands in the output.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v3.2.18/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.1.12/src/commands/help.ts)_
 
 ## `dsc server:debug`
 
@@ -177,21 +177,19 @@ USAGE
   $ dsc server:delete
 
 OPTIONS
-  -h, --help                         show CLI help
-  -n, --chenamespace=chenamespace    Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-workspaces'
+  -h, --help                       show CLI help
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-workspaces'
 
-  -y, --yes                          Automatic yes to prompts; assume "yes" as answer to all prompts and run
-                                     non-interactively
+  -y, --yes                        Automatic yes to prompts; assume "yes" as answer to all prompts and run
+                                   non-interactively
 
-  --batch                            Batch mode. Running a command without end user interaction.
+  --batch                          Batch mode. Running a command without end user interaction.
 
-  --delete-namespace                 Indicates that a Red Hat OpenShift Dev Spaces namespace will be deleted as well
+  --delete-namespace               Indicates that a Red Hat OpenShift Dev Spaces namespace will be deleted as well
 
-  --deployment-name=deployment-name  [default: devspaces] Red Hat OpenShift Dev Spaces deployment name
+  --skip-kubernetes-health-check   Skip Kubernetes health check
 
-  --skip-kubernetes-health-check     Skip Kubernetes health check
-
-  --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
 _See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.0.0-CI-redhat/src/commands/server/delete.ts)_
@@ -223,8 +221,8 @@ OPTIONS
   -o, --cheboottimeout=cheboottimeout
       (required) [default: 40000] Red Hat OpenShift Dev Spaces server bootstrap timeout (in milliseconds)
 
-  -p, --platform=openshift|crc
-      [default: openshift] Type of OpenShift platform. Valid values are "openshift", "crc (for CodeReady Containers)".
+  -p, --platform=minikube|k8s|openshift|microk8s|docker-desktop|crc
+      Type of Kubernetes platform.
 
   -t, --templates=templates
       Path to the templates folder
@@ -270,9 +268,6 @@ OPTIONS
   --debug
       Enables the debug mode for Red Hat OpenShift Dev Spaces server. To debug Red Hat OpenShift Dev Spaces server from
       localhost use 'server:debug' command.
-
-  --deployment-name=deployment-name
-      [default: devspaces] Red Hat OpenShift Dev Spaces deployment name
 
   --devfile-registry-url=devfile-registry-url
       The URL of the external Devfile registry.
@@ -348,12 +343,11 @@ USAGE
   $ dsc server:logs
 
 OPTIONS
-  -d, --directory=directory          Directory to store logs into
-  -h, --help                         show CLI help
-  -n, --chenamespace=chenamespace    Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-workspaces'
-  --deployment-name=deployment-name  [default: devspaces] Red Hat OpenShift Dev Spaces deployment name
-  --skip-kubernetes-health-check     Skip Kubernetes health check
-  --telemetry=on|off                 Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+  -d, --directory=directory        Directory to store logs into
+  -h, --help                       show CLI help
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-workspaces'
+  --skip-kubernetes-health-check   Skip Kubernetes health check
+  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
 _See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.0.0-CI-redhat/src/commands/server/logs.ts)_
@@ -374,9 +368,6 @@ OPTIONS
                                                            'openshift-workspaces'
 
   --batch                                                  Batch mode. Running a command without end user interaction.
-
-  --deployment-name=deployment-name                        [default: devspaces] Red Hat OpenShift Dev Spaces deployment
-                                                           name
 
   --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 600000] Waiting time for Pod downloading image (in
                                                            milliseconds)
@@ -420,29 +411,15 @@ USAGE
   $ dsc server:stop
 
 OPTIONS
-  -h, --help
-      show CLI help
+  -h, --help                       show CLI help
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-workspaces'
 
-  -n, --chenamespace=chenamespace
-      Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-workspaces'
+  --che-selector=che-selector      [default: app=devspaces,component=devspaces] Selector for Red Hat OpenShift Dev
+                                   Spaces server resources
 
-  --access-token=access-token
-      Red Hat OpenShift Dev Spaces OIDC Access Token. See the documentation how to obtain token:
-      https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-users/#obtaining-the-token-from-keycloak_
-      authenticating-to-the-che-server and https://www.eclipse.org/che/docs/che-7/administration-guide/authenticating-user
-      s/#obtaining-the-token-from-openshift-token-through-keycloak_authenticating-to-the-che-server.
+  --skip-kubernetes-health-check   Skip Kubernetes health check
 
-  --che-selector=che-selector
-      [default: app=devspaces,component=devspaces] Selector for Red Hat OpenShift Dev Spaces server resources
-
-  --deployment-name=deployment-name
-      [default: devspaces] Red Hat OpenShift Dev Spaces deployment name
-
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
-
-  --telemetry=on|off
-      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
 _See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.0.0-CI-redhat/src/commands/server/stop.ts)_
@@ -461,9 +438,6 @@ OPTIONS
   -n, --chenamespace=chenamespace                          Red Hat OpenShift Dev Spaces Openshift Project. Default to
                                                            'openshift-workspaces'
 
-  -p, --platform=openshift|crc                             [default: openshift] Type of OpenShift platform. Valid values
-                                                           are "openshift", "crc (for CodeReady Containers)".
-
   -t, --templates=templates                                Path to the templates folder
 
   -y, --yes                                                Automatic yes to prompts; assume "yes" as answer to all
@@ -474,9 +448,6 @@ OPTIONS
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml  Path to a yaml file that overrides the default values in
                                                            CheCluster CR used by the operator. This parameter is used
                                                            only when the installer is the 'operator' or the 'olm'.
-
-  --deployment-name=deployment-name                        [default: devspaces] Red Hat OpenShift Dev Spaces deployment
-                                                           name
 
   --skip-kubernetes-health-check                           Skip Kubernetes health check
 
