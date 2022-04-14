@@ -40,7 +40,7 @@ export class CertManagerTasks {
   getDeployCertManagerTasks(): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: 'Deploy Cert Manager',
+        title: 'Install Cert Manager',
         task: async (_ctx: any, task: any) => {
           const certManagerCrd = await this.kubeHelper.getCrd('certificates.cert-manager.io')
           if (certManagerCrd) {
@@ -75,7 +75,7 @@ export class CertManagerTasks {
           if (!caSelfSignedCertSecret) {
             // First run, generate CA self-signed certificate
 
-            task.title = `${task.title}...generating new one`
+            task.title = `${task.title}...[Generating new one]`
 
             const CA_CERT_GENERATION_SERVICE_ACCOUNT_NAME = 'ca-cert-generator'
             const CA_CERT_GENERATION_JOB_NAME = 'ca-cert-generation-job'
@@ -114,7 +114,7 @@ export class CertManagerTasks {
             // Wait until the secret is available
             await this.kubeHelper.waitSecret('ca', CERT_MANAGER_NAMESPACE_NAME)
           } else {
-            task.title = `${task.title}...[Skipped: Exists]`
+            task.title = `${task.title}...[Exists]`
           }
         },
       },
@@ -132,7 +132,7 @@ export class CertManagerTasks {
           } else if (clusterIssuers.length === 1) {
             // Found already configured cluster issuer
             ctx.clusterIssuersName = clusterIssuers[0].metadata.name
-            task.title = `${task.title}...found existing one: ${ctx.clusterIssuersName}`
+            task.title = `${task.title}...[Found: ${ctx.clusterIssuersName}]`
             return
           }
 
@@ -141,7 +141,7 @@ export class CertManagerTasks {
           if (clusterIssuers.length === 1) {
             // Using the cluster issuer
             ctx.clusterIssuersName = clusterIssuers[0].metadata.name
-            task.title = `${task.title}...found existing one: ${ctx.clusterIssuersName}`
+            task.title = `${task.title}...[Found: ${ctx.clusterIssuersName}]`
             return
           }
 
@@ -151,9 +151,9 @@ export class CertManagerTasks {
             const cheCertificateClusterIssuerTemplatePath = path.join(getEmbeddedTemplatesDirectory(), '..', 'resources', 'cert-manager', 'che-cluster-issuer.yml')
             await this.kubeHelper.createClusterIssuerFromFile(cheCertificateClusterIssuerTemplatePath)
 
-            task.title = `${task.title}...done`
+            task.title = `${task.title}...[OK]`
           } else {
-            task.title = `${task.title}...[Skipped: Exists]`
+            task.title = `${task.title}...[Exists]`
           }
         },
       },
@@ -188,7 +188,7 @@ export class CertManagerTasks {
           await this.kubeHelper.createCertificate(certificate, namespace)
           ctx.cheCertificateExists = true
 
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         },
       },
       {
@@ -198,7 +198,7 @@ export class CertManagerTasks {
             task.title = 'Wait for self-signed certificate'
           }
           await this.kubeHelper.waitSecret(secretName, namespace, ['tls.key', 'tls.crt', 'ca.crt'])
-          task.title = `${task.title}...ready`
+          task.title = `${task.title}...[OK]`
         },
       },
     ]
@@ -226,7 +226,7 @@ export class CertManagerTasks {
             if (serverStrategy !== 'single-host') {
               ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(caCertFilePath))
             }
-            task.title = `${task.title}... done`
+            task.title = `${task.title}... [OK]`
           } else {
             throw new Error('Failed to get Cert Manager CA secret')
           }

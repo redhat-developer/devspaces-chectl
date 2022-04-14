@@ -20,11 +20,9 @@ import * as path from 'path'
 import { CheHelper } from '../../api/che'
 import { ChectlContext } from '../../api/context'
 import { KubeHelper } from '../../api/kube'
-import { CHE_CLUSTER_CRD, DEFAULT_CA_CERT_FILE_NAME, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
+import { DEFAULT_CA_CERT_FILE_NAME, DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER } from '../../constants'
 import { isCheClusterAPIV1 } from '../../util'
 import { cli } from 'cli-ux'
-
-export const TASK_TITLE_PATCH_CHECLUSTER_CR = `Patching the Custom Resource of type ${CHE_CLUSTER_CRD}`
 
 export function createNamespaceTask(namespaceName: string, labels: {}): Listr.ListrTask {
   return {
@@ -56,13 +54,11 @@ export function createNamespaceTask(namespaceName: string, labels: {}): Listr.Li
 
 export function createEclipseCheClusterTask(flags: any, kube: KubeHelper): Listr.ListrTask {
   return {
-    title: `Create the Custom Resource of type ${CHE_CLUSTER_CRD}`,
+    title: 'Create CheCluster Custom Resource',
     task: async (ctx: any, task: any) => {
-      task.title = `${task.title} in the namespace ${flags.chenamespace}`
-
       const cheCluster = await kube.getCheClusterV1(flags.chenamespace)
       if (cheCluster) {
-        task.title = `${task.title}...[Skipped: Exists]`
+        task.title = `${task.title}...[Exists]`
         return
       }
 
@@ -77,14 +73,15 @@ export function createEclipseCheClusterTask(flags: any, kube: KubeHelper): Listr
       const cheClusterCR = ctx[ChectlContext.CUSTOM_CR] || ctx[ChectlContext.DEFAULT_CR]
       const checluster = await kube.createCheCluster(cheClusterCR, flags, ctx, !ctx[ChectlContext.CUSTOM_CR])
 
-      ctx.isPostgresReady = ctx.isPostgresReady || checluster.spec.database.externalDb
       const isCheClusterApiV1 = isCheClusterAPIV1(cheClusterCR)
       if (isCheClusterApiV1) {
         ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || checluster.spec.server.externalDevfileRegistry
         ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || checluster.spec.server.externalPluginRegistry
+        ctx.isPostgresReady = ctx.isPostgresReady || checluster.spec.database.externalDb
       } else {
-        ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || checluster.spec.pluginregistry?.disableInternalRegistry
-        ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || checluster.spec.devfileRegistry?.disableInternalRegistry
+        ctx.isDevfileRegistryReady = ctx.isDevfileRegistryReady || checluster.spec.serverComponents?.pluginRegistry?.disableInternalRegistry
+        ctx.isPluginRegistryReady = ctx.isPluginRegistryReady || checluster.spec.serverComponents?.devfileRegistry?.disableInternalRegistry
+        ctx.isPostgresReady = ctx.isPostgresReady || checluster.spec.serverComponents?.database?.externalDb
       }
 
       task.title = `${task.title}...[Created].`
@@ -101,16 +98,15 @@ export function createEclipseCheClusterTask(flags: any, kube: KubeHelper): Listr
  */
 export function patchingEclipseCheCluster(flags: any, kube: KubeHelper): Listr.ListrTask {
   return {
-    title: TASK_TITLE_PATCH_CHECLUSTER_CR,
+    title: 'Patch CheCluster Custom Resource',
     skip: (ctx: any) => isEmpty(ctx[ChectlContext.CR_PATCH]),
     task: async (ctx: any, task: any) => {
-      task.title = `${task.title} in the namespace ${flags.chenamespace}`
       const cheCluster = await kube.getCheClusterV1(flags.chenamespace)
       if (!cheCluster) {
         cli.error(`Red Hat OpenShift Dev Spaces cluster CR is not found in the namespace '${flags.chenamespace}'`)
       }
       await kube.patchCheCluster(cheCluster.metadata.name, flags.chenamespace, ctx[ChectlContext.CR_PATCH])
-      task.title = `${task.title}...done.`
+      task.title = `${task.title}...[OK]`
     },
   }
 }
@@ -126,13 +122,13 @@ export function retrieveCheCaCertificateTask(flags: any): Listr.ListrTask {
       if (cheCaCert) {
         const caCertFilePath = path.join(os.tmpdir(), DEFAULT_CA_CERT_FILE_NAME)
         fs.writeFileSync(caCertFilePath, cheCaCert)
-        task.title = `${task.title}...OK`
+        task.title = `${task.title}...[OK]`
         const serverStrategy = await kube.getConfigMapValue('che', flags.chenamespace, 'CHE_INFRA_KUBERNETES_SERVER__STRATEGY')
         if (serverStrategy !== 'single-host') {
           ctx.highlightedMessages.push(getMessageImportCaCertIntoBrowser(caCertFilePath))
         }
       } else {
-        task.title = `${task.title}... commonly trusted certificate is used.`
+        task.title = `${task.title}...[commonly trusted certificate is used]`
       }
     },
   }

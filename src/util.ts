@@ -26,7 +26,7 @@ import { promisify } from 'util'
 import { ChectlContext } from './api/context'
 import { KubeHelper } from './api/kube'
 import { VersionHelper } from './api/version'
-import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_API_VERSION_V2, DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_TLS_SECRET_NAME, LEGACY_CHE_NAMESPACE } from './constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_API_VERSION_V2, CHE_TLS_SECRET_NAME, DEFAULT_CHE_NAMESPACE, LEGACY_CHE_NAMESPACE } from './constants'
 
 const pkjson = require('../package.json')
 
@@ -398,13 +398,13 @@ export function getTlsSecretName(ctx: any): string {
   }
 
   // v2
-  if (crPatch?.spec?.auth?.gateway?.ingress?.tlsSecretRef) {
-    return crPatch.spec.auth.gateway.ingress.tlsSecretRef
-  } else if (ctx.customCR?.auth?.gateway?.ingress?.tlsSecretRef) {
-    return ctx.customCR.auth.gateway.ingress.tlsSecretRef
+  if (crPatch?.spec?.ingress?.tlsSecretName) {
+    return crPatch.spec.ingress.tlsSecretName
+  } else if (ctx.customCR?.ingress?.tlsSecretName) {
+    return ctx.customCR.ingress.tlsSecretName
   }
 
-  return DEFAULT_CHE_TLS_SECRET_NAME
+  return CHE_TLS_SECRET_NAME
 }
 
 export function getWarnVersionFlagMsg(_flags: any): string {
@@ -423,5 +423,7 @@ export function isCheClusterAPIV2(checluster: any): boolean {
 
 export function isWebhookAvailabilityError(error: any): boolean {
   const msg = error.message as string
-  return msg.indexOf('service "webhook-service" not found') !== -1 || msg.indexOf('no endpoints available for service "webhook-service"') !== -1
+  return msg.indexOf('service "webhook-service" not found') !== -1 ||
+    msg.indexOf('no endpoints available for service "webhook-service"') !== -1 ||
+    msg.indexOf('conversion webhook') !== -1
 }

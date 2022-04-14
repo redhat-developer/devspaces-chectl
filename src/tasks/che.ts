@@ -41,6 +41,8 @@ export class CheTasks {
   devfileRegistrySelector = 'app=devspaces,component=devfile-registry'
   pluginRegistryDeploymentName = 'plugin-registry'
   pluginRegistrySelector = 'app=devspaces,component=plugin-registry'
+  cheGatewayDeploymentName = 'che-gateway'
+  cheGatewaySelector = 'app=devspaces,component=devspaces-gateway'
   cheConsoleLinkName = 'che'
 
   constructor(flags: any) {
@@ -141,7 +143,7 @@ export class CheTasks {
           }
 
           if (!ctx.isCheDeployed) {
-            task.title = `${task.title}...it is not`
+            task.title = `${task.title}...[Not Found]`
           } else {
             return new Listr([
               {
@@ -177,7 +179,7 @@ export class CheTasks {
             cheURL = await this.che.cheURL(this.cheNamespace)
             const cheApi = CheApiClient.getInstance(cheURL + '/api')
             const status = await cheApi.getCheServerStatus()
-            task.title = `${task.title}...${status}`
+            task.title = `${task.title}...[${status}]`
           } catch (error: any) {
             return newError(`Failed to check Red Hat OpenShift Dev Spaces status (URL: ${cheURL}).`, error)
           }
@@ -251,7 +253,7 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.cheDeploymentName, this.cheNamespace, 0)
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         } catch (error: any) {
           return newError(`Failed to scale ${this.cheDeploymentName} deployment.`, error)
         }
@@ -263,7 +265,7 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.dashboardDeploymentName, this.cheNamespace, 0)
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         } catch (error: any) {
           return newError('Failed to scale dashboard deployment.', error)
         }
@@ -275,7 +277,7 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.postgresDeploymentName, this.cheNamespace, 0)
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         } catch (error: any) {
           return newError('Failed to scale postgres deployment.', error)
         }
@@ -287,7 +289,7 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.devfileRegistryDeploymentName, this.cheNamespace, 0)
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         } catch (error: any) {
           return newError('Failed to scale devfile registry deployment.', error)
         }
@@ -299,7 +301,7 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.pluginRegistryDeploymentName, this.cheNamespace, 0)
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         } catch (error: any) {
           return newError('Failed to scale plugin registry deployment.', error)
         }
@@ -317,7 +319,7 @@ export class CheTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kube.deleteAllDeployments(flags.chenamespace)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -328,7 +330,7 @@ export class CheTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kube.deleteAllServices(flags.chenamespace)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -340,7 +342,7 @@ export class CheTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.kube.deleteAllIngresses(flags.chenamespace)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -352,7 +354,7 @@ export class CheTasks {
         task: async (_ctx: any, task: any) => {
           try {
             await this.oc.deleteAllRoutes(flags.chenamespace)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -364,7 +366,7 @@ export class CheTasks {
           try {
             await this.kube.deleteConfigMap('che', flags.chenamespace)
             await this.kube.deleteConfigMap('devspaces-operator', flags.chenamespace)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -378,7 +380,7 @@ export class CheTasks {
             await this.kube.deleteRoleBinding('devspaces-operator', flags.chenamespace)
             await this.kube.deleteRoleBinding('che-workspace-exec', flags.chenamespace)
             await this.kube.deleteRoleBinding('che-workspace-view', flags.chenamespace)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -390,7 +392,7 @@ export class CheTasks {
           try {
             await this.kube.deleteServiceAccount('che', flags.chenamespace)
             await this.kube.deleteServiceAccount('che-workspace', flags.chenamespace)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -402,7 +404,7 @@ export class CheTasks {
           try {
             await this.kube.deletePersistentVolumeClaim('postgres-data', flags.chenamespace)
             await this.kube.deletePersistentVolumeClaim('che-data-volume', flags.chenamespace)
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -417,7 +419,7 @@ export class CheTasks {
             if (checlusters.length === 0) {
               await this.kube.deleteConsoleLink(this.cheConsoleLinkName)
             }
-            task.title = `${task.title}...[Deleted]`
+            task.title = `${task.title}...[Ok]`
           } catch (e: any) {
             task.title = `${task.title}...[Failed: ${e.message}]`
           }
@@ -435,35 +437,35 @@ export class CheTasks {
         title: 'Wait until Red Hat OpenShift Dev Spaces Server pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.cheSelector, this.cheNamespace)
-          task.title = `${task.title}...[Deleted]`
+          task.title = `${task.title}...[Ok]`
         },
       },
       {
         title: 'Wait until Red Hat OpenShift Dev Spaces Dashboard pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.dashboardSelector, this.cheNamespace)
-          task.title = `${task.title}...[Deleted]`
+          task.title = `${task.title}...[Ok]`
         },
       },
       {
         title: 'Wait until PostgreSQL pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.postgresSelector, this.cheNamespace)
-          task.title = `${task.title}...[Deleted]`
+          task.title = `${task.title}...[Ok]`
         },
       },
       {
         title: 'Wait until Devfile Registry pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.devfileRegistrySelector, this.cheNamespace)
-          task.title = `${task.title}...[Deleted]`
+          task.title = `${task.title}...[Ok]`
         },
       },
       {
         title: 'Wait until Plug-in Registry pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.pluginRegistrySelector, this.cheNamespace)
-          task.title = `${task.title}...[Deleted]`
+          task.title = `${task.title}...[Ok]`
         },
       },
     ]
@@ -477,7 +479,7 @@ export class CheTasks {
         if (namespaceExist) {
           await this.kube.deleteNamespace(flags.chenamespace)
         }
-        task.title = `${task.title}...[Deleted]`
+        task.title = `${task.title}...[Ok]`
       },
     }]
   }
@@ -507,6 +509,7 @@ export class CheTasks {
           await this.che.readPodLog(flags.chenamespace, this.pluginRegistrySelector, ctx.directory, follow)
           await this.che.readPodLog(flags.chenamespace, this.devfileRegistrySelector, ctx.directory, follow)
           await this.che.readPodLog(flags.chenamespace, this.dashboardSelector, ctx.directory, follow)
+          await this.che.readPodLog(flags.chenamespace, this.cheGatewaySelector, ctx.directory, follow)
           await this.che.readNamespaceEvents(flags.chenamespace, ctx.directory, follow)
           task.title = `${task.title}...[OK]`
         },
@@ -524,7 +527,7 @@ export class CheTasks {
             throw new Error(`Red Hat OpenShift Dev Spaces server pod not found in the namespace '${flags.chenamespace}'`)
           }
           ctx.podName = chePods.items[0].metadata!.name!
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         },
       },
       {
@@ -535,14 +538,14 @@ export class CheTasks {
             throw new Error('Red Hat OpenShift Dev Spaces server should be redeployed with \'--debug\' flag')
           }
 
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         },
       },
       {
         title: `Forward port '${flags['debug-port']}'`,
         task: async (ctx: any, task: any) => {
           await this.kube.portForward(ctx.podName, flags.chenamespace, flags['debug-port'])
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         },
       },
     ]
@@ -615,7 +618,7 @@ export class CheTasks {
           }
 
           ctx.highlightedMessages = messages.concat(ctx.highlightedMessages)
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         },
       },
     ]
@@ -627,7 +630,7 @@ export class CheTasks {
         title: 'Red Hat OpenShift Dev Spaces status check',
         task: async (ctx, task) => {
           const cheApi = CheApiClient.getInstance(ctx.cheURL + '/api')
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
           return cheApi.isCheServerReady()
         },
       },
