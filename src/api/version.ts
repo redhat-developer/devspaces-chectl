@@ -35,23 +35,18 @@ interface NewVersionInfoData {
 const A_DAY_IN_MS = 24 * 60 * 60 * 1000
 
 export namespace VersionHelper {
-  export const MINIMAL_OPENSHIFT_VERSION = '3.11'
+  export const MINIMAL_OPENSHIFT_VERSION = '4.8'
   export const MINIMAL_K8S_VERSION = '1.19'
-  export const CHE_POD_MANIFEST_FILE = '/home/user/eclipse-che/tomcat/webapps/ROOT/META-INF/MANIFEST.MF'
-  export const CHE_PREFFIX_VERSION = 'Implementation-Version: '
 
   export function getOpenShiftCheckVersionTask(flags: any): Listr.ListrTask {
     return {
       title: 'Check OpenShift version',
-      task: async (_ctx: any, task: any) => {
+      task: async (ctx: any, task: any) => {
         const actualVersion = await getOpenShiftVersion()
-        const kube = new KubeHelper(flags)
         if (actualVersion) {
-          task.title = `${task.title}: ${actualVersion}.`
-        } else if (await kube.isOpenShift4()) {
-          task.title = `${task.title}: 4.x`
-        } else {
-          task.title = `${task.title}: Unknown`
+          task.title = `${task.title}: [${actualVersion}]`
+        } else if (ctx[ChectlContext.IS_OPENSHIFT]) {
+          task.title = `${task.title}: [4.x]`
         }
 
         if (!flags['skip-version-check'] && actualVersion) {
@@ -69,7 +64,6 @@ export namespace VersionHelper {
       task: async (_ctx: any, task: any) => {
         let actualVersion
         switch (flags.platform) {
-        case 'minishift':
         case 'openshift':
         case 'crc':
           actualVersion = await getK8sVersionWithOC()
@@ -79,9 +73,9 @@ export namespace VersionHelper {
         }
 
         if (actualVersion) {
-          task.title = `${task.title}: Found ${actualVersion}.`
+          task.title = `${task.title}: [Found ${actualVersion}]`
         } else {
-          task.title = `${task.title}: Unknown.`
+          task.title = `${task.title}: [Unknown]`
         }
 
         if (isKubernetesPlatformFamily(flags.platform) && !flags['skip-version-check'] && actualVersion) {
@@ -156,7 +150,7 @@ export namespace VersionHelper {
   export async function getCheVersion(flags: any): Promise<string> {
     const kube = new KubeHelper(flags)
     for (let i = 0; i < 10; i++) {
-      const cheCluster = await kube.getCheCluster(flags.chenamespace)
+      const cheCluster = await kube.getCheClusterV1(flags.chenamespace)
       if (cheCluster) {
         if (cheCluster.status.cheVersion) {
           return cheCluster.status.cheVersion

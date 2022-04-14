@@ -54,7 +54,7 @@ export default class Debug extends Command {
       await tasks.run(ctx)
       this.log(`Red Hat OpenShift Dev Spaces server debug is available on localhost:${flags['debug-port']}.`)
       this.log('The program keeps running to enable port forwarding.')
-    } catch (err) {
+    } catch (err: any) {
       this.error(wrapCommandError(err))
     }
   }

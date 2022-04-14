@@ -26,7 +26,7 @@ import { promisify } from 'util'
 import { ChectlContext } from './api/context'
 import { KubeHelper } from './api/kube'
 import { VersionHelper } from './api/version'
-import { DEFAULT_CHE_NAMESPACE, DEFAULT_CHE_TLS_SECRET_NAME, LEGACY_CHE_NAMESPACE } from './constants'
+import { CHE_CLUSTER_API_GROUP, CHE_CLUSTER_API_VERSION_V1, CHE_CLUSTER_API_VERSION_V2, CHE_TLS_SECRET_NAME, DEFAULT_CHE_NAMESPACE, LEGACY_CHE_NAMESPACE } from './constants'
 
 const pkjson = require('../package.json')
 
@@ -49,7 +49,7 @@ export function isKubernetesPlatformFamily(platform: string): boolean {
 }
 
 export function isOpenshiftPlatformFamily(platform: string): boolean {
-  return platform === 'openshift' || platform === 'minishift' || platform === 'crc'
+  return platform === 'openshift' || platform === 'crc'
 }
 
 export function generatePassword(passwodLength: number, charactersSet = '') {
@@ -387,54 +387,43 @@ export function confirmYN(): Promise<boolean> {
   })
 }
 
-/**
- * Checks if TLS is disabled via operator custom resource.
- * Returns true if TLS is enabled (or omitted) and false if it is explicitly disabled.
- */
-export function getTlsSupport(ctx: any): boolean {
-  const crPatch = ctx[ChectlContext.CR_PATCH]
-  if (crPatch && crPatch.spec && crPatch.spec.server && crPatch.spec.server.tlsSupport === false) {
-    return false
-  }
-
-  const customCR = ctx.customCR
-  if (customCR && customCR.spec && customCR.spec.server && customCR.spec.server.tlsSupport === false) {
-    return false
-  }
-
-  return true
-}
-
-export function isDevWorkspaceEnabled(ctx: any): boolean {
-  const crPatch = ctx[ChectlContext.CR_PATCH]
-  if (crPatch && crPatch.spec && crPatch.spec.devWorkspace && crPatch.spec.devWorkspace.enable) {
-    return true
-  }
-
-  const customCR = ctx.customCR
-  if (customCR && customCR.spec && customCR.spec.devWorkspace && customCR.spec.devWorkspace.enable) {
-    return true
-  }
-
-  return true
-}
-
 export function getTlsSecretName(ctx: any): string {
   const crPatch = ctx[ChectlContext.CR_PATCH]
-  if (crPatch && crPatch.spec && crPatch.spec.k8s && crPatch.spec.k8s.tlsSecretName) {
+
+  // v1
+  if (crPatch?.spec?.k8s?.tlsSecretName) {
     return crPatch.spec.k8s.tlsSecretName
+  } else if (ctx.customCR?.spec?.k8s?.tlsSecretName) {
+    return ctx.customCR.spec.k8s.tlsSecretName
   }
 
-  const customCR = ctx.customCR
-  if (customCR && customCR.spec && customCR.spec.k8s && customCR.spec.k8s.tlsSecretName) {
-    return customCR.spec.k8s.tlsSecretName
+  // v2
+  if (crPatch?.spec?.ingress?.tlsSecretName) {
+    return crPatch.spec.ingress.tlsSecretName
+  } else if (ctx.customCR?.ingress?.tlsSecretName) {
+    return ctx.customCR.ingress.tlsSecretName
   }
 
-  return DEFAULT_CHE_TLS_SECRET_NAME
+  return CHE_TLS_SECRET_NAME
 }
 
 export function getWarnVersionFlagMsg(_flags: any): string {
   return `'--version' flag is not supported anymore.
 1. Update dsc to a specific version following the doc https://github.com/redhat-developer/devspaces-dsc#updating
 2. Use dsc of the specific version to deploy or to upgrade Red Hat OpenShift Dev Spaces`
+}
+
+export function isCheClusterAPIV1(checluster: any): boolean {
+  return checluster.apiVersion === `${CHE_CLUSTER_API_GROUP}/${CHE_CLUSTER_API_VERSION_V1}`
+}
+
+export function isCheClusterAPIV2(checluster: any): boolean {
+  return checluster.apiVersion === `${CHE_CLUSTER_API_GROUP}/${CHE_CLUSTER_API_VERSION_V2}`
+}
+
+export function isWebhookAvailabilityError(error: any): boolean {
+  const msg = error.message as string
+  return msg.indexOf('service "webhook-service" not found') !== -1 ||
+    msg.indexOf('no endpoints available for service "webhook-service"') !== -1 ||
+    msg.indexOf('conversion webhook') !== -1
 }

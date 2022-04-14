@@ -10,22 +10,43 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 
-import { Command, flags } from '@oclif/command'
-import { string } from '@oclif/parser/lib/flags'
-import { cli } from 'cli-ux'
+import {Command, flags} from '@oclif/command'
+import {string} from '@oclif/parser/lib/flags'
+import {cli} from 'cli-ux'
 import * as Listr from 'listr'
-import { merge } from 'lodash'
 import * as semver from 'semver'
 
-import { CheHelper } from '../../api/che'
-import { ChectlContext } from '../../api/context'
-import { KubeHelper } from '../../api/kube'
-import { assumeYes, batch, cheDeployment, cheDeployVersion, cheNamespace, cheOperatorCRPatchYaml, CHE_OPERATOR_CR_PATCH_YAML_KEY, CHE_TELEMETRY, DEPLOY_VERSION_KEY, listrRenderer, skipKubeHealthzCheck } from '../../common-flags'
-import { DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, NEXT_TAG } from '../../constants'
-import { getPrintHighlightedMessagesTask } from '../../tasks/installers/common-tasks'
-import { InstallerTasks } from '../../tasks/installers/installer'
-import { ApiTasks } from '../../tasks/platforms/api'
-import { askForChectlUpdateIfNeeded, findWorkingNamespace, getCommandSuccessMessage, getEmbeddedTemplatesDirectory, getProjectName, getProjectVersion, getWarnVersionFlagMsg, notifyCommandCompletedSuccessfully, wrapCommandError } from '../../util'
+import {CheHelper} from '../../api/che'
+import {ChectlContext} from '../../api/context'
+import {KubeHelper} from '../../api/kube'
+import {
+  assumeYes,
+  batch,
+  CHE_OPERATOR_CR_PATCH_YAML_KEY,
+  CHE_TELEMETRY,
+  cheDeployVersion,
+  cheNamespace,
+  cheOperatorCRPatchYaml,
+  DEPLOY_VERSION_KEY,
+  listrRenderer,
+  skipKubeHealthzCheck,
+} from '../../common-flags'
+import {DEFAULT_ANALYTIC_HOOK_NAME, DEFAULT_CHE_OPERATOR_IMAGE_NAME, NEXT_TAG} from '../../constants'
+import {getPrintHighlightedMessagesTask} from '../../tasks/installers/common-tasks'
+import {InstallerTasks} from '../../tasks/installers/installer'
+import {ApiTasks} from '../../tasks/platforms/api'
+import {
+  askForChectlUpdateIfNeeded,
+  findWorkingNamespace,
+  getCommandSuccessMessage,
+  getProjectName,
+  getProjectVersion,
+  getWarnVersionFlagMsg,
+  isCheClusterAPIV2,
+  notifyCommandCompletedSuccessfully,
+  wrapCommandError,
+} from '../../util'
+import {CertManagerTasks} from '../../tasks/component-installers/cert-manager'
 
 export default class Update extends Command {
   static description = 'Update Red Hat OpenShift Dev Spaces server.'
@@ -46,12 +67,6 @@ export default class Update extends Command {
       options: ['operator', 'olm'],
       hidden: true,
     }),
-    platform: string({
-      char: 'p',
-      description: 'Type of OpenShift platform. Valid values are \"openshift\", \"crc (for CodeReady Containers)\".',
-      options: ['openshift', 'crc'],
-      default: 'openshift',
-    }),
     chenamespace: cheNamespace,
     batch,
     templates: string({
@@ -69,7 +84,6 @@ export default class Update extends Command {
       default: false,
       hidden: true,
     }),
-    'deployment-name': cheDeployment,
     'listr-renderer': listrRenderer,
     'skip-kubernetes-health-check': skipKubeHealthzCheck,
     yes: assumeYes,
@@ -101,12 +115,6 @@ export default class Update extends Command {
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Update.id, flags })
 
-    if (!flags.templates) {
-      // Use build-in templates if no custom templates nor version to deploy specified.
-      // All flavors should use embedded templates if not custom templates is given.
-      flags.templates = getEmbeddedTemplatesDirectory()
-    }
-
     const installerTasks = new InstallerTasks()
 
     // pre update tasks
@@ -117,8 +125,16 @@ export default class Update extends Command {
 
     // update tasks
     const updateTasks = new Listr([], ctx.listrOptions)
+
+    const certManagerTasks = new CertManagerTasks(flags)
+    if (flags.installer === 'operator' && isCheClusterAPIV2(ctx[ChectlContext.DEFAULT_CR])) {
+      updateTasks.add({
+        title: 'Cert Manager',
+        task: () => new Listr(certManagerTasks.getDeployCertManagerTasks()),
+      })
+    }
     updateTasks.add({
-      title: '↺  Updating...',
+      title: 'Updating...',
       task: () => new Listr(installerTasks.updateTasks(flags, this)),
     })
 
@@ -135,81 +151,16 @@ export default class Update extends Command {
           return
         }
       }
-      await this.checkComponentImages(flags, ctx)
-
       await updateTasks.run(ctx)
       await postUpdateTasks.run(ctx)
 
       this.log(getCommandSuccessMessage())
-    } catch (err) {
+    } catch (err: any) {
       this.error(wrapCommandError(err))
     }
 
     if (!flags.batch) {
       notifyCommandCompletedSuccessfully()
-    }
-  }
-
-  /**
-   * Tests if existing Che installation uses custom docker images.
-   * If so, asks user whether keep custom images or revert to default images and update them.
-   */
-  private async checkComponentImages(flags: any, ctx: any): Promise<void> {
-    const kubeHelper = new KubeHelper(flags)
-    const namespace = flags.installer === 'olm' ? ctx.checlusterNamespace : flags.chenamespace
-    const cheCluster = await kubeHelper.getCheCluster(namespace)
-    if (cheCluster.spec.server.cheImage ||
-      cheCluster.spec.server.cheImageTag ||
-      cheCluster.spec.server.devfileRegistryImage ||
-      cheCluster.spec.database.postgresImage ||
-      cheCluster.spec.server.pluginRegistryImage ||
-      cheCluster.spec.auth.identityProviderImage) {
-      let imagesListMsg = ''
-
-      const resetImagesCrPatch: { [key: string]: any } = {}
-      if (cheCluster.spec.server.pluginRegistryImage) {
-        imagesListMsg += `\n - Plugin registry image: ${cheCluster.spec.server.pluginRegistryImage}`
-        merge(resetImagesCrPatch, { spec: { server: { pluginRegistryImage: '' } } })
-      }
-
-      if (cheCluster.spec.server.devfileRegistryImage) {
-        imagesListMsg += `\n - Devfile registry image: ${cheCluster.spec.server.devfileRegistryImage}`
-        merge(resetImagesCrPatch, { spec: { server: { devfileRegistryImage: '' } } })
-      }
-
-      if (cheCluster.spec.server.postgresImage) {
-        imagesListMsg += `\n - Postgres image: ${cheCluster.spec.database.postgresImage}`
-        merge(resetImagesCrPatch, { spec: { database: { postgresImage: '' } } })
-      }
-
-      if (cheCluster.spec.server.identityProviderImage) {
-        imagesListMsg += `\n - Identity provider image: ${cheCluster.spec.auth.identityProviderImage}`
-        merge(resetImagesCrPatch, { spec: { auth: { identityProviderImage: '' } } })
-      }
-
-      if (cheCluster.spec.server.cheImage) {
-        imagesListMsg += `\n - Red Hat OpenShift Dev Spaces server image name: ${cheCluster.spec.server.cheImage}`
-        merge(resetImagesCrPatch, { spec: { server: { cheImage: '' } } })
-      }
-
-      if (cheCluster.spec.server.cheImageTag) {
-        imagesListMsg += `\n - Red Hat OpenShift Dev Spaces server image tag: ${cheCluster.spec.server.cheImageTag}`
-        merge(resetImagesCrPatch, { spec: { server: { cheImageTag: '' } } })
-      }
-
-      if (imagesListMsg) {
-        cli.warn(`Custom images found in '${cheCluster.metadata.name}' Custom Resource in the '${flags.chenamespace}' namespace: ${imagesListMsg}`)
-        if (flags.batch || flags.yes || await cli.confirm('Do you want to preserve custom images [y/n]?')) {
-          cli.info('Keeping current images.\nNote, Update might fail if functionality of the custom images different from the default ones.')
-        } else {
-          cli.info('Resetting custom images to default ones.')
-
-          const ctx = ChectlContext.get()
-          const crPatch = ctx[ChectlContext.CR_PATCH] || {}
-          merge(crPatch, resetImagesCrPatch)
-          ctx[ChectlContext.CR_PATCH] = crPatch
-        }
-      }
     }
   }
 
@@ -332,12 +283,12 @@ export default class Update extends Command {
   }
 
   /**
-   * Copies spec.k8s.ingressDomain. It is needed later for updates.
+   * Copies Ingress domain. It is needed later for updates.
    */
   private async setDomainFlag(flags: any): Promise<void> {
     const kubeHelper = new KubeHelper(flags)
-    const cheCluster = await kubeHelper.getCheCluster(flags.chenamespace)
-    if (cheCluster && cheCluster.spec.k8s && cheCluster.spec.k8s.ingressDomain) {
+    const cheCluster = await kubeHelper.getCheClusterV1(flags.chenamespace)
+    if (cheCluster?.spec?.k8s?.ingressDomain) {
       flags.domain = cheCluster.spec.k8s.ingressDomain
     }
   }

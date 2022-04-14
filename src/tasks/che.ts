@@ -12,13 +12,14 @@
 
 import { Command } from '@oclif/command'
 import * as Listr from 'listr'
+import { ChectlContext } from '../api/context'
 import { CheHelper } from '../api/che'
 import { CheApiClient } from '../api/che-api-client'
 import { KubeHelper } from '../api/kube'
 import { OpenShiftHelper } from '../api/openshift'
 import { VersionHelper } from '../api/version'
 import { CHE_OPERATOR_SELECTOR, DOC_LINK, DOC_LINK_RELEASE_NOTES, OUTPUT_SEPARATOR } from '../constants'
-import { addTrailingSlash, base64Decode, isDevWorkspaceEnabled, newError } from '../util'
+import { addTrailingSlash, base64Decode, newError } from '../util'
 import { KubeTasks } from './kube'
 
 /**
@@ -31,34 +32,24 @@ export class CheTasks {
   che: CheHelper
   cheNamespace: string
   cheSelector = 'app=devspaces,component=devspaces'
-  cheDeploymentName: string
+  cheDeploymentName = 'che'
   dashboardDeploymentName = 'che-dashboard'
   dashboardSelector = 'app=devspaces,component=devspaces-dashboard'
-  keycloakDeploymentName = 'keycloak'
-  keycloakSelector = 'app=devspaces,component=keycloak'
   postgresDeploymentName = 'postgres'
   postgresSelector = 'app=devspaces,component=postgres'
   devfileRegistryDeploymentName = 'devfile-registry'
   devfileRegistrySelector = 'app=devspaces,component=devfile-registry'
   pluginRegistryDeploymentName = 'plugin-registry'
   pluginRegistrySelector = 'app=devspaces,component=plugin-registry'
+  cheGatewayDeploymentName = 'che-gateway'
+  cheGatewaySelector = 'app=devspaces,component=devspaces-gateway'
   cheConsoleLinkName = 'che'
 
   constructor(flags: any) {
     this.kube = new KubeHelper(flags)
     this.kubeTasks = new KubeTasks(flags)
     this.che = new CheHelper(flags)
-
     this.cheNamespace = flags.chenamespace
-    this.cheDeploymentName = flags['deployment-name']
-  }
-
-  async skipKeycloakDeploy(): Promise<boolean> {
-    const cheCluster = await this.kube.getCheCluster(this.cheNamespace)
-    if (!cheCluster) {
-      return false
-    }
-    return cheCluster.spec.auth.nativeUserMode
   }
 
   /**
@@ -74,19 +65,6 @@ export class CheTasks {
         title: 'PostgreSQL pod bootstrap',
         enabled: ctx => ctx.isPostgresDeployed && !ctx.isPostgresReady,
         task: () => this.kubeTasks.podStartTasks(this.postgresSelector, this.cheNamespace),
-      },
-      {
-        title: 'Keycloak pod bootstrap',
-        enabled: ctx => ctx.isKeycloakDeployed && !ctx.isKeycloakReady,
-        task: async (_ctx: any, task: any) => {
-          if (await this.skipKeycloakDeploy()) {
-            task.title = `${task.title}...skipped`
-            return {
-              task: () => { },
-            }
-          }
-          return this.kubeTasks.podStartTasks(this.keycloakSelector, this.cheNamespace)
-        },
       },
       {
         title: 'Devfile Registry pod bootstrap',
@@ -117,7 +95,7 @@ export class CheTasks {
    *
    * After executing the following properties are set in context:
    * is[Component]Deployed, is[Component]Stopped, is[Component]Ready
-   * where component is one the: Che, Keycloak, Postgres, PluginRegistry, DevfileRegistry
+   * where component is one the: Che, Postgres, PluginRegistry, DevfileRegistry
    */
   checkIfCheIsInstalledTasks(_flags: any): ReadonlyArray<Listr.ListrTask> {
     return [
@@ -126,54 +104,46 @@ export class CheTasks {
         task: async (ctx: any, task: any) => {
           if (await this.kube.isDeploymentExist(this.cheDeploymentName, this.cheNamespace)) {
             ctx.isCheDeployed = true
-            ctx.isCheReady = await this.kube.deploymentReady(this.cheDeploymentName, this.cheNamespace)
+            ctx.isCheReady = await this.kube.isDeploymentReady(this.cheDeploymentName, this.cheNamespace)
             if (!ctx.isCheReady) {
-              ctx.isCheStopped = await this.kube.deploymentStopped(this.cheDeploymentName, this.cheNamespace)
+              ctx.isCheStopped = await this.kube.isDeploymentStopped(this.cheDeploymentName, this.cheNamespace)
             }
 
             ctx.isDashboardDeployed = await this.kube.isDeploymentExist(this.dashboardDeploymentName, this.cheNamespace)
             if (ctx.isDashboardDeployed) {
-              ctx.isDashboardReady = await this.kube.deploymentReady(this.dashboardDeploymentName, this.cheNamespace)
+              ctx.isDashboardReady = await this.kube.isDeploymentReady(this.dashboardDeploymentName, this.cheNamespace)
               if (!ctx.isDashboardReady) {
-                ctx.isDashboardStopped = await this.kube.deploymentStopped(this.dashboardDeploymentName, this.cheNamespace)
-              }
-            }
-
-            ctx.isKeycloakDeployed = await this.kube.isDeploymentExist(this.keycloakDeploymentName, this.cheNamespace)
-            if (ctx.isKeycloakDeployed) {
-              ctx.isKeycloakReady = await this.kube.deploymentReady(this.keycloakDeploymentName, this.cheNamespace)
-              if (!ctx.isKeycloakReady) {
-                ctx.isKeycloakStopped = await this.kube.deploymentStopped(this.keycloakDeploymentName, this.cheNamespace)
+                ctx.isDashboardStopped = await this.kube.isDeploymentStopped(this.dashboardDeploymentName, this.cheNamespace)
               }
             }
 
             ctx.isPostgresDeployed = await this.kube.isDeploymentExist(this.postgresDeploymentName, this.cheNamespace)
             if (ctx.isPostgresDeployed) {
-              ctx.isPostgresReady = await this.kube.deploymentReady(this.postgresDeploymentName, this.cheNamespace)
+              ctx.isPostgresReady = await this.kube.isDeploymentReady(this.postgresDeploymentName, this.cheNamespace)
               if (!ctx.isPostgresReady) {
-                ctx.isPostgresStopped = await this.kube.deploymentStopped(this.postgresDeploymentName, this.cheNamespace)
+                ctx.isPostgresStopped = await this.kube.isDeploymentStopped(this.postgresDeploymentName, this.cheNamespace)
               }
             }
 
             ctx.isDevfileRegistryDeployed = await this.kube.isDeploymentExist(this.devfileRegistryDeploymentName, this.cheNamespace)
             if (ctx.isDevfileRegistryDeployed) {
-              ctx.isDevfileRegistryReady = await this.kube.deploymentReady(this.devfileRegistryDeploymentName, this.cheNamespace)
+              ctx.isDevfileRegistryReady = await this.kube.isDeploymentReady(this.devfileRegistryDeploymentName, this.cheNamespace)
               if (!ctx.isDevfileRegistryReady) {
-                ctx.isDevfileRegistryStopped = await this.kube.deploymentStopped(this.devfileRegistryDeploymentName, this.cheNamespace)
+                ctx.isDevfileRegistryStopped = await this.kube.isDeploymentStopped(this.devfileRegistryDeploymentName, this.cheNamespace)
               }
             }
 
             ctx.isPluginRegistryDeployed = await this.kube.isDeploymentExist(this.pluginRegistryDeploymentName, this.cheNamespace)
             if (ctx.isPluginRegistryDeployed) {
-              ctx.isPluginRegistryReady = await this.kube.deploymentReady(this.pluginRegistryDeploymentName, this.cheNamespace)
+              ctx.isPluginRegistryReady = await this.kube.isDeploymentReady(this.pluginRegistryDeploymentName, this.cheNamespace)
               if (!ctx.isPluginRegistryReady) {
-                ctx.isPluginRegistryStopped = await this.kube.deploymentStopped(this.pluginRegistryDeploymentName, this.cheNamespace)
+                ctx.isPluginRegistryStopped = await this.kube.isDeploymentStopped(this.pluginRegistryDeploymentName, this.cheNamespace)
               }
             }
           }
 
           if (!ctx.isCheDeployed) {
-            task.title = `${task.title}...it is not`
+            task.title = `${task.title}...[Not Found]`
           } else {
             return new Listr([
               {
@@ -184,11 +154,6 @@ export class CheTasks {
               {
                 enabled: () => ctx.isPostgresDeployed,
                 title: `Found ${ctx.isPostgresStopped ? 'stopped' : 'running'} postgres deployment`,
-                task: () => { },
-              },
-              {
-                enabled: () => ctx.isKeycloakDeployed,
-                title: `Found ${ctx.isKeycloakStopped ? 'stopped' : 'running'} keycloak deployment`,
                 task: () => { },
               },
               {
@@ -214,8 +179,8 @@ export class CheTasks {
             cheURL = await this.che.cheURL(this.cheNamespace)
             const cheApi = CheApiClient.getInstance(cheURL + '/api')
             const status = await cheApi.getCheServerStatus()
-            task.title = `${task.title}...${status}`
-          } catch (error) {
+            task.title = `${task.title}...[${status}]`
+          } catch (error: any) {
             return newError(`Failed to check Red Hat OpenShift Dev Spaces status (URL: ${cheURL}).`, error)
           }
         },
@@ -237,20 +202,6 @@ export class CheTasks {
         task: async () => {
           await this.kube.scaleDeployment(this.postgresDeploymentName, this.cheNamespace, 1)
           return this.kubeTasks.podStartTasks(this.postgresSelector, this.cheNamespace)
-        },
-      },
-      {
-        title: 'Keycloak pod bootstrap',
-        enabled: ctx => ctx.isKeycloakDeployed && !ctx.isKeycloakReady,
-        task: async (_ctx: any, task: any) => {
-          if (await this.skipKeycloakDeploy()) {
-            task.title = `${task.title}...skipped`
-            return {
-              task: () => { },
-            }
-          }
-          await this.kube.scaleDeployment(this.keycloakDeploymentName, this.cheNamespace, 1)
-          return this.kubeTasks.podStartTasks(this.keycloakSelector, this.cheNamespace)
         },
       },
       {
@@ -302,8 +253,8 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.cheDeploymentName, this.cheNamespace, 0)
-          task.title = `${task.title}...done`
-        } catch (error) {
+          task.title = `${task.title}...[OK]`
+        } catch (error: any) {
           return newError(`Failed to scale ${this.cheDeploymentName} deployment.`, error)
         }
       },
@@ -314,21 +265,9 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.dashboardDeploymentName, this.cheNamespace, 0)
-          task.title = `${task.title}...done`
-        } catch (error) {
+          task.title = `${task.title}...[OK]`
+        } catch (error: any) {
           return newError('Failed to scale dashboard deployment.', error)
-        }
-      },
-    },
-    {
-      title: 'Scale \"keycloak\" deployment to zero',
-      enabled: (ctx: any) => ctx.isKeycloakDeployed && !ctx.isKeycloakStopped,
-      task: async (_ctx: any, task: any) => {
-        try {
-          await this.kube.scaleDeployment(this.keycloakDeploymentName, this.cheNamespace, 0)
-          task.title = `${task.title}...done`
-        } catch (error) {
-          return newError('Failed to scale keycloak deployment.', error)
         }
       },
     },
@@ -338,8 +277,8 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.postgresDeploymentName, this.cheNamespace, 0)
-          task.title = `${task.title}...done`
-        } catch (error) {
+          task.title = `${task.title}...[OK]`
+        } catch (error: any) {
           return newError('Failed to scale postgres deployment.', error)
         }
       },
@@ -350,8 +289,8 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.devfileRegistryDeploymentName, this.cheNamespace, 0)
-          task.title = `${task.title}...done`
-        } catch (error) {
+          task.title = `${task.title}...[OK]`
+        } catch (error: any) {
           return newError('Failed to scale devfile registry deployment.', error)
         }
       },
@@ -362,8 +301,8 @@ export class CheTasks {
       task: async (_ctx: any, task: any) => {
         try {
           await this.kube.scaleDeployment(this.pluginRegistryDeploymentName, this.cheNamespace, 0)
-          task.title = `${task.title}...done`
-        } catch (error) {
+          task.title = `${task.title}...[OK]`
+        } catch (error: any) {
           return newError('Failed to scale plugin registry deployment.', error)
         }
       },
@@ -378,78 +317,112 @@ export class CheTasks {
       {
         title: 'Delete all deployments',
         task: async (_ctx: any, task: any) => {
-          await this.kube.deleteAllDeployments(flags.chenamespace)
-          task.title = `${task.title}...OK`
+          try {
+            await this.kube.deleteAllDeployments(flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: 'Delete all services',
         task: async (_ctx: any, task: any) => {
-          await this.kube.deleteAllServices(flags.chenamespace)
-          task.title = `${task.title}...OK`
+          try {
+            await this.kube.deleteAllServices(flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: 'Delete all ingresses',
-        enabled: (ctx: any) => !ctx.isOpenShift,
+        enabled: (ctx: any) => !ctx[ChectlContext.IS_OPENSHIFT],
         task: async (_ctx: any, task: any) => {
-          await this.kube.deleteAllIngresses(flags.chenamespace)
-          task.title = `${task.title}...OK`
+          try {
+            await this.kube.deleteAllIngresses(flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: 'Delete all routes',
-        enabled: (ctx: any) => ctx.isOpenShift,
+        enabled: (ctx: any) => ctx[ChectlContext.IS_OPENSHIFT],
         task: async (_ctx: any, task: any) => {
-          await this.oc.deleteAllRoutes(flags.chenamespace)
-          task.title = `${task.title}...OK`
+          try {
+            await this.oc.deleteAllRoutes(flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
-        title: 'Delete configmaps for Red Hat OpenShift Dev Spaces server and operator',
+        title: 'Delete ConfigMaps for Red Hat OpenShift Dev Spaces server and operator',
         task: async (_ctx: any, task: any) => {
-          await this.kube.deleteConfigMap('che', flags.chenamespace)
-          await this.kube.deleteConfigMap('devspaces-operator', flags.chenamespace)
-          task.title = `${task.title}...OK`
+          try {
+            await this.kube.deleteConfigMap('che', flags.chenamespace)
+            await this.kube.deleteConfigMap('devspaces-operator', flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: 'Delete rolebindings che, che-workspace-exec and che-workspace-view',
         task: async (_ctx: any, task: any) => {
-          await this.kube.deleteRoleBinding('che', flags.chenamespace)
-          await this.kube.deleteRoleBinding('devspaces-operator', flags.chenamespace)
-          await this.kube.deleteRoleBinding('che-workspace-exec', flags.chenamespace)
-          await this.kube.deleteRoleBinding('che-workspace-view', flags.chenamespace)
-          task.title = `${task.title}...OK`
+          try {
+            await this.kube.deleteRoleBinding('che', flags.chenamespace)
+            await this.kube.deleteRoleBinding('devspaces-operator', flags.chenamespace)
+            await this.kube.deleteRoleBinding('che-workspace-exec', flags.chenamespace)
+            await this.kube.deleteRoleBinding('che-workspace-view', flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: 'Delete service accounts che, che-workspace',
         task: async (_ctx: any, task: any) => {
-          await this.kube.deleteServiceAccount('che', flags.chenamespace)
-          await this.kube.deleteServiceAccount('che-workspace', flags.chenamespace)
-          task.title = `${task.title}...OK`
+          try {
+            await this.kube.deleteServiceAccount('che', flags.chenamespace)
+            await this.kube.deleteServiceAccount('che-workspace', flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: 'Delete PVCs',
         task: async (_ctx: any, task: any) => {
-          await this.kube.deletePersistentVolumeClaim('postgres-data', flags.chenamespace)
-          await this.kube.deletePersistentVolumeClaim('che-data-volume', flags.chenamespace)
-          await this.kube.deletePersistentVolumeClaim('keycloak-data', flags.chenamespace)
-          await this.kube.deletePersistentVolumeClaim('keycloak-log', flags.chenamespace)
-          task.title = `${task.title}...OK`
+          try {
+            await this.kube.deletePersistentVolumeClaim('postgres-data', flags.chenamespace)
+            await this.kube.deletePersistentVolumeClaim('che-data-volume', flags.chenamespace)
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
+          }
         },
       },
       {
         title: `Delete consoleLink ${this.cheConsoleLinkName}`,
         task: async (_ctx: any, task: any) => {
-          const checlusters = await this.kube.getAllCheClusters()
-          // Delete the consoleLink only in case if there no more checluster installed
-          if (checlusters.length === 0) {
-            await this.kube.deleteConsoleLink(this.cheConsoleLinkName)
+          try {
+            const checlusters = await this.kube.getAllCheClusters()
+            // Delete the consoleLink only in case if there no more checluster installed
+            if (checlusters.length === 0) {
+              await this.kube.deleteConsoleLink(this.cheConsoleLinkName)
+            }
+            task.title = `${task.title}...[Ok]`
+          } catch (e: any) {
+            task.title = `${task.title}...[Failed: ${e.message}]`
           }
-          task.title = `${task.title}...OK`
         },
       },
     ]
@@ -464,42 +437,35 @@ export class CheTasks {
         title: 'Wait until Red Hat OpenShift Dev Spaces Server pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.cheSelector, this.cheNamespace)
-          task.title = `${task.title}...done.`
+          task.title = `${task.title}...[Ok]`
         },
       },
       {
         title: 'Wait until Red Hat OpenShift Dev Spaces Dashboard pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.dashboardSelector, this.cheNamespace)
-          task.title = `${task.title}...done.`
-        },
-      },
-      {
-        title: 'Wait until Keycloak pod is deleted',
-        task: async (_ctx: any, task: any) => {
-          await this.kube.waitUntilPodIsDeleted(this.keycloakSelector, this.cheNamespace)
-          task.title = `${task.title}...done.`
+          task.title = `${task.title}...[Ok]`
         },
       },
       {
         title: 'Wait until PostgreSQL pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.postgresSelector, this.cheNamespace)
-          task.title = `${task.title}...done.`
+          task.title = `${task.title}...[Ok]`
         },
       },
       {
         title: 'Wait until Devfile Registry pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.devfileRegistrySelector, this.cheNamespace)
-          task.title = `${task.title}...done.`
+          task.title = `${task.title}...[Ok]`
         },
       },
       {
         title: 'Wait until Plug-in Registry pod is deleted',
         task: async (_ctx: any, task: any) => {
           await this.kube.waitUntilPodIsDeleted(this.pluginRegistrySelector, this.cheNamespace)
-          task.title = `${task.title}...done.`
+          task.title = `${task.title}...[Ok]`
         },
       },
     ]
@@ -513,7 +479,7 @@ export class CheTasks {
         if (namespaceExist) {
           await this.kube.deleteNamespace(flags.chenamespace)
         }
-        task.title = `${task.title}...OK`
+        task.title = `${task.title}...[Ok]`
       },
     }]
   }
@@ -535,59 +501,17 @@ export class CheTasks {
   serverLogsTasks(flags: any, follow: boolean): ReadonlyArray<Listr.ListrTask> {
     return [
       {
-        title: `${follow ? 'Start following' : 'Read'} Operator logs`,
+        title: `${follow ? 'Start following' : 'Read'} logs`,
         task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, CHE_OPERATOR_SELECTOR, ctx.directory, follow)
-          task.title = `${task.title}...done`
-        },
-      },
-      {
-        title: `${follow ? 'Start following' : 'Read'} Red Hat OpenShift Dev Spaces Server logs`,
-        task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.cheSelector, ctx.directory, follow)
-          task.title = `${task.title}...done`
-        },
-      },
-      {
-        title: `${follow ? 'Start following' : 'Read'} PostgreSQL logs`,
-        task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.postgresSelector, ctx.directory, follow)
-          task.title = `${task.title}...done`
-        },
-      },
-      {
-        title: `${follow ? 'Start following' : 'Read'} Keycloak logs`,
-        task: async (ctx: any, task: any) => {
-          await this.che.readPodLog(flags.chenamespace, this.keycloakSelector, ctx.directory, follow)
-          task.title = `${task.title}...done`
-        },
-      },
-      {
-        title: `${follow ? 'Start following' : 'Read'} Plug-in Registry logs`,
-        task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.pluginRegistrySelector, ctx.directory, follow)
-          task.title = `${task.title}...done`
-        },
-      },
-      {
-        title: `${follow ? 'Start following' : 'Read'} Devfile Registry logs`,
-        task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.devfileRegistrySelector, ctx.directory, follow)
-          task.title = `${task.title}...done`
-        },
-      },
-      {
-        title: `${follow ? 'Start following' : 'Read'} Red Hat OpenShift Dev Spaces Dashboard logs`,
-        task: async (ctx: any, task: any) => {
           await this.che.readPodLog(flags.chenamespace, this.dashboardSelector, ctx.directory, follow)
-          task.title = `${task.title}...done`
-        },
-      },
-      {
-        title: `${follow ? 'Start following' : 'Read'} namespace events`,
-        task: async (ctx: any, task: any) => {
+          await this.che.readPodLog(flags.chenamespace, this.cheGatewaySelector, ctx.directory, follow)
           await this.che.readNamespaceEvents(flags.chenamespace, ctx.directory, follow)
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         },
       },
     ]
@@ -603,7 +527,7 @@ export class CheTasks {
             throw new Error(`Red Hat OpenShift Dev Spaces server pod not found in the namespace '${flags.chenamespace}'`)
           }
           ctx.podName = chePods.items[0].metadata!.name!
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         },
       },
       {
@@ -614,14 +538,14 @@ export class CheTasks {
             throw new Error('Red Hat OpenShift Dev Spaces server should be redeployed with \'--debug\' flag')
           }
 
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         },
       },
       {
         title: `Forward port '${flags['debug-port']}'`,
         task: async (ctx: any, task: any) => {
           await this.kube.portForward(ctx.podName, flags.chenamespace, flags['debug-port'])
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         },
       },
     ]
@@ -645,20 +569,20 @@ export class CheTasks {
           const cheUrl = this.che.buildDashboardURL(await this.che.cheURL(flags.chenamespace))
           messages.push(`Users Dashboard           : ${cheUrl}`)
 
-          const cr = await this.kube.getCheCluster(flags.chenamespace)
-          if (ctx.isOpenShift && cr && cr.spec && cr.spec.auth && cr.spec.auth.openShiftoAuth) {
-            if (cr.status && cr.status.openShiftOAuthUserCredentialsSecret) {
+          const checluster = await this.kube.getCheClusterV1(flags.chenamespace)
+          if (ctx[ChectlContext.IS_OPENSHIFT] && checluster?.spec?.auth?.openShiftoAuth) {
+            if (checluster?.status?.openShiftOAuthUserCredentialsSecret) {
               let user = ''
               let password = ''
 
               // read secret from the `openshift-config` namespace
-              let credentialsSecret = await this.kube.getSecret(cr.status.openShiftOAuthUserCredentialsSecret, 'openshift-config')
+              let credentialsSecret = await this.kube.getSecret(checluster.status.openShiftOAuthUserCredentialsSecret, 'openshift-config')
               if (credentialsSecret) {
                 user = base64Decode(credentialsSecret.data!.user)
                 password = base64Decode(credentialsSecret.data!.password)
               } else {
                 // read legacy secret from the `flags.chenamespace` namespace
-                credentialsSecret = await this.kube.getSecret(cr.status.openShiftOAuthUserCredentialsSecret, flags.chenamespace)
+                credentialsSecret = await this.kube.getSecret(checluster.status.openShiftOAuthUserCredentialsSecret, flags.chenamespace)
                 if (credentialsSecret) {
                   user = base64Decode(credentialsSecret.data!.user)
                   password = base64Decode(credentialsSecret.data!.password)
@@ -669,8 +593,6 @@ export class CheTasks {
                 messages.push(`HTPasswd user credentials : "${user}:${password}".`)
               }
             }
-          } else if (!isDevWorkspaceEnabled(ctx)) {
-            messages.push('Admin user login          : "admin:admin". NOTE: must change after first login.')
           }
           messages.push(OUTPUT_SEPARATOR)
 
@@ -684,21 +606,19 @@ export class CheTasks {
             }
             messages.push(OUTPUT_SEPARATOR)
 
-            if (isDevWorkspaceEnabled(ctx)) {
-              if (flags.platform === 'minikube') {
-                messages.push('Dex user credentials      : che@eclipse.org:admin')
-                messages.push('Dex user credentials      : user1@che:password')
-                messages.push('Dex user credentials      : user2@che:password')
-                messages.push('Dex user credentials      : user3@che:password')
-                messages.push('Dex user credentials      : user4@che:password')
-                messages.push('Dex user credentials      : user5@che:password')
-                messages.push(OUTPUT_SEPARATOR)
-              }
+            if (flags.platform === 'minikube') {
+              messages.push('Dex user credentials      : che@eclipse.org:admin')
+              messages.push('Dex user credentials      : user1@che:password')
+              messages.push('Dex user credentials      : user2@che:password')
+              messages.push('Dex user credentials      : user3@che:password')
+              messages.push('Dex user credentials      : user4@che:password')
+              messages.push('Dex user credentials      : user5@che:password')
+              messages.push(OUTPUT_SEPARATOR)
             }
           }
 
           ctx.highlightedMessages = messages.concat(ctx.highlightedMessages)
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
         },
       },
     ]
@@ -710,7 +630,7 @@ export class CheTasks {
         title: 'Red Hat OpenShift Dev Spaces status check',
         task: async (ctx, task) => {
           const cheApi = CheApiClient.getInstance(ctx.cheURL + '/api')
-          task.title = `${task.title}...done`
+          task.title = `${task.title}...[OK]`
           return cheApi.isCheServerReady()
         },
       },
