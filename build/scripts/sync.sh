@@ -108,13 +108,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|Che workspaces|Red Hat OpenShift Dev Spaces workspaces|g" \
 			\
 			-e "s| when both minishift and OpenShift are stopped||" \
-			-e "s|resource: Kubernetes/OpenShift/Helm|resource|g" \
-			-e "/import \{ HelmTasks \} from '..\/..\/tasks\/installers\/helm'/d" \
-			-e "/import \{ MinishiftAddonTasks \} from '..\/..\/tasks\/installers\/minishift-addon'/d" \
-			-e "/    const helmTasks = new HelmTasks\(flags\)/d" \
-			-e "/    const (minishiftAddonTasks|msAddonTasks) = new MinishiftAddonTasks\(\)/d" \
-			-e '/.+tasks.add\(helmTasks.+/d' \
-			-e '/.+tasks.add\((minishiftAddonTasks|msAddonTasks).+/d' \
+			-e "s|resource: Kubernetes/OpenShift|resource|g" \
 			-e "s|(const DEFAULT_CHE_OPERATOR_IMAGE_NAME =).+|\1 'registry.redhat.io/devspaces/devspaces-rhel8-operator'|g" \
 			\
 			-e "s|(const CHE_CLUSTER_CR_NAME =).+|\1 'devspaces'|g" \
@@ -142,7 +136,7 @@ pushd "${TARGETDIR}" >/dev/null
 	while IFS= read -r -d '' d; do
 		echo "[INFO] Delete ${d#./}"
 		rm -f "$d"
-	done <   <(find . -regextype posix-extended -iregex '.+/(helm|minishift|minishift-addon|minikube|microk8s|k8s|docker-desktop)(.test|).ts' -print0)
+	done <   <(find . -regextype posix-extended -iregex '.+/(minikube|microk8s|k8s|docker-desktop)(.test|).ts' -print0)
 popd >/dev/null
 
 # Update prepare-che-operator-templates.js
@@ -168,7 +162,7 @@ platformString="    platform: string({\n\
 installerString="    installer: string({\n\
       char: 'a',\n\
       description: 'Installer type. If not set, default is "olm" for OpenShift >= 4.2, and "operator" for earlier versions.',\n\
-      options: ['olm', 'operator']\n\
+      options: ['olm', 'operator'],\n\
     }),"; # echo -e "$installerString"
 clusterMonitoringString="    'cluster-monitoring': boolean({\n\
       default: false,\n\
@@ -182,10 +176,10 @@ pushd "${TARGETDIR}" >/dev/null
 	for d in src/commands/server/update.ts src/commands/server/deploy.ts; do
 		echo "[INFO] Convert ${d}"
 		mkdir -p "${TARGETDIR}/${d%/*}"
-		perl -0777 -p -i -e 's|(\ +platform: string\(\{.*?\}\),)| ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
+		perl -0777 -p -i -e 's|(\ +platform: string\(\{.*?\}\),)| ${1} =~ /.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
 		sed -r -e "s#INSERT-CONTENT-HERE#${platformString}#" -i "${TARGETDIR}/${d}"
 
-		perl -0777 -p -i -e 's|(\ +installer: string\(\{.*?\}\),)| ${1} =~ /.+minishift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
+		perl -0777 -p -i -e 's|(\ +installer: string\(\{.*?\}\),)| ${1} =~ /.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
 		sed -r -e "s#INSERT-CONTENT-HERE#${installerString}#" -i "${TARGETDIR}/${d}"
 
 		# Remove --domain flag
@@ -238,7 +232,7 @@ pushd "${TARGETDIR}" >/dev/null
 		echo "[INFO] Convert ${d}"
 		mkdir -p "${TARGETDIR}/${d%/*}"
 		sed -i -r -e '/.+BEGIN CHE ONLY$/,/.+END CHE ONLY$/d' "${TARGETDIR}/${d}"
-		sed -r -e "/.*(import|const|protected|new).+(Helm|Minishift|DockerDesktop|K8s|MicroK8s|Minikube).*Tasks.*/d" -i "${TARGETDIR}/${d}"
+		sed -r -e "/.*(import|const|protected|new).+(DockerDesktop|K8s|MicroK8s|Minikube).*Tasks.*/d" -i "${TARGETDIR}/${d}"
 		sed -r -e "s/(.+return).+configureApiServerForDex.+/\1 []/" -i "${TARGETDIR}/${d}"
 	done
 popd >/dev/null
@@ -279,16 +273,8 @@ replaceFile="${TARGETDIR}/package.json"
 if [[ -f ${replaceFile} ]]; then
 	echo "[INFO] Convert package.json (sed #2)"
 	sed -i ${replaceFile} -r \
-		-e "s#npm run -s postinstall-helm \&\& ##g" \
-		-e "s#npm run -s postinstall-minishift-addon \&\& ##g" \
 		-e '/"eclipse-devspaces-operator": ".+"/d' \
-		-e 's# eclipse-che-minishift # #g' \
-		-e '/"eclipse-che-minishift":/d' \
-		-e 's# \&\& rimraf node_modules/eclipse-che-minishift##g' \
-		-e '/"postinstall-minishift-addon":/d' \
-		-e '/"postinstall-helm":/d' \
 		-e '/"e2e-minikube":/d' \
-		-e '/"e2e-minishift":/d' \
 		-e 's#eclipse-devspaces-operator#devspaces-operator#g' \
 		-e "s|devspaces-operator|devspaces-operator|g"
 
