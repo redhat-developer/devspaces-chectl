@@ -28,7 +28,7 @@ import { findWorkingNamespace, getCommandSuccessMessage, notifyCommandCompletedS
 import Listr = require('listr')
 
 export default class Delete extends Command {
-  static description = 'delete any Red Hat OpenShift Dev Spaces related resource: Kubernetes/OpenShift'
+  static description = 'delete any Red Hat OpenShift Dev Spaces related resource'
 
   static flags: flags.Input<any> = {
     help: flags.help({ char: 'h' }),

@@ -79,13 +79,14 @@ export default class Deploy extends Command {
     }),
     platform: string({
       char: 'p',
-      description: 'Type of Kubernetes platform.',
-      options: ['minikube', 'k8s', 'openshift', 'microk8s', 'docker-desktop', 'crc'],
+      description: 'Type of OpenShift platform. Valid values are \"openshift\", \"crc (for CodeReady Containers)\".',
+      options: ['openshift', 'crc'],
+      default: 'openshift',
     }),
     installer: string({
       char: 'a',
-      description: 'Installer type. If not set, default is "olm" for OpenShift 4.x platform otherwise "operator".',
-      options: ['operator', 'olm'],
+      description: 'Installer type. If not set, default is olm for OpenShift >= 4.2, and operator for earlier versions.',
+      options: ['olm', 'operator'],
     }),
     debug: boolean({
       description: 'Enables the debug mode for Red Hat OpenShift Dev Spaces server. To debug Red Hat OpenShift Dev Spaces server from localhost use \'server:debug\' command.',

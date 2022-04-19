@@ -61,9 +61,8 @@ export default class Update extends Command {
   static flags: flags.Input<any> = {
     installer: string({
       char: 'a',
-      description: 'Installer type. If not set, default is autodetected depending on previous installation.',
-      options: ['operator', 'olm'],
-      hidden: true,
+      description: 'Installer type. If not set, default is olm for OpenShift >= 4.2, and operator for earlier versions.',
+      options: ['olm', 'operator'],
     }),
     chenamespace: cheNamespace,
     batch,
