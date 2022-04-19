@@ -170,7 +170,7 @@ _See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/de
 
 ## `dsc server:delete`
 
-delete any Red Hat OpenShift Dev Spaces related resource: Kubernetes/OpenShift
+delete any Red Hat OpenShift Dev Spaces related resource
 
 ```
 USAGE
@@ -203,8 +203,8 @@ USAGE
   $ dsc server:deploy
 
 OPTIONS
-  -a, --installer=operator|olm
-      Installer type. If not set, default is "olm" for OpenShift 4.x platform otherwise "operator".
+  -a, --installer=olm|operator
+      Installer type. If not set, default is olm for OpenShift >= 4.2, and operator for earlier versions.
 
   -d, --directory=directory
       Directory to store logs into
@@ -221,8 +221,8 @@ OPTIONS
   -o, --cheboottimeout=cheboottimeout
       (required) [default: 40000] Red Hat OpenShift Dev Spaces server bootstrap timeout (in milliseconds)
 
-  -p, --platform=minikube|k8s|openshift|microk8s|docker-desktop|crc
-      Type of Kubernetes platform.
+  -p, --platform=openshift|crc
+      [default: openshift] Type of OpenShift platform. Valid values are "openshift", "crc (for CodeReady Containers)".
 
   -t, --templates=templates
       Path to the templates folder
@@ -433,6 +433,9 @@ USAGE
   $ dsc server:update
 
 OPTIONS
+  -a, --installer=olm|operator                             Installer type. If not set, default is olm for OpenShift >=
+                                                           4.2, and operator for earlier versions.
+
   -h, --help                                               show CLI help
 
   -n, --chenamespace=chenamespace                          Red Hat OpenShift Dev Spaces Openshift Project. Default to
