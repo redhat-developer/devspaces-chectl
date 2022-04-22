@@ -49,18 +49,18 @@ export default class Start extends Command {
       apiTasks.testApiTasks(flags),
       {
         title: '👀  Looking for an already existing Red Hat OpenShift Dev Spaces instance',
-        task: () => new Listr(cheTasks.checkIfCheIsInstalledTasks(flags)),
+        task: () => new Listr(cheTasks.getCheckIfCheIsInstalledTasks(flags)),
       },
     ], ctx.listrOptions)
 
     const logsTasks = new Listr([{
       title: 'Following Red Hat OpenShift Dev Spaces logs',
-      task: () => new Listr(cheTasks.serverLogsTasks(flags, true)),
+      task: () => new Listr(cheTasks.getServerLogsTasks(flags, true)),
     }], ctx.listrOptions)
 
     const startCheTasks = new Listr([{
       title: 'Starting Red Hat OpenShift Dev Spaces',
-      task: () => new Listr(cheTasks.scaleCheUpTasks()),
+      task: () => new Listr(cheTasks.getSaleCheUpTasks()),
     }], ctx.listrOptions)
 
     try {
