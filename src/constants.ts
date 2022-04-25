@@ -47,7 +47,7 @@ export const LEGACY_CHE_NAMESPACE = 'workspaces'
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'devspaces'
 export const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME = 'devspaces-subscription'
 export const OPERATOR_GROUP_NAME = 'devspaces-operator-group'
-export const CSV_PREFIX = 'eclipse-che'
+export const CSV_PREFIX = 'devspacesoperator'
 export const DEVWORKSPACE_CSV_PREFIX = 'devworkspace-operator'
 // OLM channels
 export const OLM_STABLE_CHANNEL_NAME = 'latest'
