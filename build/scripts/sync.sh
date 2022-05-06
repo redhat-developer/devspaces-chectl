@@ -122,9 +122,9 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|(const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME =).+|\1 'devspaces-subscription'|g" \
 			-e "s|(const OPERATOR_GROUP_NAME =).+|\1 'devspaces-operator-group'|g" \
 			-e "s|(const OPENSHIFT_OLM_CATALOG =).+|\1 'redhat-operators'|g" \
-			-e "s|(const DEFAULT_OLM_SUGGESTED_NAMESPACE =).+|\1 'openshift-workspaces'|g" \
-			-e "s|(const DEFAULT_CHE_NAMESPACE =).+|\1 'openshift-workspaces'|g" \
-			-e "s|(const LEGACY_CHE_NAMESPACE =).+|\1 'workspaces'|g" \
+			-e "s|(const DEFAULT_OLM_SUGGESTED_NAMESPACE =).+|\1 'openshift-operators'|g" \
+			-e "s|(const DEFAULT_CHE_NAMESPACE =).+|\1 'openshift-operators'|g" \
+			-e "s|(const LEGACY_CHE_NAMESPACE =).+|\1 'openshift-workspaces'|g" \
 			-e "s|(CVS_PREFIX =).+|\1 'devspacesoperator'|g" \
 			\
 			-e "s|\"Red Hat OpenShift Dev Spaces will be deployed in Multi-User mode.+mode.\"|'Red Hat OpenShift Dev Spaces can only be deployed in Multi-User mode.'|" \
