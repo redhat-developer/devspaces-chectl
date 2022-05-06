@@ -1,7 +1,0 @@
-#!/bin/bash
-echo
-echo "The 'crwctl' (CRW ConTroL) executable is deprecated, as Red Hat CodeReady Workspaces has been renamed."
-echo
-echo "For Red Hat OpenShift Dev Spaces, please update your scripts to use 'dsc' (Dev Spaces Control)."
-echo
-exit 3
