@@ -288,9 +288,16 @@ if [[ $DO_QUAY_BUILD -eq 1 ]]; then
     popd >/dev/null 
 fi
 
+########################################################################
+echo "[INFO] 4. include crwctl binary/readme"
+########################################################################
+pushd $DSC_DIR >/dev/null
+    ./build/scripts/add-crwctl.sh
+popd >/dev/null 
+
 if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
     ########################################################################
-    echo "[INFO] 4. Publish to GH"
+    echo "[INFO] 5. Publish to GH"
     ########################################################################
 
     # requires hub cli
@@ -330,7 +337,7 @@ fi
 
 if [[ $PUBLISH_ARTIFACTS_TO_RCM -eq 1 ]]; then
     ########################################################################
-    echo "[INFO] 5. Publish to RCM"
+    echo "[INFO] 6. Publish to RCM"
     ########################################################################
     if [[ ! ${WORKSPACE} ]] || [[ ! -d ${WORKSPACE} ]]; then
         WORKSPACE=/tmp
