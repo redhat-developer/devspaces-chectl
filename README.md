@@ -304,6 +304,9 @@ OPTIONS
   --postgres-pvc-storage-class-name=postgres-pvc-storage-class-name
       persistent volume storage class name to use to store Red Hat OpenShift Dev Spaces postgres database
 
+  --skip-cert-manager
+      Skip installing Cert Manager on the Kubernetes cluster.
+
   --skip-cluster-availability-check
       Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.
 
