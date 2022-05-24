@@ -40,7 +40,7 @@ export const CHE_CLUSTER_CR_NAME = 'devspaces'
 // operator
 export const OPERATOR_DEPLOYMENT_NAME = 'devspaces-operator'
 export const CHE_OPERATOR_SELECTOR = 'app=devspaces-operator'
-export const DEFAULT_CHE_NAMESPACE = 'openshift-operators'
+export const DEFAULT_CHE_NAMESPACE = 'openshift-devspaces'
 export const LEGACY_CHE_NAMESPACE = 'openshift-workspaces'
 
 // OLM common
