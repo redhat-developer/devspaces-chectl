@@ -106,7 +106,7 @@ OPTIONS
       show CLI help
 
   -n, --chenamespace=chenamespace
-      Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-operators'
+      Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-devspaces'
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
@@ -127,7 +127,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-operators'
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-devspaces'
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
@@ -160,7 +160,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-operators'
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-devspaces'
   --debug-port=debug-port          [default: 8000] Red Hat OpenShift Dev Spaces server debug port
   --skip-kubernetes-health-check   Skip Kubernetes health check
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
@@ -178,7 +178,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-operators'
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-devspaces'
 
   -y, --yes                        Automatic yes to prompts; assume "yes" as answer to all prompts and run
                                    non-interactively
@@ -216,7 +216,7 @@ OPTIONS
       Red Hat OpenShift Dev Spaces server container image
 
   -n, --chenamespace=chenamespace
-      Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-operators'
+      Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-devspaces'
 
   -o, --cheboottimeout=cheboottimeout
       (required) [default: 40000] Red Hat OpenShift Dev Spaces server bootstrap timeout (in milliseconds)
@@ -345,7 +345,7 @@ USAGE
 OPTIONS
   -d, --directory=directory        Directory to store logs into
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-operators'
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-devspaces'
   --skip-kubernetes-health-check   Skip Kubernetes health check
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
@@ -365,7 +365,7 @@ OPTIONS
   -h, --help                                               show CLI help
 
   -n, --chenamespace=chenamespace                          Red Hat OpenShift Dev Spaces Openshift Project. Default to
-                                                           'openshift-operators'
+                                                           'openshift-devspaces'
 
   --batch                                                  Batch mode. Running a command without end user interaction.
 
@@ -396,7 +396,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-operators'
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-devspaces'
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
@@ -412,7 +412,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-operators'
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-devspaces'
 
   --che-selector=che-selector      [default: app=devspaces,component=devspaces] Selector for Red Hat OpenShift Dev
                                    Spaces server resources
@@ -439,7 +439,7 @@ OPTIONS
   -h, --help                                               show CLI help
 
   -n, --chenamespace=chenamespace                          Red Hat OpenShift Dev Spaces Openshift Project. Default to
-                                                           'openshift-operators'
+                                                           'openshift-devspaces'
 
   -t, --templates=templates                                Path to the templates folder
 
