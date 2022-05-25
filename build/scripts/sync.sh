@@ -123,7 +123,9 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|(const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME =).+|\1 'devspaces-subscription'|g" \
 			-e "s|(const OPERATOR_GROUP_NAME =).+|\1 'devspaces-operator-group'|g" \
 			-e "s|(const OPENSHIFT_OLM_CATALOG =).+|\1 'redhat-operators'|g" \
-			-e "s|(const DEFAULT_OLM_SUGGESTED_NAMESPACE =).+|\1 'openshift-operators'|g" \
+			`# CRW-2998 the CHE_NAMESPACE and the OLM_SUGGESTED_NAMESPACE should BOTH be set to something other than openshift-operators` \
+			`# this does not change the namespace used for the operator subscription... just the cheCluster and deployed pods` \
+			-e "s|(const DEFAULT_OLM_SUGGESTED_NAMESPACE =).+|\1 'openshift-devspaces'|g" \
 			-e "s|(const DEFAULT_CHE_NAMESPACE =).+|\1 'openshift-devspaces'|g" \
 			-e "s|(const LEGACY_CHE_NAMESPACE =).+|\1 'openshift-workspaces'|g" \
 			-e "s|(CVS_PREFIX =).+|\1 'devspacesoperator'|g" \
