@@ -290,7 +290,7 @@ OPTIONS
       This parameter is used only when the installer is the 'olm'.
 
   --[no-]olm-suggested-namespace
-      Indicate to deploy Red Hat OpenShift Dev Spaces in OLM suggested namespace: 'openshift-operators'.
+      Indicate to deploy Red Hat OpenShift Dev Spaces in OLM suggested namespace: 'openshift-devspaces'.
       Flag 'chenamespace' is ignored in this case
       This parameter is used only when the installer is 'olm'.
 
