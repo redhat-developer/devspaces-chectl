@@ -289,11 +289,6 @@ OPTIONS
       If options was not set, will be used default version for package manifest.
       This parameter is used only when the installer is the 'olm'.
 
-  --[no-]olm-suggested-namespace
-      Indicate to deploy Red Hat OpenShift Dev Spaces in OLM suggested namespace: 'openshift-devspaces'.
-      Flag 'chenamespace' is ignored in this case
-      This parameter is used only when the installer is 'olm'.
-
   --package-manifest-name=package-manifest-name
       Package manifest name to subscribe to Red Hat OpenShift Dev Spaces OLM package manifest.
       This parameter is used only when the installer is the 'olm'.
