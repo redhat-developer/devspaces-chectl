@@ -32,7 +32,6 @@ export const DEFAULT_CA_CERT_FILE_NAME = 'cheCA.crt'
 export const OPERATOR_DEPLOYMENT_NAME = 'devspaces-operator'
 export const CHE_OPERATOR_SELECTOR = 'app=devspaces-operator'
 export const DEFAULT_CHE_NAMESPACE = 'openshift-devspaces'
-export const LEGACY_CHE_NAMESPACE = 'openshift-workspaces'
 
 // OLM common
 export const DEFAULT_CHE_OLM_PACKAGE_NAME = 'devspaces'
@@ -52,7 +51,6 @@ export const CUSTOM_CATALOG_SOURCE_NAME = 'devspaces-custom-catalog-source'
 export const NEXT_CATALOG_SOURCE_NAME = 'eclipse-che-preview'
 export const NEXT_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR = 'custom-devworkspace-operator-catalog'
 export const STABLE_CATALOG_SOURCE_DEV_WORKSPACE_OPERATOR = 'stable-custom-devworkspace-operator-catalog'
-export const DEFAULT_OLM_SUGGESTED_NAMESPACE = 'openshift-devspaces'
 export const KUBERNETES_OLM_CATALOG = 'operatorhubio-catalog'
 export const OPENSHIFT_OLM_CATALOG = 'redhat-operators'
 
