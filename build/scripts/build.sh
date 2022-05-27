@@ -119,7 +119,7 @@ SHORT_SHA1=$(git rev-parse --short=4 HEAD)
 
 # for RC and CI, prerelease=true
 PRE_RELEASE="--prerelease"
-releaseName="dsc-CI"
+releaseName="CI-dsc"
 
 if [[ "${versionSuffix}" ]]; then
     CHECTL_VERSION="${CSV_VERSION}-${versionSuffix}"
@@ -139,9 +139,9 @@ if [[ $versionSuffix == "GA" ]]; then
     repoFlag="--stage"
     repoOrg="devspaces"
     PRE_RELEASE="--release" # not a --prerelease
-    releaseName="dsc"
+    releaseName="GA-dsc"
 elif [[ $versionSuffix != "" ]]; then
-    releaseName="dsc-${versionSuffix}"
+    releaseName="${versionSuffix}-dsc"
 else
     # for CI, use simple floating tag 3.yy
     CRW_SERVER_TAG=${CRW_VERSION}
