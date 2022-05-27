@@ -382,7 +382,7 @@ if [[ $PUBLISH_ARTIFACTS_TO_RCM -eq 1 ]]; then
     ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/devspaces/devspaces-${CSV_VERSION}/ && ls -la ${TARBALL_PREFIX}*" || true
 
     # trigger release
-    ssh "${DESTHOST}" "/mnt/redhat/scripts/rel-eng/utility/bus-clients/stage-mw-release devspaces-${CSV_VERSION}" || true
+    ssh "${DESTHOST}" "kinit -k -t ~/crw_crw-build-keytab crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM; /mnt/redhat/scripts/rel-eng/utility/bus-clients/stage-mw-release devspaces-${CSV_VERSION}"
 
     # drop connection to remote host so Jenkins cleanup won't delete files we just created
     fusermount -uz ${WORKSPACE}/RCMG-ssh || true
