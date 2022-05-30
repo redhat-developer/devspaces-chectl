@@ -119,13 +119,15 @@ SHORT_SHA1=$(git rev-parse --short=4 HEAD)
 
 # for RC and CI, prerelease=true
 PRE_RELEASE="--prerelease"
-releaseName="CI-dsc"
 
+# TODO use CUSTOM_TAG everywhere instead of simpler CHECTL_VERSION
 if [[ "${versionSuffix}" ]]; then
     CHECTL_VERSION="${CSV_VERSION}-${versionSuffix}"
+    VERSION_SUFFIX="${versionSuffix}"
     CUSTOM_TAG="${CSV_VERSION}-${versionSuffix}-${SHORT_SHA1}"
 else
     CHECTL_VERSION="${CSV_VERSION}-$CURRENT_DAY"
+    VERSION_SUFFIX="CI"
     CUSTOM_TAG="${CSV_VERSION}-$CURRENT_DAY-${SHORT_SHA1}"
 fi
 
@@ -139,14 +141,15 @@ if [[ $versionSuffix == "GA" ]]; then
     repoFlag="--stage"
     repoOrg="devspaces"
     PRE_RELEASE="--release" # not a --prerelease
-    releaseName="GA-dsc"
-elif [[ $versionSuffix != "" ]]; then
-    releaseName="${versionSuffix}-dsc"
 else
+    # TODO can we just remove all these CRW_*_TAG values? if they're only for operator mode (OCP 3.11) then surely they're no longer needed?
     # for CI, use simple floating tag 3.yy
     CRW_SERVER_TAG=${CRW_VERSION}
     CRW_OPERATOR_TAG=${CRW_VERSION}
 fi
+
+# TODO can we just remove all these CRW_*_TAG values? if they're only for operator mode (OCP 3.11) then surely they're no longer needed?
+# or is this check useful to validate that an image exists in stage when building a GA image?
 # for RC or GA, compute a 3.yy-zzz tag (not floating tag 3.yy)
 if [[ ! $CRW_SERVER_TAG ]] && [[ ! $CRW_OPERATOR_TAG ]]; then 
     pushd /tmp  >/dev/null
@@ -193,6 +196,7 @@ if [[ $DO_SYNC -eq 1 ]]; then
     popd >/dev/null
 
     pushd $DSC_DIR >/dev/null
+        # TODO can we just remove all these CRW_*_TAG values? if they're only for operator mode (OCP 3.11) then surely they're no longer needed?
         ./build/scripts/sync.sh -b ${MIDSTM_BRANCH} -s ${SOURCE_DIR} -t ${DSC_DIR} \
             --crw-version ${CRW_VERSION} --server-tag ${CRW_SERVER_TAG} --operator-tag ${CRW_OPERATOR_TAG}
         # commit changes
@@ -309,8 +313,8 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
     fi
 
     # delete existing CI pre-release and replace it, so timestamp is fresh
-    if [[ $releaseName == "dsc-CI" ]] || [[ $PRE_RELEASE == "--prerelease" ]]; then # CI build
-        /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --delete-assets -v "${CSV_VERSION}" -b "${MIDSTM_BRANCH}" --asset-name "${releaseName}"
+    if [[ "${VERSION_SUFFIX}" == "CI" ]] || [[ $PRE_RELEASE == "--prerelease" ]]; then # CI build
+        /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --delete-assets -b "${MIDSTM_BRANCH}" -v "${CSV_VERSION}-${VERSION_SUFFIX}" --asset-name "dsc"
     fi
 
     # in case API is running slow, sleep for a bit before trying to push files into the freshly created release
@@ -319,10 +323,10 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
     # upload artifacts for each platform + sources tarball
     for channel in quay redhat; do 
         pushd ${DSC_DIR}/dist/channels/${channel}/
-            echo "[INFO] Publish $channel assets to ${CSV_VERSION}-${releaseName}-assets GH release"
-            /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --publish-assets -v "${CSV_VERSION}" -b "${MIDSTM_BRANCH}" --asset-name "${releaseName}" "devspaces-*tar.gz"
+            echo "[INFO] Publish $channel assets to ${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets GH release"
+            /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --publish-assets -b "${MIDSTM_BRANCH}" -v "${CSV_VERSION}-${VERSION_SUFFIX}" --asset-name "dsc" "devspaces-*tar.gz"
         popd >/dev/null
-        echo "[INFO] Published assets: https://github.com/redhat-developer/devspaces-chectl/releases/tag/${CSV_VERSION}-${releaseName}-assets"
+        echo "[INFO] Published assets: https://github.com/redhat-developer/devspaces-chectl/releases/tag/${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets"
     done
 
     # cleanup
