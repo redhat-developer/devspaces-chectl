@@ -47,6 +47,7 @@ done
 if [[ ! -d "${SOURCEDIR}" ]]; then usage; fi
 if [[ -z "${TARGETDIR}" ]] || [[ ${TARGETDIR} == "." ]]; then usage; else mkdir -p "${TARGETDIR}"; fi
 
+# TODO can we just remove all these CRW_*_TAG values? if they're only for operator mode (OCP 3.11) then surely they're no longer needed?
 # if not set use crw-3.y-rhel-8 ==> 3.y as the default tag
 if [[ -z "${CRW_SERVER_TAG}" ]];   then CRW_SERVER_TAG=${MIDSTM_BRANCH#*-};   CRW_SERVER_TAG=${CRW_SERVER_TAG%%-*};     fi
 if [[ -z "${CRW_OPERATOR_TAG}" ]]; then CRW_OPERATOR_TAG=${MIDSTM_BRANCH#*-}; CRW_OPERATOR_TAG=${CRW_OPERATOR_TAG%%-*}; fi
