@@ -120,19 +120,16 @@ SHORT_SHA1=$(git rev-parse --short=4 HEAD)
 # for RC and CI, prerelease=true
 PRE_RELEASE="--prerelease"
 
-# TODO use CUSTOM_TAG everywhere instead of simpler CHECTL_VERSION
 if [[ "${versionSuffix}" ]]; then
-    CHECTL_VERSION="${CSV_VERSION}-${versionSuffix}"
     VERSION_SUFFIX="${versionSuffix}"
-    CUSTOM_TAG="${CSV_VERSION}-${versionSuffix}-${SHORT_SHA1}"
+    DSC_TAG="${CSV_VERSION}-${versionSuffix}-${SHORT_SHA1}"
 else
-    CHECTL_VERSION="${CSV_VERSION}-$CURRENT_DAY"
     VERSION_SUFFIX="CI"
-    CUSTOM_TAG="${CSV_VERSION}-$CURRENT_DAY-${SHORT_SHA1}"
+    DSC_TAG="${CSV_VERSION}-$CURRENT_DAY-${SHORT_SHA1}"
 fi
 
 # RENAME artifacts to include version in the tarball: devspaces-3.0.0-dsc-*.tar.gz
-TARBALL_PREFIX="devspaces-${CHECTL_VERSION}"
+TARBALL_PREFIX="devspaces-${DSC_TAG}"
 
 # compute latest tags for server and operator from quay; also set prerelease=false for GA
 repoFlag="--quay"
@@ -213,9 +210,9 @@ if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
     ########################################################################
     pushd $DSC_DIR >/dev/null
         # clean up from previous build if applicable
-        jq -M --arg CHECTL_VERSION "${CHECTL_VERSION}-redhat" '.version = $CHECTL_VERSION' package.json > package.json2; mv -f package.json2 package.json
+        jq -M --arg DSC_TAG "${DSC_TAG}-redhat" '.version = $DSC_TAG' package.json > package.json2; mv -f package.json2 package.json
         git diff -u package.json
-        git tag -f "${CUSTOM_TAG}-redhat"
+        git tag -f "${DSC_TAG}-redhat"
         rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/
         echo "Insert SEGMENT_WRITE_KEY = $SEGMENT_WRITE_KEY into src/hooks/analytics/analytics.ts (redhat version)"
         sed -i "s|INSERT-KEY-HERE|${SEGMENT_WRITE_KEY}|g" src/hooks/analytics/analytics.ts
@@ -267,10 +264,10 @@ if [[ $DO_QUAY_BUILD -eq 1 ]]; then
     pushd ${DSC_DIR} >/dev/null
         YAML_REPO="`cat package.json | jq -r '.dependencies["devspaces-operator"]'`-quay"
         jq -M --arg YAML_REPO "${YAML_REPO}" '.dependencies["devspaces-operator"] = $YAML_REPO' package.json > package.json2
-        jq -M --arg CHECTL_VERSION "${CHECTL_VERSION}-quay" '.version = $CHECTL_VERSION' package.json2 > package.json
+        jq -M --arg DSC_TAG "${DSC_TAG}-quay" '.version = $DSC_TAG' package.json2 > package.json
         rm -f package.json2
         git diff -u package.json
-        git tag -f "${CUSTOM_TAG}-quay"
+        git tag -f "${DSC_TAG}-quay"
         rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo
         echo "Insert SEGMENT_WRITE_KEY = $SEGMENT_WRITE_KEY into src/hooks/analytics/analytics.ts (quay version)"
         sed -i "s|INSERT-KEY-HERE|${SEGMENT_WRITE_KEY}|g" src/hooks/analytics/analytics.ts
