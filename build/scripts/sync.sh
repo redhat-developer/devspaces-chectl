@@ -22,8 +22,6 @@ usage () {
 	echo "Example: $0 -b ${MIDSTM_BRANCH} -s /absolute/path/to/chectl -t /absolute/path/to/dsc"
 	echo ""
 	echo "Options:
-	--server-tag ${DEFAULT_TAG}-xx   (instead of default ${DEFAULT_TAG})
-	--operator-tag ${DEFAULT_TAG}-yy (instead of default ${DEFAULT_TAG})
 	--crw-version ${DEFAULT_TAG}     (compute from MIDSTM_BRANCH if not set)
 	"
 	exit 1
@@ -37,8 +35,6 @@ while [[ "$#" -gt 0 ]]; do
 	'-t') TARGETDIR="$2"; TARGETDIR="${TARGETDIR%/}"; shift 1;;
 	'--help'|'-h') usage;;
 	# optional tag overrides
-	'--server-tag') CRW_SERVER_TAG="$2"; shift 1;;
-	'--operator-tag') CRW_OPERATOR_TAG="$2"; shift 1;;
 	'--crw-version') CRW_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
   esac
   shift 1
@@ -47,10 +43,7 @@ done
 if [[ ! -d "${SOURCEDIR}" ]]; then usage; fi
 if [[ -z "${TARGETDIR}" ]] || [[ ${TARGETDIR} == "." ]]; then usage; else mkdir -p "${TARGETDIR}"; fi
 
-# TODO can we just remove all these CRW_*_TAG values? if they're only for operator mode (OCP 3.11) then surely they're no longer needed?
 # if not set use crw-3.y-rhel-8 ==> 3.y as the default tag
-if [[ -z "${CRW_SERVER_TAG}" ]];   then CRW_SERVER_TAG=${MIDSTM_BRANCH#*-};   CRW_SERVER_TAG=${CRW_SERVER_TAG%%-*};     fi
-if [[ -z "${CRW_OPERATOR_TAG}" ]]; then CRW_OPERATOR_TAG=${MIDSTM_BRANCH#*-}; CRW_OPERATOR_TAG=${CRW_OPERATOR_TAG%%-*}; fi
 if [[ -z "${CRW_VERSION}" ]];      then CRW_VERSION=${MIDSTM_BRANCH#*-};      CRW_VERSION=${CRW_VERSION%%-*};           fi
 
 # ignore changes in these files
