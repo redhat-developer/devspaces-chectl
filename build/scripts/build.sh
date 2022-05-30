@@ -119,13 +119,11 @@ SHORT_SHA1=$(git rev-parse --short=4 HEAD)
 
 # for RC and CI, prerelease=true
 PRE_RELEASE="--prerelease"
-
+VERSION_SUFFIX="CI"
+DSC_TAG="${CSV_VERSION}-$CURRENT_DAY-${SHORT_SHA1}"
 if [[ "${versionSuffix}" ]]; then
     VERSION_SUFFIX="${versionSuffix}"
     DSC_TAG="${CSV_VERSION}-${versionSuffix}-${SHORT_SHA1}"
-else
-    VERSION_SUFFIX="CI"
-    DSC_TAG="${CSV_VERSION}-$CURRENT_DAY-${SHORT_SHA1}"
 fi
 
 # RENAME artifacts to include version in the tarball: devspaces-3.0.0-dsc-*.tar.gz
@@ -135,6 +133,7 @@ TARBALL_PREFIX="devspaces-${DSC_TAG}"
 repoFlag="--quay"
 repoOrg="devspaces"
 if [[ $versionSuffix == "GA" ]]; then
+    DSC_TAG="${CSV_VERSION}-${versionSuffix}"
     repoFlag="--stage"
     repoOrg="devspaces"
     PRE_RELEASE="--release" # not a --prerelease
