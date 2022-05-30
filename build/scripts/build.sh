@@ -313,7 +313,7 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
     fi
 
     # delete existing CI pre-release and replace it, so timestamp is fresh
-    if [[ "${versionSuffix}" == "CI" ]] || [[ $PRE_RELEASE == "--prerelease" ]]; then # CI build
+    if [[ "${VERSION_SUFFIX}" == "CI" ]] || [[ $PRE_RELEASE == "--prerelease" ]]; then # CI build
         /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --delete-assets -b "${MIDSTM_BRANCH}" -v "${CSV_VERSION}-${VERSION_SUFFIX}" --asset-name "dsc"
     fi
 
