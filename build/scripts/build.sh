@@ -141,44 +141,8 @@ if [[ $versionSuffix == "GA" ]]; then
     repoFlag="--stage"
     repoOrg="devspaces"
     PRE_RELEASE="--release" # not a --prerelease
-else
-    # TODO can we just remove all these CRW_*_TAG values? if they're only for operator mode (OCP 3.11) then surely they're no longer needed?
-    # for CI, use simple floating tag 3.yy
-    CRW_SERVER_TAG=${CRW_VERSION}
-    CRW_OPERATOR_TAG=${CRW_VERSION}
 fi
 
-# TODO can we just remove all these CRW_*_TAG values? if they're only for operator mode (OCP 3.11) then surely they're no longer needed?
-# or is this check useful to validate that an image exists in stage when building a GA image?
-# for RC or GA, compute a 3.yy-zzz tag (not floating tag 3.yy)
-if [[ ! $CRW_SERVER_TAG ]] && [[ ! $CRW_OPERATOR_TAG ]]; then 
-    pushd /tmp  >/dev/null
-        curl -sSLO https://raw.githubusercontent.com/redhat-developer/devspaces/${MIDSTM_BRANCH}/product/getLatestImageTags.sh && \
-        chmod +x getLatestImageTags.sh
-    popd >/dev/null
-    set -x; CRW_SERVER_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/server-rhel8" --tag "${CRW_VERSION}-" ${repoFlag}); set +x
-    if [[ $CRW_SERVER_TAG == *":???" ]]; then # instead of stage, check prod
-        set -x; CRW_SERVER_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/server-rhel8" --tag "${CRW_VERSION}-" --rhec --freshmaker); set +x
-    fi
-    if [[ $CRW_SERVER_TAG == *":???" ]]; then
-        echo "[ERROR] Server tag not found: $CRW_SERVER_TAG"
-        echo "[ERROR] For GA suffix, images must be in stage first!"
-        exit 1
-    fi
-    CRW_SERVER_TAG=${CRW_SERVER_TAG##*:}
-
-    set -x; CRW_OPERATOR_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/devspaces-rhel8-operator" --tag "${CRW_VERSION}-" ${repoFlag}); set +x
-    if [[ $CRW_OPERATOR_TAG == *":???" ]]; then
-        set -x; CRW_OPERATOR_TAG=$(/tmp/getLatestImageTags.sh -b ${MIDSTM_BRANCH} -c "${repoOrg}/devspaces-rhel8-operator" --tag "${CRW_VERSION}-" --rhec --freshmaker); set +x
-    fi
-    if [[ $CRW_OPERATOR_TAG == *":???" ]]; then
-        echo "[ERROR] Operator tag not found: $CRW_OPERATOR_TAG"
-        echo "[ERROR] For GA suffix, images must be in stage first!"
-        exit 1
-    fi
-    CRW_OPERATOR_TAG=${CRW_OPERATOR_TAG##*:}
-fi
-echo "Using server:${CRW_SERVER_TAG} + operator:${CRW_OPERATOR_TAG}"
 popd >/dev/null
 
 set -x
@@ -196,9 +160,8 @@ if [[ $DO_SYNC -eq 1 ]]; then
     popd >/dev/null
 
     pushd $DSC_DIR >/dev/null
-        # TODO can we just remove all these CRW_*_TAG values? if they're only for operator mode (OCP 3.11) then surely they're no longer needed?
         ./build/scripts/sync.sh -b ${MIDSTM_BRANCH} -s ${SOURCE_DIR} -t ${DSC_DIR} \
-            --crw-version ${CRW_VERSION} --server-tag ${CRW_SERVER_TAG} --operator-tag ${CRW_OPERATOR_TAG}
+            --crw-version ${CRW_VERSION}
         # commit changes
         set -x
         git add .
