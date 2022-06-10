@@ -337,11 +337,6 @@ if [[ $PUBLISH_ARTIFACTS_TO_RCM -eq 1 ]]; then
     ${DSC_DIR}/dist/channels/redhat/*gz \
     ${WORKSPACE}/${mnt}-ssh/devspaces-${CSV_VERSION}/
 
-    # clone files so we have a dsc3 version too
-    # devspaces-3.y.z-GA-dsc-linux-x64.tar.gz -> devspaces-3.y.z-GA-dsc3-linux-x64.tar.gz
-    # DO NOT INCLUDE the -quay- versions!
-    ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/devspaces/devspaces-${CSV_VERSION}/ && for d in ${TARBALL_PREFIX}-dsc-*; do cp \$d \${d/dsc-/dsc3-}; done" || true
-
     # echo what we have on disk
     ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/devspaces/devspaces-${CSV_VERSION}/ && ls -la ${TARBALL_PREFIX}*" || true
 
