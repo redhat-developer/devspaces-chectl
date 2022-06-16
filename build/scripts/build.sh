@@ -40,7 +40,7 @@ if [[ -d ${WORKSPACE}/sources ]]; then
     SOURCE_DIR=${WORKSPACE}/sources # path to where chectl is checked out
 fi
 if [[ -d "${WORKSPACE}/devspaces-images" ]]; then 
-    CRWIMG_DIR="${WORKSPACE}/devspaces-images" 
+    DSIMG_DIR="${WORKSPACE}/devspaces-images" 
 fi
 if [[ -d "${WORKSPACE}/devspaces-chectl" ]]; then 
     DSC_DIR="${WORKSPACE}/devspaces-chectl" 
@@ -84,11 +84,11 @@ while [[ "$#" -gt 0 ]]; do
 	# paths to use for input and ouput
 	'-s') SOURCE_DIR="$2"; SOURCE_DIR="${SOURCE_DIR%/}"; shift 1;;
 	'-t') DSC_DIR="$2"; DSC_DIR="${DSC_DIR%/}"; shift 1;;
-	'-i') CRWIMG_DIR="$2"; CRWIMG_DIR="${CRWIMG_DIR%/}"; shift 1;;
+	'-i'DSIMG_DIR="$2"; DSIMG_DIR="${DSIMG_DIR%/}"; shift 1;;
 	'--help'|'-h') usageSegKey;;
 	# optional tag overrides
     '--suffix') versionSuffix="$2"; shift 1;;
-	'--crw-version') CRW_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
+	'--crw-version') DS_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
     '--gh') PUBLISH_ARTIFACTS_TO_GITHUB=1;;
     '--rcm') PUBLISH_ARTIFACTS_TO_RCM=1;;
     '--desthost') DESTHOST="$2"; shift 1;;
@@ -102,9 +102,9 @@ done
 
 if [[ ! "${SEGMENT_WRITE_KEY}" ]]; then usageSegKey; fi
 if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]] && [[ ! "${GITHUB_TOKEN}" ]]; then usageSegKey; fi
-if [[ ! -d "${SOURCE_DIR}" ]] || [[ ! -d "${DSC_DIR}" ]] || [[ ! -d "${CRWIMG_DIR}" ]]; then usage; fi
+if [[ ! -d "${SOURCE_DIR}" ]] || [[ ! -d "${DSC_DIR}" ]] || [[ ! -d "${DSIMG_DIR}" ]]; then usage; fi
 if [[ ${DSC_DIR} == "." ]]; then usage; fi
-if [[ ! ${CRW_VERSION} ]]; then CRW_VERSION="${CSV_VERSION%.*}"; fi
+if [[ ! ${DS_VERSION} ]]; then DS_VERSION="${CSV_VERSION%.*}"; fi
 if [[ ! ${CSV_VERSION} ]]; then usage; fi
 
 # compute branch from already-checked out sources dir
@@ -149,16 +149,16 @@ if [[ $DO_SYNC -eq 1 ]]; then
     echo "[INFO] 1. Sync from upstream chectl"
     ########################################################################
     # CRW-1579 change yamls to use :3.y tag, not :latest or :next - use that only for quay version of dsc
-    pushd ${CRWIMG_DIR} >/dev/null
+    pushd ${DSIMG_DIR} >/dev/null
         FILES="devspaces-operator/config/manager/manager.yaml devspaces-operator-bundle/manifests/devspaces.csv.yaml"
         for d in ${FILES}; do
-            sed -i ${d} -r -e "s#registry.redhat.io/devspaces/(.+):(.+)#registry.redhat.io/devspaces/\1:${CRW_VERSION}#g"
+            sed -i ${d} -r -e "s#registry.redhat.io/devspaces/(.+):(.+)#registry.redhat.io/devspaces/\1:${DS_VERSION}#g"
         done
     popd >/dev/null
 
     pushd $DSC_DIR >/dev/null
         ./build/scripts/sync.sh -b ${MIDSTM_BRANCH} -s ${SOURCE_DIR} -t ${DSC_DIR} \
-            --crw-version ${CRW_VERSION}
+            --crw-version ${DS_VERSION}
         # commit changes
         set -x
         git add .
@@ -206,7 +206,7 @@ if [[ $DO_QUAY_BUILD -eq 1 ]]; then
     echo "[INFO] 3a. Prepare ${MIDSTM_BRANCH}-quay branch of devspaces operator repo"
     ########################################################################
     # check out from MIDSTM_BRANCH
-    pushd ${CRWIMG_DIR} >/dev/null
+    pushd ${DSIMG_DIR} >/dev/null
         git branch ${MIDSTM_BRANCH}-quay -f
         git checkout ${MIDSTM_BRANCH}-quay
         # CRW-1579 change yamls to use quay image, and :latest or :next

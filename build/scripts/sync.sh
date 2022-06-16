@@ -35,7 +35,7 @@ while [[ "$#" -gt 0 ]]; do
 	'-t') TARGETDIR="$2"; TARGETDIR="${TARGETDIR%/}"; shift 1;;
 	'--help'|'-h') usage;;
 	# optional tag overrides
-	'--crw-version') CRW_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
+	'--crw-version') DS_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
   esac
   shift 1
 done
@@ -44,7 +44,7 @@ if [[ ! -d "${SOURCEDIR}" ]]; then usage; fi
 if [[ -z "${TARGETDIR}" ]] || [[ ${TARGETDIR} == "." ]]; then usage; else mkdir -p "${TARGETDIR}"; fi
 
 # if not set use crw-3.y-rhel-8 ==> 3.y as the default tag
-if [[ -z "${CRW_VERSION}" ]];      then CRW_VERSION=${MIDSTM_BRANCH#*-};      CRW_VERSION=${CRW_VERSION%%-*};           fi
+if [[ -z "${DS_VERSION}" ]];      then DS_VERSION=${MIDSTM_BRANCH#*-};      DS_VERSION=${DS_VERSION%%-*};           fi
 
 # ignore changes in these files
 echo "/.github/
@@ -239,8 +239,8 @@ pushd "${TARGETDIR}" >/dev/null
 	d=src/constants.ts
 	echo "[INFO] Convert ${d}"
 	mkdir -p "${TARGETDIR}/${d%/*}"
-	sed -r -e "s#DOC_LINK =.+#DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/${CRW_VERSION}/'#" -i "${TARGETDIR}/${d}"
-	sed -r -e "s#DOC_LINK_RELEASE_NOTES.+#DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/${CRW_VERSION}/html/release_notes_and_known_issues/index'#" -i "${TARGETDIR}/${d}"
+	sed -r -e "s#DOC_LINK =.+#DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/${DS_VERSION}/'#" -i "${TARGETDIR}/${d}"
+	sed -r -e "s#DOC_LINK_RELEASE_NOTES.+#DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/${DS_VERSION}/html/release_notes_and_known_issues/index'#" -i "${TARGETDIR}/${d}"
 
 	# Restore replaced upstream project
 	sed -r -e "s#CHECTL_PROJECT_NAME =.+#CHECTL_PROJECT_NAME = 'chectl'#" -i "${TARGETDIR}/${d}"

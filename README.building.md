@@ -2,8 +2,8 @@ dsc is built in Jenkins and published to https://developers.redhat.com/products/
 
 To build in Jenkins:
 
-* https://main-jenkins-csb-crwqe.apps.ocp-c1.prod.psi.redhat.com/job/CRW_CI/ (jobs)
-* https://gitlab.cee.redhat.com/codeready-workspaces/crw-jenkins/-/tree/master/jobs/CRW_CI (sources)
+* https://main-jenkins-csb-crwqe.apps.ocp-c1.prod.psi.redhat.com/job/DS_CI/ (jobs)
+* https://gitlab.cee.redhat.com/codeready-workspaces/crw-jenkins/-/tree/master/jobs/DS_CI (sources)
 * https://github.com/redhat-developer/devspaces-images#jenkins-jobs (copied sources)
 
 To build locally:
