@@ -24,33 +24,33 @@ function prepareTemplates() {
       path.join(deployFolder, platform, 'objects', 'checlusters.org.eclipse.che.CustomResourceDefinition.yaml'),
       path.join(cheOperatorTemplates, platform, 'crds', 'org.eclipse.che_checlusters.yaml'))
     fs.copySync(
-      path.join(deployFolder, platform, 'objects', 'devspaces-operator.Deployment.yaml'),
+      path.join(deployFolder, platform, 'objects', 'che-operator.Deployment.yaml'),
       path.join(cheOperatorTemplates, platform, 'operator.yaml'))
     fs.copySync(
-      path.join(deployFolder, platform, 'objects', 'devspaces-operator.ServiceAccount.yaml'),
+      path.join(deployFolder, platform, 'objects', 'che-operator.ServiceAccount.yaml'),
       path.join(cheOperatorTemplates, platform, 'service_account.yaml'))
     fs.copySync(
-      path.join(deployFolder, platform, 'objects', 'devspaces-operator.ClusterRoleBinding.yaml'),
+      path.join(deployFolder, platform, 'objects', 'che-operator.ClusterRoleBinding.yaml'),
       path.join(cheOperatorTemplates, platform, 'cluster_rolebinding.yaml'))
     fs.copySync(
-      path.join(deployFolder, platform, 'objects', 'devspaces-operator.ClusterRole.yaml'),
+      path.join(deployFolder, platform, 'objects', 'che-operator.ClusterRole.yaml'),
       path.join(cheOperatorTemplates, platform, 'cluster_role.yaml'))
     fs.copySync(
-      path.join(deployFolder, platform, 'objects', 'devspaces-operator.RoleBinding.yaml'),
+      path.join(deployFolder, platform, 'objects', 'che-operator.RoleBinding.yaml'),
       path.join(cheOperatorTemplates, platform, 'role_binding.yaml'))
     fs.copySync(
-      path.join(deployFolder, platform, 'objects', 'devspaces-operator.Role.yaml'),
+      path.join(deployFolder, platform, 'objects', 'che-operator.Role.yaml'),
       path.join(cheOperatorTemplates, platform, 'role.yaml'))
     fs.copySync(
-      path.join(deployFolder, platform, 'objects', 'devspaces-operator-service.Service.yaml'),
+      path.join(deployFolder, platform, 'objects', 'che-operator-service.Service.yaml'),
       path.join(cheOperatorTemplates, platform, 'webhook-service.yaml'))
   }
 
   fs.copySync(
-    path.join(deployFolder, 'kubernetes', 'objects', 'devspaces-operator-serving-cert.Certificate.yaml'),
+    path.join(deployFolder, 'kubernetes', 'objects', 'che-operator-serving-cert.Certificate.yaml'),
     path.join(cheOperatorTemplates, 'kubernetes', 'serving-cert.yaml'))
   fs.copySync(
-    path.join(deployFolder, 'kubernetes', 'objects', 'devspaces-operator-selfsigned-issuer.Issuer.yaml'),
+    path.join(deployFolder, 'kubernetes', 'objects', 'che-operator-selfsigned-issuer.Issuer.yaml'),
     path.join(cheOperatorTemplates, 'kubernetes', 'selfsigned-issuer.yaml'))
 }
 
