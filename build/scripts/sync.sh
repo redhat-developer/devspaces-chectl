@@ -126,7 +126,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			\
 			-e "s|\"Red Hat OpenShift Dev Spaces will be deployed in Multi-User mode.+mode.\"|'Red Hat OpenShift Dev Spaces can only be deployed in Multi-User mode.'|" \
 		"$d" > "${TARGETDIR}/${d}"
-	done <   <(find src test resources configs prepare-che-operator-templates.js package.json .ci/obfuscate/gnirts.js .eslintrc.js -type f -name "*" -print0) # include package.json in here too
+	done <   <(find src test resources configs package.json .ci/obfuscate/gnirts.js .eslintrc.js -type f -name "*" -print0) # include package.json in here too
 popd >/dev/null
 
 # Remove files
@@ -142,8 +142,8 @@ pushd "${TARGETDIR}" >/dev/null
 	while IFS= read -r -d '' d; do
 		echo "[INFO] Convert ${d} - use subfolder"
 		sed -i "${TARGETDIR}/${d}" -r \
-			-e "s#'node_modules', 'devspaces-operator'#'node_modules', 'devspaces-operator', 'devspaces-operator'#" \
-			-e "s#'templates', 'devspaces-operator'#'templates', 'devspaces-operator'#"
+			-e "s#'node_modules', 'eclipse-che-operator'#'node_modules', 'devspaces-operator', 'devspaces-operator'#" \
+			-e "s#'templates', 'che-operator'#'templates', 'devspaces-operator'#"
 	done <   <(find prepare-che-operator-templates.js -print0)
 popd >/dev/null
 
