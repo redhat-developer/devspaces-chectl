@@ -298,7 +298,6 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
         echo $(date +%s) > update && git add update && git commit -m "ci: [update] add $RELEASE_ID to github pages" && git push origin gh-pages
     popd >/dev/null
 fi
-'
 
 if [[ $PUBLISH_ARTIFACTS_TO_RCM -eq 1 ]]; then
     ########################################################################
