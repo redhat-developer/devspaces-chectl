@@ -28,7 +28,7 @@ PUBLISH_ARTIFACTS_TO_GITHUB=0
 PUBLISH_ARTIFACTS_TO_RCM=0
 
 # for publishing to RCM only
-DESTHOST="crw-build@rcm-guest.app.eng.bos.redhat.com"
+DESTHOST="crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@rcm-guest.app.eng.bos.redhat.com"
 KERBEROS_USER="crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM"
 
 MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD)
