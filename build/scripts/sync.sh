@@ -43,8 +43,8 @@ done
 if [[ ! -d "${SOURCEDIR}" ]]; then usage; fi
 if [[ -z "${TARGETDIR}" ]] || [[ ${TARGETDIR} == "." ]]; then usage; else mkdir -p "${TARGETDIR}"; fi
 
-# if not set use crw-3.y-rhel-8 ==> 3.y as the default tag
-if [[ -z "${DS_VERSION}" ]];      then DS_VERSION=${MIDSTM_BRANCH#*-};      DS_VERSION=${DS_VERSION%%-*};           fi
+# if not set use devspaces-3.y-rhel-8 ==> 3.y as the default tag
+if [[ -z "${DS_VERSION}" ]]; then DS_VERSION=${MIDSTM_BRANCH#*-}; DS_VERSION=${DS_VERSION%%-*}; fi
 
 # ignore changes in these files
 echo "/.github/
