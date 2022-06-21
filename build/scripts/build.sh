@@ -18,7 +18,7 @@ set -e
 
 # defaults
 platforms="linux-x64,darwin-x64,win32-x64"
-versionSuffix="" 
+versionSuffix=""
 
 # five steps
 DO_SYNC=1
@@ -39,12 +39,12 @@ if [[ $DEFAULT_TAG == "2" ]]; then latestNext="next"; else latestNext="latest"; 
 if [[ -d ${WORKSPACE}/sources ]]; then
     SOURCE_DIR=${WORKSPACE}/sources # path to where chectl is checked out
 fi
-if [[ -d "${WORKSPACE}/devspaces-images" ]]; then 
-    DSIMG_DIR="${WORKSPACE}/devspaces-images" 
+if [[ -d "${WORKSPACE}/devspaces-images" ]]; then
+    DSIMG_DIR="${WORKSPACE}/devspaces-images"
 fi
-if [[ -d "${WORKSPACE}/devspaces-chectl" ]]; then 
-    DSC_DIR="${WORKSPACE}/devspaces-chectl" 
-else 
+if [[ -d "${WORKSPACE}/devspaces-chectl" ]]; then
+    DSC_DIR="${WORKSPACE}/devspaces-chectl"
+else
     DSC_DIR=`pwd`
 fi
 
@@ -66,7 +66,7 @@ usage () {
 
   $0 -v 3.yy.z -b MIDSTM_BRANCH -s /path/to/chectl -i /path/to/devspaces-images/ [-t /path/to/dsc/]  [--suffix RC_or_GA]
 
-Example: 
+Example:
 
   $0 -v ${DEFAULT_TAG}.0 -b ${MIDSTM_BRANCH} -s /path/to/chectl/ -i /path/to/devspaces-images/ -t ${DSC_DIR} --suffix RC"
 	echo ""
@@ -84,7 +84,7 @@ while [[ "$#" -gt 0 ]]; do
 	# paths to use for input and ouput
 	'-s') SOURCE_DIR="$2"; SOURCE_DIR="${SOURCE_DIR%/}"; shift 1;;
 	'-t') DSC_DIR="$2"; DSC_DIR="${DSC_DIR%/}"; shift 1;;
-	'-i'DSIMG_DIR="$2"; DSIMG_DIR="${DSIMG_DIR%/}"; shift 1;;
+	'-i') DSIMG_DIR="$2"; DSIMG_DIR="${DSIMG_DIR%/}"; shift 1;;
 	'--help'|'-h') usageSegKey;;
 	# optional tag overrides
     '--suffix') versionSuffix="$2"; shift 1;;
@@ -144,7 +144,7 @@ popd >/dev/null
 
 set -x
 
-if [[ $DO_SYNC -eq 1 ]]; then 
+if [[ $DO_SYNC -eq 1 ]]; then
     ########################################################################
     echo "[INFO] 1. Sync from upstream chectl"
     ########################################################################
@@ -167,7 +167,7 @@ if [[ $DO_SYNC -eq 1 ]]; then
     popd >/dev/null
 fi
 
-if [[ $DO_REDHAT_BUILD -eq 1 ]]; then 
+if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
     ########################################################################
     echo "[INFO] 2. Build dsc using -redhat suffix and registry.redhat.io/devspaces/ URLs"
     ########################################################################
@@ -190,7 +190,7 @@ if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
         # purge generated binaries and temp files
         rm -fr coverage/ lib/ node_modules/ templates/ tmp/
 
-        # create sources tarball in the same dir where we have the per-arch binaries 
+        # create sources tarball in the same dir where we have the per-arch binaries
         tar czf /tmp/${TARBALL_PREFIX}-dsc-sources.tar.gz --exclude=./dist/channels/*/* ./* && \
         mv /tmp/${TARBALL_PREFIX}-dsc-sources.tar.gz ${DSC_DIR}/dist/channels/redhat/
 
@@ -201,7 +201,7 @@ if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
     popd >/dev/null
 fi
 
-if [[ $DO_QUAY_BUILD -eq 1 ]]; then 
+if [[ $DO_QUAY_BUILD -eq 1 ]]; then
     ########################################################################
     echo "[INFO] 3a. Prepare ${MIDSTM_BRANCH}-quay branch of devspaces operator repo"
     ########################################################################
@@ -246,10 +246,10 @@ if [[ $DO_QUAY_BUILD -eq 1 ]]; then
         # purge generated binaries and temp files
         rm -fr coverage/ lib/ node_modules/ templates/ tmp/
 
-        # create sources tarball in the same dir where we have the per-arch binaries 
+        # create sources tarball in the same dir where we have the per-arch binaries
         tar czf /tmp/${TARBALL_PREFIX}-quay-dsc-sources.tar.gz --exclude=./dist/channels/*/* ./* && \
         mv /tmp/${TARBALL_PREFIX}-quay-dsc-sources.tar.gz ${DSC_DIR}/dist/channels/quay/
-    popd >/dev/null 
+    popd >/dev/null
 fi
 
 ########################################################################
@@ -257,7 +257,7 @@ echo "[INFO] 4. include crwctl binary/readme"
 ########################################################################
 pushd $DSC_DIR >/dev/null
     ./build/scripts/add-crwctl.sh
-popd >/dev/null 
+popd >/dev/null
 
 if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
     ########################################################################
@@ -265,7 +265,7 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
     ########################################################################
 
     # requires hub cli
-    if [[ ! -x /tmp/uploadAssetsToGHRelease.sh ]]; then 
+    if [[ ! -x /tmp/uploadAssetsToGHRelease.sh ]]; then
         pushd /tmp/ >/dev/null
         curl -sSLO "https://raw.githubusercontent.com/redhat-developer/devspaces/${MIDSTM_BRANCH}/product/uploadAssetsToGHRelease.sh" && \
         chmod +x uploadAssetsToGHRelease.sh
@@ -281,7 +281,7 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
     sleep 10s
 
     # upload artifacts for each platform + sources tarball
-    for channel in quay redhat; do 
+    for channel in quay redhat; do
         pushd ${DSC_DIR}/dist/channels/${channel}/
             echo "[INFO] Publish $channel assets to ${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets GH release"
             /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --publish-assets -b "${MIDSTM_BRANCH}" -v "${CSV_VERSION}-${VERSION_SUFFIX}" --asset-name "dsc" "devspaces-*tar.gz" --asset-type "Installer binaries and sources"
@@ -318,15 +318,15 @@ if [[ $PUBLISH_ARTIFACTS_TO_RCM -eq 1 ]]; then
     if [[ ! $(klist | grep crw-build) ]]; then
         cat /etc/redhat-release
         keytab=$(find /mnt/hudson_workspace/ $HOME $WORKSPACE -name "*crw-build*keytab*" 2>/dev/null | head -1)
-        kinit "${KERBEROS_USER}" -kt $keytab || true 
+        kinit "${KERBEROS_USER}" -kt $keytab || true
         klist
     fi
 
     # set up sshfs mount
     RCMG="${DESTHOST}:/mnt/rcm-guest/staging/devspaces"
     sshfs --version
-    for mnt in RCMG; do 
-        mkdir -p ${WORKSPACE}/${mnt}-ssh; 
+    for mnt in RCMG; do
+        mkdir -p ${WORKSPACE}/${mnt}-ssh;
         if [[ $(file ${WORKSPACE}/${mnt}-ssh 2>&1) == *"Transport endpoint is not connected"* ]]; then fusermount -uz ${WORKSPACE}/${mnt}-ssh; fi
         if [[ ! -d ${WORKSPACE}/${mnt}-ssh/devspaces ]]; then sshfs ${!mnt} ${WORKSPACE}/${mnt}-ssh || true; fi
     done
