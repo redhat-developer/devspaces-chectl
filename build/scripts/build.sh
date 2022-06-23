@@ -32,12 +32,12 @@ DESTHOST="crw-build@rcm-guest.app.eng.bos.redhat.com"
 KERBEROS_USER="crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM"
 
 MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-DEFAULT_TAG=${MIDSTM_BRANCH#*-}; DEFAULT_TAG=${DEFAULT_TAG%%-*}
-if [[ $DEFAULT_TAG == "2" ]]; then latestNext="next"; else latestNext="latest"; fi
+DS_VERSION=${MIDSTM_BRANCH#*-}; DS_VERSION=${DS_VERSION%%-*}
+if [[ $DS_VERSION == "3" ]]; then latestNext="next"; else latestNext="latest"; fi
 
 # default value for Jenkins builds
 if [[ -d ${WORKSPACE}/sources ]]; then
-    SOURCE_DIR=${WORKSPACE}/sources # path to where chectl is checked out
+    SOURCEDIR=${WORKSPACE}/sources # path to where chectl is checked out
 fi
 if [[ -d "${WORKSPACE}/devspaces-images" ]]; then
     DSIMG_DIR="${WORKSPACE}/devspaces-images"
@@ -68,47 +68,43 @@ usage () {
 
 Example:
 
-  $0 -v ${DEFAULT_TAG}.0 -b ${MIDSTM_BRANCH} -s /path/to/chectl/ -i /path/to/devspaces-images/ -t ${DSC_DIR} --suffix RC"
+  $0 -v ${DS_VERSION}.0 -b ${MIDSTM_BRANCH} -s /path/to/chectl/ -i /path/to/devspaces-images/ -t ${DSC_DIR} --suffix RC"
 	echo ""
 	echo "Options:
     --suffix [RC or GA]  optionally, build an RC (copy to quay) or GA (copy to quay and RCM guest)
-    --crw-version ${DEFAULT_TAG}   compute from MIDSTM_BRANCH if not set
 	"
 	exit 1
 }
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-	'-v') CSV_VERSION="$2"; shift 1;;
-    '-b'|'--crw-branch') MIDSTM_BRANCH="$2"; shift 1;; # branch of redhat-developer/devspaces/pom.xml to check as default CHE_VERSION
+	'-v') CSV_VERSION="$2"; DS_VERSION="${CSV_VERSION%.*}" shift 2;;
+    '-b') MIDSTM_BRANCH="$2"; shift 2;; # branch of redhat-developer/devspaces/pom.xml to check as default CHE_VERSION
 	# paths to use for input and ouput
-	'-s') SOURCE_DIR="$2"; SOURCE_DIR="${SOURCE_DIR%/}"; shift 1;;
-	'-t') DSC_DIR="$2"; DSC_DIR="${DSC_DIR%/}"; shift 1;;
-	'-i') DSIMG_DIR="$2"; DSIMG_DIR="${DSIMG_DIR%/}"; shift 1;;
-	'--help'|'-h') usageSegKey;;
+	'-s') SOURCEDIR="$2"; SOURCEDIR="${SOURCEDIR%/}"; shift 2;;
+	'-t') DSC_DIR="$2"; DSC_DIR="${DSC_DIR%/}"; shift 2;;
+	'-i') DSIMG_DIR="$2"; DSIMG_DIR="${DSIMG_DIR%/}"; shift 2;;
+	'--help'|'-h') usageSegKey; shift 1;;
 	# optional tag overrides
-    '--suffix') versionSuffix="$2"; shift 1;;
-	'--crw-version') DS_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
-    '--gh') PUBLISH_ARTIFACTS_TO_GITHUB=1;;
-    '--rcm') PUBLISH_ARTIFACTS_TO_RCM=1;;
-    '--desthost') DESTHOST="$2"; shift 1;;
-    '--kerbuser') KERBEROS_USER="$2"; shift 1;;
-    '--no-sync') DO_SYNC=0;;
-    '--no-redhat') DO_REDHAT_BUILD=0;;
-    '--no-quay') DO_QUAY_BUILD=0;;
+    '--suffix') versionSuffix="$2"; shift 2;;
+    '--gh') PUBLISH_ARTIFACTS_TO_GITHUB=1; shift 1;;
+    '--rcm') PUBLISH_ARTIFACTS_TO_RCM=1; shift 1;;
+    '--desthost') DESTHOST="$2"; shift 2;;
+    '--kerbuser') KERBEROS_USER="$2"; shift 2;;
+    '--no-sync') DO_SYNC=0; shift 1;;
+    '--no-redhat') DO_REDHAT_BUILD=0; shift 1;;
+    '--no-quay') DO_QUAY_BUILD=0; shift 1;;
   esac
-  shift 1
 done
 
 if [[ ! "${SEGMENT_WRITE_KEY}" ]]; then usageSegKey; fi
 if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]] && [[ ! "${GITHUB_TOKEN}" ]]; then usageSegKey; fi
-if [[ ! -d "${SOURCE_DIR}" ]] || [[ ! -d "${DSC_DIR}" ]] || [[ ! -d "${DSIMG_DIR}" ]]; then usage; fi
+if [[ ! -d "${SOURCEDIR}" ]] || [[ ! -d "${DSC_DIR}" ]] || [[ ! -d "${DSIMG_DIR}" ]]; then usage; fi
 if [[ ${DSC_DIR} == "." ]]; then usage; fi
-if [[ ! ${DS_VERSION} ]]; then DS_VERSION="${CSV_VERSION%.*}"; fi
 if [[ ! ${CSV_VERSION} ]]; then usage; fi
 
 # compute branch from already-checked out sources dir
-SOURCE_BRANCH=$(cd "$SOURCE_DIR"; git rev-parse --abbrev-ref HEAD)
+SOURCE_BRANCH=$(cd "$SOURCEDIR"; git rev-parse --abbrev-ref HEAD)
 
 ###############################################################
 
@@ -157,8 +153,8 @@ if [[ $DO_SYNC -eq 1 ]]; then
     popd >/dev/null
 
     pushd $DSC_DIR >/dev/null
-        ./build/scripts/sync.sh -b ${MIDSTM_BRANCH} -s ${SOURCE_DIR} -t ${DSC_DIR} \
-            --crw-version ${DS_VERSION}
+        ./build/scripts/sync.sh -b ${MIDSTM_BRANCH} -s ${SOURCEDIR} -t ${DSC_DIR} \
+            -v ${DS_VERSION}
         # commit changes
         set -x
         git add .
@@ -298,7 +294,6 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
         echo $(date +%s) > update && git add update && git commit -m "ci: [update] add $RELEASE_ID to github pages" && git push origin gh-pages
     popd >/dev/null
 fi
-'
 
 if [[ $PUBLISH_ARTIFACTS_TO_RCM -eq 1 ]]; then
     ########################################################################
