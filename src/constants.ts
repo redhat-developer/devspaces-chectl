@@ -40,7 +40,7 @@ export const OPERATOR_GROUP_NAME = 'devspaces-operator-group'
 export const CSV_PREFIX = 'devspacesoperator'
 export const DEVWORKSPACE_CSV_PREFIX = 'devworkspace-operator'
 // OLM channels
-export const OLM_STABLE_CHANNEL_NAME = 'latest'
+export const OLM_STABLE_CHANNEL_NAME = 'stable'
 export const OLM_NEXT_CHANNEL_NAME = 'next'
 // OLM namespaces
 export const DEFAULT_OPENSHIFT_MARKET_PLACE_NAMESPACE = 'openshift-marketplace'
