@@ -13,28 +13,15 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: dex
-  namespace: dex
-  labels:
-    app: dex
+  name: che-certificate
+  namespace: che
 spec:
-  isCA: false
-  commonName: dex
-  privateKey:
-    algorithm: RSA
-    encoding: PKCS1
-    size: 4096
+  secretName: che-tls
   issuerRef:
+    name: che-issuer
     kind: Issuer
-    name: dex
-    group: cert-manager.io
-  secretName: dex.tls
-  subject:
-    organizations:
-      - Local Red Hat OpenShift Dev Spaces
-  usages:
-    - server auth
-    - digital signature
-    - key encipherment
-    - key agreement
-    - data encipherment
+  # This is a template and it will be set from --domain parameter
+  # For example: '*.192.168.99.100.nip.io'
+  commonName: '*.<domain>'
+  dnsNames:
+    - '*.<domain>'
