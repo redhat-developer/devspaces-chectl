@@ -2481,7 +2481,7 @@ detect-newline@^3.0.0:
 
 "devspaces-operator@https://github.com/redhat-developer/devspaces-images#devspaces-3-rhel-8":
   version "0.0.0"
-  resolved "https://github.com/redhat-developer/devspaces-images#5f3508eb63a9f3d4c43e8ea892c0617b5645bbae"
+  resolved "https://github.com/redhat-developer/devspaces-images#4bcefc536c7e183936fd4839ec8d70fdcc19c282"
 
 diff-sequences@^26.6.2:
   version "26.6.2"
