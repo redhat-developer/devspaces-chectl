@@ -416,5 +416,6 @@ export function isWebhookAvailabilityError(error: any): boolean {
   const msg = error.message as string
   return msg.indexOf('service "devspaces-operator-service" not found') !== -1 ||
     msg.indexOf('no endpoints available for service "devspaces-operator-service"') !== -1 ||
+    msg.indexOf('failed calling webhook') !== -1 ||
     msg.indexOf('conversion webhook') !== -1
 }
