@@ -110,9 +110,12 @@ export default class Update extends Command {
     }
 
     await this.setDomainFlag(flags)
+
     if (!flags.installer) {
-      await this.setDefaultInstaller(flags)
-      cli.info(`› Installer type is set to: '${flags.installer}'`)
+      flags.installer = await this.getCurrentInstaller(flags)
+    }
+    if (flags.installer === 'operator' && ctx[ChectlContext.IS_OPENSHIFT]) {
+      cli.error('--installer=operator is not supported for OpenShift platform.')
     }
 
     await this.config.runHook(DEFAULT_ANALYTIC_HOOK_NAME, { command: Update.id, flags })
@@ -123,13 +126,16 @@ export default class Update extends Command {
     const apiTasks = new ApiTasks()
     const preUpdateTasks = new Listr([], ctx.listrOptions)
     preUpdateTasks.add(apiTasks.testApiTasks(flags))
-    preUpdateTasks.add(installerTasks.preUpdateTasks(flags, this))
+    preUpdateTasks.add({
+      title: 'Preflight check',
+      task: () => new Listr(installerTasks.preUpdateTasks(flags), ctx.listrOptions),
+    })
 
     // update tasks
     const updateTasks = new Listr([], ctx.listrOptions)
     updateTasks.add({
-      title: 'Updating...',
-      task: () => new Listr(installerTasks.updateTasks(flags, this)),
+      title: 'Update Red Hat OpenShift Dev Spaces',
+      task: () => new Listr(installerTasks.updateTasks(flags), ctx.listrOptions),
     })
 
     // post update tasks
@@ -139,7 +145,7 @@ export default class Update extends Command {
     try {
       await preUpdateTasks.run(ctx)
 
-      if (flags.installer === 'operator') {
+      if (!ctx[ChectlContext.IS_OPENSHIFT]) {
         if (!await this.checkAbilityToUpdateCheOperatorAndAskUser(flags)) {
           // Exit
           return
@@ -287,15 +293,11 @@ export default class Update extends Command {
     }
   }
 
-  /**
-   * Sets installer type depending on the previous installation.
-   */
-  private async setDefaultInstaller(flags: any): Promise<void> {
+  private async getCurrentInstaller(flags: any): Promise<string> {
     const cheHelper = new CheHelper(flags)
     if (await cheHelper.findCheOperatorSubscription(flags.chenamespace)) {
-      flags.installer = 'olm'
-    } else {
-      flags.installer = 'operator'
+      return 'olm'
     }
+    return 'operator'
   }
 }
