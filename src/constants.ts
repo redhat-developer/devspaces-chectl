@@ -56,8 +56,8 @@ export const WORKSPACE_CONTROLLER_NAMESPACE = 'devworkspace-controller'
 export const DEVWORKSPACE_CSV_PREFIX = 'devworkspace-operator'
 
 // Documentation links
-export const DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.2/'
-export const DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.2/html/release_notes_and_known_issues/index'
+export const DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.3/'
+export const DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.3/html/release_notes_and_known_issues/index'
 export const DOCS_LINK_IMPORT_CA_CERT_INTO_BROWSER = 'https://www.eclipse.org/che/docs/che-7/end-user-guide/importing-certificates-to-browsers/'
 export const DOC_LINK_CONFIGURE_API_SERVER = 'https://kubernetes.io/docs/reference/access-authn-authz/authentication/#configuring-the-api-server'
 
