@@ -34,6 +34,7 @@ export class CheTasks {
   cheDeploymentName = 'che'
   dashboardDeploymentName = 'che-dashboard'
   dashboardSelector = 'app=devspaces,component=devspaces-dashboard'
+  gatewaySelector = 'app.kubernetes.io/component=che-gateway'
   postgresDeploymentName = 'postgres'
   postgresSelector = 'app=devspaces,component=postgres'
   devfileRegistryDeploymentName = 'devfile-registry'
@@ -77,6 +78,11 @@ export class CheTasks {
         title: 'Red Hat OpenShift Dev Spaces Dashboard pod bootstrap',
         enabled: ctx => ctx.isDashboardDeployed && !ctx.isDashboardReady,
         task: () => this.kubeTasks.podStartTasks(this.dashboardSelector, this.cheNamespace),
+      },
+      {
+        title: 'Red Hat OpenShift Dev Spaces Gateway pod bootstrap',
+        enabled: ctx => !ctx.isCheReady,
+        task: () => this.kubeTasks.podStartTasks(this.gatewaySelector, this.cheNamespace),
       },
       {
         title: 'Red Hat OpenShift Dev Spaces Server pod bootstrap',
