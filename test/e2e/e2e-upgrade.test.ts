@@ -27,7 +27,10 @@ describe('Test Che upgrade', () => {
     it(`Deploy Che using ${INSTALLER} installer and self signed certificates`, async () => {
       // uses installed dsc (from a stable channel)
       // see github workflow
-      const deployCommand = `dsc server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off`
+      let deployCommand = `dsc server:deploy --batch --platform=${PLATFORM} --installer=${INSTALLER} --chenamespace=${NAMESPACE} --telemetry=off`
+      if (PLATFORM === 'minikube') {
+        deployCommand += ' --che-operator-cr-patch-yaml=test/e2e/resources/minikube-checluster-patch.yaml'
+      }
       await helper.runCliCommand(deployCommand)
     })
   })
