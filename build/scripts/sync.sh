@@ -92,37 +92,23 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|app=devspaces,component=che|app=devspaces,component=devspaces|" \
 			-e "s|eclipse-che-operator|devspaces-operator|g" \
 			-e "s|che-operator|devspaces-operator|g" \
-			-e "s|tech-preview-stable-all-namespaces|tech-preview-latest-all-namespaces|g" \
 			-e "s|/devspaces-operator/|/devspaces-operator/|g" \
 			\
 			-e "s|devspaces-operator-(cr.+yaml)|che-operator-\1|g" \
 			-e "s|devspaces-operator-(cr.+yaml)|che-operator-\1|g" \
 			-e "s|devspaces-operator-image|che-operator-image|g" \
-			-e "s|CHE_CLUSTER_CR_NAME = 'eclipse-che'|CHE_CLUSTER_CR_NAME = 'devspaces'|g" \
 			-e "s|Eclipse Che|Red Hat OpenShift Dev Spaces|g" \
 			-e "s|Che workspaces|Red Hat OpenShift Dev Spaces workspaces|g" \
 			\
 			-e "s| when both minishift and OpenShift are stopped||" \
 			-e "s|resource: Kubernetes/OpenShift|resource|g" \
-			-e "s|(const DEFAULT_CHE_OPERATOR_IMAGE_NAME =).+|\1 'registry.redhat.io/devspaces/devspaces-rhel8-operator'|g" \
 			\
-			-e "s|(const CHE_CLUSTER_CR_NAME =).+|\1 'devspaces'|g" \
-			\
-			-e "s|(const DEFAULT_CHE_OLM_PACKAGE_NAME =).+|\1 'devspaces'|g" \
 			-e "s|(const OLM_STABLE_CHANNEL_NAME =).+|\1 'stable'|g" \
+			-e "s|(const ECLIPSE_CHE_STABLE_CHANNEL_PACKAGE_NAME =).+|\1 'devspaces'|g" \
+			-e "s|(const ECLIPSE_CHE_STABLE_CHANNEL_CATALOG_SOURCE_NAME =).+|\1 'redhat-operators'|g" \
 			-e "s|(const CSV_PREFIX =).+|\1 'devspacesoperator'|g" \
-			-e "s|(const OLM_STABLE_CHANNEL_STARTING_CSV_TEMPLATE =).+|\1 'devspacesoperator.v{{VERSION}}'|g" \
-			-e "s|(const OLM_STABLE_ALL_NAMESPACES_CHANNEL_STARTING_CSV_TEMPLATE =).+|\1 'devspacesoperator.v{{VERSION}}'|g" \
-			-e "s|(const CUSTOM_CATALOG_SOURCE_NAME =).+|\1 'devspaces-custom-catalog-source'|g" \
 			-e "s|(const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME =).+|\1 'devspaces-subscription'|g" \
-			-e "s|(const OPERATOR_GROUP_NAME =).+|\1 'devspaces-operator-group'|g" \
-			-e "s|(const OPENSHIFT_OLM_CATALOG =).+|\1 'redhat-operators'|g" \
-			`# CRW-2998 the CHE_NAMESPACE and the OLM_SUGGESTED_NAMESPACE should BOTH be set to something other than openshift-operators` \
-			`# this does not change the namespace used for the operator subscription... just the cheCluster and deployed pods` \
-			-e "s|(const DEFAULT_OLM_SUGGESTED_NAMESPACE =).+|\1 'openshift-devspaces'|g" \
 			-e "s|(const DEFAULT_CHE_NAMESPACE =).+|\1 'openshift-devspaces'|g" \
-			-e "s|(const LEGACY_CHE_NAMESPACE =).+|\1 'openshift-workspaces'|g" \
-			-e "s|(CVS_PREFIX =).+|\1 'devspacesoperator'|g" \
 			\
 			-e "s|\"Red Hat OpenShift Dev Spaces will be deployed in Multi-User mode.+mode.\"|'Red Hat OpenShift Dev Spaces can only be deployed in Multi-User mode.'|" \
 		"$d" > "${TARGETDIR}/${d}"
