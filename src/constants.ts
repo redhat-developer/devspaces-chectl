@@ -34,8 +34,8 @@ export const DEFAULT_CHE_NAMESPACE = 'openshift-devspaces'
 
 // Red Hat OpenShift Dev Spaces OLM
 export const OLM_STABLE_CHANNEL_NAME = 'stable'
-export const ECLIPSE_CHE_STABLE_CHANNEL_PACKAGE_NAME = 'eclipse-che'
-export const ECLIPSE_CHE_STABLE_CHANNEL_CATALOG_SOURCE_NAME = 'community-operators'
+export const ECLIPSE_CHE_STABLE_CHANNEL_PACKAGE_NAME = 'devspaces'
+export const ECLIPSE_CHE_STABLE_CHANNEL_CATALOG_SOURCE_NAME = 'redhat-operators'
 
 export const OLM_NEXT_CHANNEL_NAME = 'next'
 export const ECLIPSE_CHE_NEXT_CHANNEL_PACKAGE_NAME = 'eclipse-che-preview-openshift'
