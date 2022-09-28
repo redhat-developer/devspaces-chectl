@@ -123,18 +123,15 @@ pushd "${TARGETDIR}" >/dev/null
 	done <   <(find . -regextype posix-extended -iregex '.+/(minikube|microk8s|k8s|docker-desktop)(.test|).ts' -print0)
 popd >/dev/null
 
-# Update prepare-che-operator-templates.js
+# Update prepare-templates.js
 pushd "${TARGETDIR}" >/dev/null
 	while IFS= read -r -d '' d; do
 		echo "[INFO] Convert ${d} - use subfolder"
 		sed -i "${TARGETDIR}/${d}" -r \
 			-e "s#'node_modules', 'eclipse-che-operator'#'node_modules', 'devspaces-operator', 'devspaces-operator'#" \
 			-e "s#'templates', 'che-operator'#'templates', 'devspaces-operator'#"
-	done <   <(find prepare-che-operator-templates.js -print0)
+	done <   <(find prepare-templates.js -print0)
 popd >/dev/null
-
-# Rename file prepare-che-operator-templates.js
-mv -f "${TARGETDIR}"/prepare-che-operator-templates.js "${TARGETDIR}"/prepare-devspaces-operator-templates.js
 
 # per-file changes:
 platformString="    platform: string({\n\
