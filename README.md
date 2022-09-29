@@ -115,7 +115,7 @@ OPTIONS
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-0e55-redhat/src/commands/cacert/export.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-22e0-redhat/src/commands/cacert/export.ts)_
 
 ## `dsc dashboard:open`
 
@@ -131,7 +131,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-0e55-redhat/src/commands/dashboard/open.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-22e0-redhat/src/commands/dashboard/open.ts)_
 
 ## `dsc help [COMMAND]`
 
@@ -166,7 +166,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-0e55-redhat/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-22e0-redhat/src/commands/server/debug.ts)_
 
 ## `dsc server:delete`
 
@@ -194,7 +194,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-0e55-redhat/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-22e0-redhat/src/commands/server/delete.ts)_
 
 ## `dsc server:deploy`
 
@@ -275,7 +275,7 @@ OPTIONS
       The URL of the external Devfile registry.
 
   --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout
-      [default: 600000] Waiting time for Pod downloading image (in milliseconds)
+      [default: 1200000] Waiting time for Pod downloading image (in milliseconds)
 
   --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout
       [default: 60000] Waiting time for Pod rechecking error (in milliseconds)
@@ -302,10 +302,13 @@ OPTIONS
       persistent volume storage class name to use to store Red Hat OpenShift Dev Spaces postgres database
 
   --skip-cert-manager
-      Skip installing Cert Manager on the Kubernetes cluster.
+      Skip installing Cert Manager (Kubernetes cluster only).
 
   --skip-cluster-availability-check
       Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.
+
+  --skip-devworkspace-operator
+      Skip installing Dev Workspace Operator (Kubernetes cluster only).
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
@@ -332,7 +335,7 @@ OPTIONS
       persistent volume(s) storage class name to use to store Red Hat OpenShift Dev Spaces workspaces data
 ```
 
-_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-0e55-redhat/src/commands/server/deploy.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-22e0-redhat/src/commands/server/deploy.ts)_
 
 ## `dsc server:logs`
 
@@ -350,7 +353,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-0e55-redhat/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-22e0-redhat/src/commands/server/logs.ts)_
 
 ## `dsc server:start`
 
@@ -369,7 +372,7 @@ OPTIONS
 
   --batch                                                  Batch mode. Running a command without end user interaction.
 
-  --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 600000] Waiting time for Pod downloading image (in
+  --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 1200000] Waiting time for Pod downloading image (in
                                                            milliseconds)
 
   --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout    [default: 60000] Waiting time for Pod rechecking error (in
@@ -384,7 +387,7 @@ OPTIONS
   --skip-kubernetes-health-check                           Skip Kubernetes health check
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-0e55-redhat/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-22e0-redhat/src/commands/server/start.ts)_
 
 ## `dsc server:status`
 
@@ -400,7 +403,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-0e55-redhat/src/commands/server/status.ts)_
+_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-22e0-redhat/src/commands/server/status.ts)_
 
 ## `dsc server:stop`
 
@@ -422,7 +425,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-0e55-redhat/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-22e0-redhat/src/commands/server/stop.ts)_
 
 ## `dsc server:update`
 
@@ -452,6 +455,9 @@ OPTIONS
                                                            CheCluster CR used by the operator. This parameter is used
                                                            only when the installer is the 'operator' or the 'olm'.
 
+  --skip-devworkspace-operator                             Skip updating Dev Workspace Operator (Kubernetes cluster
+                                                           only).
+
   --skip-kubernetes-health-check                           Skip Kubernetes health check
 
   --telemetry=on|off                                       Enable or disable telemetry. This flag skips a prompt and
@@ -468,7 +474,7 @@ EXAMPLES
   dsc server:update --che-operator-cr-patch-yaml patch.yaml
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-0e55-redhat/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.3.0-CI-22e0-redhat/src/commands/server/update.ts)_
 
 ## `dsc update [CHANNEL]`
 
