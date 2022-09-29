@@ -13,7 +13,7 @@
 const fs = require('fs-extra')
 const path = require('path')
 
-function prepareTemplates() {
+function prepareCheOperatorTemplates() {
   const src = path.join(__dirname, 'node_modules', 'devspaces-operator', 'devspaces-operator', 'deploy', 'deployment', 'kubernetes', 'objects')
   const templates = path.join(__dirname, 'templates', 'devspaces-operator', 'kubernetes')
 
@@ -50,12 +50,26 @@ function prepareTemplates() {
   fs.copySync(
     path.join(src, 'che-operator-selfsigned-issuer.Issuer.yaml'),
     path.join(templates, 'selfsigned-issuer.yaml'))
+  fs.copySync(
+    path.join(src, 'org.eclipse.che.ValidatingWebhookConfiguration.yaml'),
+    path.join(templates, 'org.eclipse.che.ValidatingWebhookConfiguration.yaml'))
+  fs.copySync(
+    path.join(src, 'che-operator-leader-election.Role.yaml'),
+    path.join(templates, 'leader-election-role.yaml'))
+  fs.copySync(
+    path.join(src, 'che-operator-leader-election.RoleBinding.yaml'),
+    path.join(templates, 'leader-election-role_binding.yaml'))
+}
 
-  const vwc = path.join(src, 'org.eclipse.che.ValidatingWebhookConfiguration.yaml')
-  if (fs.existsSync(vwc)) {
-    fs.copySync(vwc, path.join(templates, 'org.eclipse.che.ValidatingWebhookConfiguration.yaml'))
-  }
+function prepareDevWorkspaceOperatorTemplates() {
+  const src = path.join(__dirname, 'node_modules', 'devworkspace-operator', 'deploy', 'deployment', 'kubernetes')
+  const templates = path.join(__dirname, 'templates', 'devworkspace-operator', 'kubernetes')
+
+  fs.copySync(
+    path.join(src, 'combined.yaml'),
+    path.join(templates, 'combined.yaml'))
 }
 
 fs.removeSync(path.join(__dirname, 'templates'))
-prepareTemplates()
+prepareCheOperatorTemplates()
+prepareDevWorkspaceOperatorTemplates()

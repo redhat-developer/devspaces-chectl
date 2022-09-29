@@ -1,6 +1,6 @@
 {
   "name": "dsc",
-  "version": "3.3.0-CI-0e55-redhat",
+  "version": "3.3.0-CI-redhat",
   "description": "Red Hat OpenShift Dev Spaces CLI",
   "keywords": [
     "oclif"
@@ -21,7 +21,7 @@
     "/resources",
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json",
-    "/prepare-devspaces-operator-templates.js"
+    "/prepare-templates.js"
   ],
   "scripts": {
     "e2e-minikube-operator": "export PLATFORM=minikube && export INSTALLER=operator && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
@@ -34,9 +34,9 @@
     "prepack": "yarn lint && rm -rf lib && rm -rf tsconfig.tsbuildinfo && tsc -b && oclif-dev manifest && oclif-dev readme && yarn gnirts-ci",
     "postpack": "rm -f oclif.manifest.json",
     "pack-binaries": "oclif-dev pack",
-    "postinstall-cleanup": "rimraf node_modules/devspaces-operator",
-    "postinstall-operator": "node prepare-devspaces-operator-templates.js",
-    "postinstall-repositories": "yarn upgrade devspaces-operator",
+    "postinstall-cleanup": "rimraf node_modules/devspaces-operator && rimraf node_modules/devworkspace-operator",
+    "postinstall-operator": "node prepare-templates.js",
+    "postinstall-repositories": "yarn upgrade devspaces-operator devworkspace-operator",
     "test": "jest --collect-coverage",
     "test-watch": "jest --watchAll",
     "version": "oclif-dev readme && git add README.md",
@@ -75,7 +75,7 @@
     "@oclif/plugin-autocomplete": "^1.3.0",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-update": "^1.5.0",
-    "@octokit/rest": "^19.0.3",
+    "@octokit/rest": "^19.0.4",
     "analytics-node": "^6.1.0",
     "ansi-colors": "4.1.3",
     "axios": "^0.21.1",
@@ -83,6 +83,7 @@
     "command-exists": "^1.2.9",
     "countries-and-timezones": "^3.3.0",
     "devspaces-operator": "https://github.com/redhat-developer/devspaces-images#devspaces-3-rhel-8",
+    "devworkspace-operator": "https://github.com/devfile/devworkspace-operator#main",
     "execa": "^5.1.1",
     "fancy-test": "^2.0.0",
     "fs-extra": "^10.1.0",
@@ -112,10 +113,10 @@
     "@types/js-yaml": "^4.0.5",
     "@types/listr": "^0.14.4",
     "@types/node": "^18",
-    "@types/node-forge": "^1.0.4",
+    "@types/node-forge": "^1.3.0",
     "@types/node-notifier": "^8.0.2",
     "@types/rimraf": "^3.0.2",
-    "@types/semver": "^7.3.10",
+    "@types/semver": "^7.3.12",
     "@types/unzipper": "^0.10.5",
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
@@ -123,7 +124,7 @@
     "chai": "^4.3.6",
     "eslint": "^7.32.0",
     "eslint-config-oclif": "^3.1.0",
-    "eslint-config-oclif-typescript": "^1.0.2",
+    "eslint-config-oclif-typescript": "^1.0.3",
     "eslint-plugin-header": "^3.1.1",
     "eslint-plugin-no-null": "^1.0.2",
     "jest": "^26.6.3",

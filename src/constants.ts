@@ -11,7 +11,8 @@
  */
 
 export const CHECTL_PROJECT_NAME = 'chectl'
-export const OPERATOR_TEMPLATE_DIR = 'devspaces-operator'
+export const CHE_OPERATOR_TEMPLATE_DIR = 'devspaces-operator'
+export const DEVWORKSPACE_OPERATOR_TEMPLATE_DIR = 'devspaces-operator'
 
 // images
 export const OPERATOR_IMAGE_NAME = 'quay.io/eclipse/devspaces-operator'
@@ -68,6 +69,7 @@ export const DEFAULT_ANALYTIC_HOOK_NAME = 'analytics'
 
 // Timeouts
 export const DEFAULT_K8S_POD_WAIT_TIMEOUT = 600000
+export const DEFAULT_K8S_POD_DOWNLOAD_IMAGE_TIMEOUT = 1200000
 export const DEFAULT_K8S_POD_ERROR_RECHECK_TIMEOUT = 60000
 
 // Custom Resources names

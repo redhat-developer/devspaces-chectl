@@ -11,7 +11,7 @@
  */
 
 import {Command, flags} from '@oclif/command'
-import {string} from '@oclif/parser/lib/flags'
+import {boolean, string} from '@oclif/parser/lib/flags'
 import {cli} from 'cli-ux'
 import * as Listr from 'listr'
 import * as semver from 'semver'
@@ -50,6 +50,7 @@ import {
   notifyCommandCompletedSuccessfully,
   wrapCommandError,
 } from '../../util'
+import {DevWorkspaceTasks} from '../../tasks/components/devworkspace-operator-installer'
 
 export default class Update extends Command {
   static description = 'Update Red Hat OpenShift Dev Spaces server.'
@@ -93,6 +94,10 @@ export default class Update extends Command {
     [CHE_OPERATOR_CR_PATCH_YAML_KEY]: cheOperatorCRPatchYaml,
     telemetry: CHE_TELEMETRY,
     [DEPLOY_VERSION_KEY]: cheDeployVersion,
+    'skip-devworkspace-operator': boolean({
+      default: false,
+      description: 'Skip updating Dev Workspace Operator (Kubernetes cluster only).',
+    }),
   }
 
   async run() {
@@ -133,6 +138,10 @@ export default class Update extends Command {
 
     // update tasks
     const updateTasks = new Listr([], ctx.listrOptions)
+    if (!ctx[ChectlContext.IS_OPENSHIFT]) {
+      const devWorkspaceTask = new DevWorkspaceTasks(flags)
+      updateTasks.add(devWorkspaceTask.getUpdateTasks())
+    }
     updateTasks.add({
       title: 'Update Red Hat OpenShift Dev Spaces',
       task: () => new Listr(installerTasks.updateTasks(flags), ctx.listrOptions),
