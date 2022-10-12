@@ -1,6 +1,6 @@
 {
   "name": "dsc",
-  "version": "3.3.0-CI-8619-redhat",
+  "version": "3.3.0-CI-redhat",
   "description": "Red Hat OpenShift Dev Spaces CLI",
   "keywords": [
     "oclif"
@@ -97,7 +97,7 @@
     "node-notifier": "^10.0.1",
     "os-locale": "^5.0.0",
     "rimraf": "^3.0.2",
-    "semver": "^7.3.7",
+    "semver": "^7.3.8",
     "unzipper": "0.10.11",
     "uuid": "^8.3.2"
   },
