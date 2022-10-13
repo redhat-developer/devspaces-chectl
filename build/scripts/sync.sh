@@ -107,6 +107,9 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s|(const ECLIPSE_CHE_STABLE_CHANNEL_PACKAGE_NAME =).+|\1 'devspaces'|g" \
 			-e "s|(const ECLIPSE_CHE_STABLE_CHANNEL_CATALOG_SOURCE_NAME =).+|\1 'redhat-operators'|g" \
 			-e "s|(const CSV_PREFIX =).+|\1 'devspacesoperator'|g" \
+			-e "s|(const OLM_NEXT_CHANNEL_NAME =).+|\1 'fast'|g" \
+			-e "s|(const ECLIPSE_CHE_NEXT_CHANNEL_PACKAGE_NAME =).+|\1 'devspaces'|g" \
+			-e "s|(const ECLIPSE_CHE_NEXT_CHANNEL_CATALOG_SOURCE_NAME =).+|\1 'devspaces-preview'|g" \
 			-e "s|(const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME =).+|\1 'devspaces-subscription'|g" \
 			-e "s|(const DEFAULT_CHE_NAMESPACE =).+|\1 'openshift-devspaces'|g" \
 			\
@@ -209,7 +212,7 @@ popd >/dev/null
 
 # remove if blocks
 pushd "${TARGETDIR}" >/dev/null
-	for d in src/tasks/installers/installer.ts src/tasks/platforms/platform.ts; do
+	for d in src/tasks/platforms/platform.ts; do
 		echo "[INFO] Convert ${d}"
 		mkdir -p "${TARGETDIR}/${d%/*}"
 		sed -i -r -e '/.+BEGIN CHE ONLY$/,/.+END CHE ONLY$/d' "${TARGETDIR}/${d}"
