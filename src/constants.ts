@@ -38,9 +38,9 @@ export const OLM_STABLE_CHANNEL_NAME = 'stable'
 export const ECLIPSE_CHE_STABLE_CHANNEL_PACKAGE_NAME = 'devspaces'
 export const ECLIPSE_CHE_STABLE_CHANNEL_CATALOG_SOURCE_NAME = 'redhat-operators'
 
-export const OLM_NEXT_CHANNEL_NAME = 'next'
-export const ECLIPSE_CHE_NEXT_CHANNEL_PACKAGE_NAME = 'eclipse-che-preview-openshift'
-export const ECLIPSE_CHE_NEXT_CHANNEL_CATALOG_SOURCE_NAME = 'eclipse-che-preview'
+export const OLM_NEXT_CHANNEL_NAME = 'fast'
+export const ECLIPSE_CHE_NEXT_CHANNEL_PACKAGE_NAME = 'devspaces'
+export const ECLIPSE_CHE_NEXT_CHANNEL_CATALOG_SOURCE_NAME = 'devspaces-fast'
 
 export const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME = 'devspaces-subscription'
 export const CSV_PREFIX = 'devspacesoperator'
