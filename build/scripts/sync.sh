@@ -103,6 +103,7 @@ pushd "${SOURCEDIR}" >/dev/null
 			-e "s| when both minishift and OpenShift are stopped||" \
 			-e "s|resource: Kubernetes/OpenShift|resource|g" \
 			\
+			-e "s|(const CHE_FLAVOR =).+|\1 'devspaces'|g" \
 			-e "s|(const OLM_STABLE_CHANNEL_NAME =).+|\1 'stable'|g" \
 			-e "s|(const ECLIPSE_CHE_STABLE_CHANNEL_PACKAGE_NAME =).+|\1 'devspaces'|g" \
 			-e "s|(const ECLIPSE_CHE_STABLE_CHANNEL_CATALOG_SOURCE_NAME =).+|\1 'redhat-operators'|g" \
