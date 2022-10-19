@@ -22,22 +22,21 @@ usage () {
 	echo "Example: $0 -b ${MIDSTM_BRANCH} -s /absolute/path/to/chectl -t /absolute/path/to/dsc"
 	echo ""
 	echo "Options:
-	--crw-version ${DEFAULT_TAG}     (compute from MIDSTM_BRANCH if not set)
+	-v ${DEFAULT_TAG}     (compute from MIDSTM_BRANCH if not set)
 	"
 	exit 1
 }
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    '-b'|'--crw-branch') MIDSTM_BRANCH="$2"; shift 1;; # branch of redhat-developer/codeready-workspaces/pom.xml to check as default CHE_VERSION
+    '-b') MIDSTM_BRANCH="$2"; shift 2;; # branch of redhat-developer/codeready-workspaces/pom.xml to check as default CHE_VERSION
 	# paths to use for input and ouput
-	'-s') SOURCEDIR="$2"; SOURCEDIR="${SOURCEDIR%/}"; shift 1;;
-	'-t') TARGETDIR="$2"; TARGETDIR="${TARGETDIR%/}"; shift 1;;
+	'-s') SOURCEDIR="$2"; SOURCEDIR="${SOURCEDIR%/}"; shift 2;;
+	'-t') TARGETDIR="$2"; TARGETDIR="${TARGETDIR%/}"; shift 2;;
 	'--help'|'-h') usage;;
 	# optional tag overrides
-	'--crw-version') DS_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
+	'-v') DS_VERSION="$2"; DEFAULT_TAG="$2"; shift 2;;
   esac
-  shift 1
 done
 
 if [[ ! -d "${SOURCEDIR}" ]]; then usage; fi
