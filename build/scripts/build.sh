@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2021 Red Hat, Inc.
+# Copyright (c) 2021-2022 Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -28,7 +28,8 @@ PUBLISH_ARTIFACTS_TO_GITHUB=0
 PUBLISH_ARTIFACTS_TO_RCM=0
 
 # for publishing to RCM only
-DESTHOST="crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@rcm-guest.app.eng.bos.redhat.com"
+RCMGHOST="rcm-guest.hosts.prod.psi.bos.redhat.com"
+DESTHOST="crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@${RCMGHOST}"
 KERBEROS_USER="crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM"
 
 MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -311,8 +312,8 @@ if [[ $PUBLISH_ARTIFACTS_TO_RCM -eq 1 ]]; then
     export KRB5CCNAME=/var/tmp/crw-build_ccache
 
     # accept host key
-    echo "rcm-guest.app.eng.bos.redhat.com,10.16.101.129 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEApd6cnyFVRnS2EFf4qeNvav0o+xwd7g7AYeR9dxzJmCR3nSoVHA4Q/kV0qvWkyuslvdA41wziMgSpwq6H/DPLt41RPGDgJ5iGB5/EDo3HAKfnFmVAXzYUrJSrYd25A1eUDYHLeObtcL/sC/5bGPp/0deohUxLtgyLya4NjZoYPQY8vZE6fW56/CTyTdCEWohDRUqX76sgKlVBkYVbZ3uj92GZ9M88NgdlZk74lOsy5QiMJsFQ6cpNw+IPW3MBCd5NHVYFv/nbA3cTJHy25akvAwzk8Oi3o9Vo0Z4PSs2SsD9K9+UvCfP1TUTI4PXS8WpJV6cxknprk0PSIkDdNODzjw==
-    " >> ~/.ssh/known_hosts
+    echo "${RCMGHOST},10.19.166.58 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEApd6cnyFVRnS2EFf4qeNvav0o+xwd7g7AYeR9dxzJmCR3nSoVHA4Q/kV0qvWkyuslvdA41wziMgSpwq6H/DPLt41RPGDgJ5iGB5/EDo3HAKfnFmVAXzYUrJSrYd25A1eUDYHLeObtcL/sC/5bGPp/0deohUxLtgyLya4NjZoYPQY8vZE6fW56/CTyTdCEWohDRUqX76sgKlVBkYVbZ3uj92GZ9M88NgdlZk74lOsy5QiMJsFQ6cpNw+IPW3MBCd5NHVYFv/nbA3cTJHy25akvAwzk8Oi3o9Vo0Z4PSs2SsD9K9+UvCfP1TUTI4PXS8WpJV6cxknprk0PSIkDdNODzjw==
+" >> ~/.ssh/known_hosts
 
     # if no kerb ticket for crw-build user, attempt to create one
     if [[ ! $(klist | grep crw-build) ]]; then
@@ -341,7 +342,7 @@ if [[ $PUBLISH_ARTIFACTS_TO_RCM -eq 1 ]]; then
     ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/devspaces/devspaces-${CSV_VERSION}/ && ls -la ${TARBALL_PREFIX}*" || true
 
     # trigger release
-    ssh "${DESTHOST}" "kinit -k -t ~/crw_crw-build-keytab crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM; /mnt/redhat/scripts/rel-eng/utility/bus-clients/stage-mw-release devspaces-${CSV_VERSION}"
+    ssh "${DESTHOST}" "kinit -k -t ~/crw_crw-build-keytab ${KERBEROS_USER}; /mnt/redhat/scripts/rel-eng/utility/bus-clients/stage-mw-release devspaces-${CSV_VERSION}"
 
     # drop connection to remote host so Jenkins cleanup won't delete files we just created
     fusermount -uz ${WORKSPACE}/RCMG-ssh || true
