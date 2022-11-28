@@ -81,50 +81,36 @@ pushd "${SOURCEDIR}" >/dev/null
 		echo "[INFO] Convert ${d}"
 		if [[ -d "${SOURCEDIR}/${d%/*}" ]]; then mkdir -p "${TARGETDIR}"/"${d%/*}"; fi
 		sed -r \
-			-e "s|route_names = \['che'|route_names = \['devspaces'|g" \
 			-e "s|https://github.com/che-incubator/chectl|https://github.com/redhat-developer/devspaces-chectl|g" \
 			-e "s|chectl|dsc|g" \
-			-e "s|dsc-generated|chectl-generated|g" \
-			-e "s|labelSelector=app%3Dche|labelSelector=app%devspaces|g" \
-			\
-			-e "s|/codeready-workspaces-dsc|/devspaces-chectl|g" \
-			-e "s|app=che|app=devspaces|g" \
-			-e "s|app=devspaces,component=che|app=devspaces,component=devspaces|" \
-			-e "s|eclipse-che-operator|devspaces-operator|g" \
-			-e "s|che-operator|devspaces-operator|g" \
-			-e "s|/devspaces-operator/|/devspaces-operator/|g" \
-			\
-			-e "s|devspaces-operator-(cr.+yaml)|che-operator-\1|g" \
-			-e "s|devspaces-operator-(cr.+yaml)|che-operator-\1|g" \
-			-e "s|devspaces-operator-image|che-operator-image|g" \
-			-e "s|Eclipse Che|Red Hat OpenShift Dev Spaces|g" \
-			-e "s|Che workspaces|Red Hat OpenShift Dev Spaces workspaces|g" \
-			\
-			-e "s| when both minishift and OpenShift are stopped||" \
-			-e "s|resource: Kubernetes/OpenShift|resource|g" \
-			\
-			-e "s|(const CHE_FLAVOR =).+|\1 'devspaces'|g" \
-			-e "s|(const OLM_STABLE_CHANNEL_NAME =).+|\1 'stable'|g" \
-			-e "s|(const ECLIPSE_CHE_STABLE_CHANNEL_PACKAGE_NAME =).+|\1 'devspaces'|g" \
-			-e "s|(const ECLIPSE_CHE_STABLE_CHANNEL_CATALOG_SOURCE_NAME =).+|\1 'redhat-operators'|g" \
-			-e "s|(const CSV_PREFIX =).+|\1 'devspacesoperator'|g" \
-			-e "s|(const OLM_NEXT_CHANNEL_NAME =).+|\1 'fast'|g" \
-			-e "s|(const ECLIPSE_CHE_NEXT_CHANNEL_PACKAGE_NAME =).+|\1 'devspaces'|g" \
-			-e "s|(const ECLIPSE_CHE_NEXT_CHANNEL_CATALOG_SOURCE_NAME =).+|\1 'devspaces-fast'|g" \
-			-e "s|(const DEFAULT_CHE_OPERATOR_SUBSCRIPTION_NAME =).+|\1 'devspaces-subscription'|g" \
-			-e "s|(const DEFAULT_CHE_NAMESPACE =).+|\1 'openshift-devspaces'|g" \
-			\
-			-e "s|\"Red Hat OpenShift Dev Spaces will be deployed in Multi-User mode.+mode.\"|'Red Hat OpenShift Dev Spaces can only be deployed in Multi-User mode.'|" \
+			-e "s|dsc-version|chectl-version|g" \
 		"$d" > "${TARGETDIR}/${d}"
 	done <   <(find src test resources configs package.json .ci/obfuscate/gnirts.js .eslintrc.js -type f -name "*" -print0) # include package.json in here too
 popd >/dev/null
 
-# Remove files
+# Productization
 pushd "${TARGETDIR}" >/dev/null
-	while IFS= read -r -d '' d; do
-		echo "[INFO] Delete ${d#./}"
-		rm -f "$d"
-	done <   <(find . -regextype posix-extended -iregex '.+/(minikube|microk8s|k8s|docker-desktop)(.test|).ts' -print0)
+  d=src/tasks/installers/eclipse-che/eclipse-che.ts
+  echo "[INFO] Convert ${d}"
+  sed -i "${TARGETDIR}/${d}" -r \
+    -e "s|(const CHE_FLAVOR =).+|\1 'devspaces'|g" \
+    -e "s|(const PRODUCT_ID =).+|\1 'devspaces'|g" \
+    -e "s|(const PRODUCT_NAME =).+|\1 'Red Hat OpenShift Dev Spaces'|g" \
+    -e "s|(const STABLE_CHANNEL_CATALOG_SOURCE =).+|\1 'redhat-operators'|g" \
+    -e "s|(const CSV_PREFIX =).+|\1 'devspacesoperator'|g" \
+    -e "s|(const NEXT_CHANNEL =).+|\1 'fast'|g" \
+    -e "s|(const SUBSCRIPTION =).+|\1 'devspaces-subscription'|g" \
+    -e "s|(const NAMESPACE =).+|\1 'openshift-devspaces'|g" \
+    -e "s|(const NEXT_CHANNEL_CATALOG_SOURCE =).+|\1 'devspaces-fast'|g" \
+    -e "s|(const DOC_LINK =).+|\1 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/${DS_VERSION}/'|g" \
+    -e "s|(const DOC_LINK_RELEASE_NOTES =).+|\1 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/${DS_VERSION}/html/release_notes_and_known_issues/index'|g"
+
+  d=src/tasks/installers/dev-workspace/dev-workspace.ts
+  echo "[INFO] Convert ${d}"
+  sed -i "${TARGETDIR}/${d}" -r \
+    -e "s|(const NEXT_CHANNEL =).+|\1 'fast'|g" \
+    -e "s|(const STABLE_CHANNEL_CATALOG_SOURCE =).+|\1 'redhat-operators'|g" \
+    -e "s|(const STABLE_CHANNEL =).+|\1 'fast'|g"
 popd >/dev/null
 
 # Update prepare-templates.js
@@ -137,102 +123,36 @@ pushd "${TARGETDIR}" >/dev/null
 	done <   <(find prepare-templates.js -print0)
 popd >/dev/null
 
-# per-file changes:
-platformString="    platform: string({\n\
-      char: 'p',\n\
-      description: 'Type of OpenShift platform. Valid values are \\\\\"openshift\\\\\", \\\\\"crc (for CodeReady Containers)\\\\\".',\n\
-      options: ['openshift', 'crc'],\n\
-      default: 'openshift',\n\
-    }),"; # echo -e "$platformString"
-installerString="    installer: string({\n\
-      char: 'a',\n\
-      description: 'Installer type. If not set, default is "olm" for OpenShift >= 4.2, and "operator" for earlier versions.',\n\
-      options: ['olm', 'operator'],\n\
-    }),"; # echo -e "$installerString"
-clusterMonitoringString="    'cluster-monitoring': boolean({\n\
-      default: false,\n\
-      hidden: false,\n\
-      description: \`Enable cluster monitoring to scrape Red Hat OpenShift Dev Spaces metrics in Prometheus.\n\
-	                  This parameter is used only when the platform is 'openshift'.\`,\n\
-    }),"; # echo -e "$clusterMonitoringString"
+domainString="export const DOMAIN = string({\n\
+  description: '',\n\
+  hidden: true,\n\
+})"
 
-# set -x
+platformString="export const PLATFORM = string({\n\
+  char: 'p',\n\
+  description: 'Type of OpenShift platform. Valid values are \\\\\"openshift\\\\\", \\\\\"crc (for CodeReady Containers)\\\\\".',\n\
+  options: ['openshift', 'crc'],\n\
+  default: 'openshift',\n\
+  required: true,\n\
+})"
+
+# Patch flags
 pushd "${TARGETDIR}" >/dev/null
-	for d in src/commands/server/update.ts src/commands/server/deploy.ts; do
-		echo "[INFO] Convert ${d}"
-		mkdir -p "${TARGETDIR}/${d%/*}"
-		perl -0777 -p -i -e 's|(\ +platform: string\(\{.*?\}\),)| ${1} =~ /.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
-		sed -r -e "s#INSERT-CONTENT-HERE#${platformString}#" -i "${TARGETDIR}/${d}"
+	d=src/flags.ts
+  echo "[INFO] Convert ${d}"
 
-		perl -0777 -p -i -e 's|(\ +installer: string\(\{.*?\}\),)| ${1} =~ /.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
-		sed -r -e "s#INSERT-CONTENT-HERE#${installerString}#" -i "${TARGETDIR}/${d}"
+  # Hide domain flag
+  perl -0777 -p -i -e 's|(export const DOMAIN = string\(\{.*?\}\))| ${1} =~ /.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
+  sed -r -e "s#INSERT-CONTENT-HERE#${domainString}#" -i "${TARGETDIR}/${d}"
 
-		# Remove --domain flag
-		sed -i '/domain: string({/,/}),/d' "${TARGETDIR}/${d}"
+  # Update platform flag
+  perl -0777 -p -i -e 's|(export const PLATFORM = string\(\{.*?\}\))| ${1} =~ /.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
+  sed -r -e "s#INSERT-CONTENT-HERE#${platformString}#" -i "${TARGETDIR}/${d}"
 
-		# Change multi-user flag description. Code Ready Workspaces support multi-user by default. https://issues.redhat.com/browse/CRW-1174
-		sed -i "s|'Starts Red Hat OpenShift Dev Spaces in multi-user mode'|\`Deploys Red Hat OpenShift Dev Spaces in multi-user mode.\n\ \
-		                Note, this option is turned on by default.\`|g" "${TARGETDIR}/${d}"
-
-		# Enable cluster monitoring description in Readme. Cluster Monitoring actually is available only for downstream
-		perl -0777 -p -i -e 's|(\ +'"'cluster-monitoring'"': boolean\(\{.*?\}\),)| ${1} =~ /.+openshift.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
-		sed -r -e "s#INSERT-CONTENT-HERE#${clusterMonitoringString}#" -i "${TARGETDIR}/${d}"
-
-	done
-popd >/dev/null
-# set +x
-
-pushd "${TARGETDIR}" >/dev/null
-	d=src/common-flags.ts
-	echo "[INFO] Convert ${d}"
-	mkdir -p "${TARGETDIR}/${d%/*}"
-	sed -r \
-		`# replace line after specified one with new default` \
+  # Convert
+  sed -r \
 		-e "s|Kubernetes namespace|Openshift Project|g" \
-		-e "/description: .+ deployment name.+/{n;s/.+/  default: 'devspaces',/}" \
 		-i "${TARGETDIR}/${d}"
-popd >/dev/null
-
-operatorTasksString="export class OperatorTasks {\n\
-  operatorServiceAccount = 'devspaces-operator'\n\
-  operatorRole = 'devspaces-operator'\n\
-  operatorClusterRole = 'devspaces-operator'\n\
-  operatorRoleBinding = 'devspaces-operator'\n\
-  operatorClusterRoleBinding = 'devspaces-operator'\n\
-  cheClusterCrd = 'checlusters.org.eclipse.che'\n\
-  operatorName = 'devspaces-operator'\n\
-  operatorCheCluster = 'devspaces'\n\
-  resourcesPath = ''"
-pushd "${TARGETDIR}" >/dev/null
-	d=src/tasks/installers/operator.ts
-	echo "[INFO] Convert ${d}"
-	mkdir -p "${TARGETDIR}/${d%/*}"
-	perl -0777 -p -i -e 's|(export class OperatorTasks.*?  resourcesPath = )|  ${1} =~ /.+che-operator.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
-	sed -r -e "s#INSERT-CONTENT-HERE.+#${operatorTasksString}#" -i "${TARGETDIR}/${d}"
-popd >/dev/null
-
-# remove if blocks
-pushd "${TARGETDIR}" >/dev/null
-	for d in src/tasks/platforms/platform.ts; do
-		echo "[INFO] Convert ${d}"
-		mkdir -p "${TARGETDIR}/${d%/*}"
-		sed -i -r -e '/.+BEGIN CHE ONLY$/,/.+END CHE ONLY$/d' "${TARGETDIR}/${d}"
-		sed -r -e "/.*(import|const|protected|new).+(DockerDesktop|K8s|MicroK8s|Minikube).*Tasks.*/d" -i "${TARGETDIR}/${d}"
-		sed -r -e "s/(.+return).+configureApiServerForDex.+/\1 []/" -i "${TARGETDIR}/${d}"
-	done
-popd >/dev/null
-
-pushd "${TARGETDIR}" >/dev/null
-	d=src/constants.ts
-	echo "[INFO] Convert ${d}"
-	mkdir -p "${TARGETDIR}/${d%/*}"
-	sed -r -e "s#DOC_LINK =.+#DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/${DS_VERSION}/'#" -i "${TARGETDIR}/${d}"
-	sed -r -e "s#DOC_LINK_RELEASE_NOTES.+#DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/${DS_VERSION}/html/release_notes_and_known_issues/index'#" -i "${TARGETDIR}/${d}"
-
-	# Restore replaced upstream project
-	sed -r -e "s#CHECTL_PROJECT_NAME =.+#CHECTL_PROJECT_NAME = 'chectl'#" -i "${TARGETDIR}/${d}"
-	# Fix correct templates directory
-	sed -r -e "s#OPERATOR_TEMPLATE_DIR =.+#OPERATOR_TEMPLATE_DIR = 'devspaces-operator'#" -i "${TARGETDIR}/${d}"
 popd >/dev/null
 
 # Patch eslint rules to exclude unused vars
@@ -258,10 +178,8 @@ replaceFile="${TARGETDIR}/package.json"
 if [[ -f ${replaceFile} ]]; then
 	echo "[INFO] Convert package.json (sed #2)"
 	sed -i ${replaceFile} -r \
-		-e '/"eclipse-devspaces-operator": ".+"/d' \
-		-e '/"e2e-minikube":/d' \
-		-e 's#eclipse-devspaces-operator#devspaces-operator#g' \
-		-e "s|devspaces-operator|devspaces-operator|g"
+		-e 's#Eclipse Che#Red Hat OpenShift Dev Spaces#g' \
+		-e 's#eclipse-che-operator#devspaces-operator#g'
 
 	echo "[INFO] Convert package.json (jq #1)"
 	declare -A package_replacements=(
