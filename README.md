@@ -97,25 +97,24 @@ USAGE
 
 OPTIONS
   -d, --destination=destination
-      Destination where to store Che self-signed CA certificate.
+      Destination where to store Red Hat OpenShift Dev Spaces self-signed CA certificate.
       If the destination is a file (might not exist), then the certificate will be saved there in PEM format.
-      If the destination is a directory, then cheCA.crt file will be created there with Che certificate in PEM format.
-      If this option is omitted, then Che certificate will be stored in a user's temporary directory as cheCA.crt.
+      If the destination is a directory, then cheCA.crt file will be created there with Red Hat OpenShift Dev Spaces
+      certificate in PEM format.
+      If this option is omitted, then Red Hat OpenShift Dev Spaces certificate will be stored in a user's temporary
+      directory as cheCA.crt.
 
   -h, --help
       show CLI help
 
   -n, --chenamespace=chenamespace
-      Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-devspaces'
-
-  --skip-kubernetes-health-check
-      Skip Kubernetes health check
+      Red Hat OpenShift Dev Spaces Openshift Project.
 
   --telemetry=on|off
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e62e-redhat/src/commands/cacert/export.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e5a2-redhat/src/commands/cacert/export.ts)_
 
 ## `dsc dashboard:open`
 
@@ -127,11 +126,11 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-devspaces'
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project.
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e62e-redhat/src/commands/dashboard/open.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e5a2-redhat/src/commands/dashboard/open.ts)_
 
 ## `dsc help [COMMAND]`
 
@@ -160,13 +159,13 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-devspaces'
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project.
   --debug-port=debug-port          [default: 8000] Red Hat OpenShift Dev Spaces server debug port
   --skip-kubernetes-health-check   Skip Kubernetes health check
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e62e-redhat/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e5a2-redhat/src/commands/server/debug.ts)_
 
 ## `dsc server:delete`
 
@@ -178,7 +177,7 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-devspaces'
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project.
 
   -y, --yes                        Automatic yes to prompts; assume "yes" as answer to all prompts and run
                                    non-interactively
@@ -194,7 +193,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e62e-redhat/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e5a2-redhat/src/commands/server/delete.ts)_
 
 ## `dsc server:deploy`
 
@@ -205,9 +204,6 @@ USAGE
   $ dsc server:deploy
 
 OPTIONS
-  -a, --installer=olm|operator
-      Installer type. If not set, default is olm for OpenShift >= 4.2, and operator for earlier versions.
-
   -d, --directory=directory
       Directory to store logs into
 
@@ -218,13 +214,11 @@ OPTIONS
       Red Hat OpenShift Dev Spaces server container image
 
   -n, --chenamespace=chenamespace
-      Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-devspaces'
-
-  -o, --cheboottimeout=cheboottimeout
-      (required) [default: 40000] Red Hat OpenShift Dev Spaces server bootstrap timeout (in milliseconds)
+      Red Hat OpenShift Dev Spaces Openshift Project.
 
   -p, --platform=openshift|crc
-      [default: openshift] Type of OpenShift platform. Valid values are "openshift", "crc (for CodeReady Containers)".
+      (required) [default: openshift] Type of OpenShift platform. Valid values are "openshift", "crc (for CodeReady
+      Containers)".
 
   -t, --templates=templates
       Path to the templates folder
@@ -248,7 +242,7 @@ OPTIONS
 
   --catalog-source-yaml=catalog-source-yaml
       Path to a yaml file that describes custom catalog source for installation Red Hat OpenShift Dev Spaces operator.
-      Catalog source will be applied to the namespace with Che operator.
+      Catalog source will be applied to the namespace with Red Hat OpenShift Dev Spaces operator.
       Also you need define 'olm-channel' name and 'package-manifest-name'.
       This parameter is used only when the installer is the 'olm'.
 
@@ -263,13 +257,9 @@ OPTIONS
   --che-operator-image=che-operator-image
       Container image of the operator. This parameter is used only when the installer is the operator or OLM.
 
-  --cluster-monitoring
-      Enable cluster monitoring to scrape Red Hat OpenShift Dev Spaces metrics in Prometheus.
-      This parameter is used only when the platform is 'openshift'.
-
   --debug
-      Enables the debug mode for Red Hat OpenShift Dev Spaces server. To debug Red Hat OpenShift Dev Spaces server from
-      localhost use 'server:debug' command.
+      'Enables the debug mode for Red Hat OpenShift Dev Spaces server. To debug Red Hat OpenShift Dev Spaces server from
+      localhost use 'server:debug' command.'
 
   --devfile-registry-url=devfile-registry-url
       The URL of the external Devfile registry.
@@ -281,10 +271,10 @@ OPTIONS
       [default: 60000] Waiting time for Pod rechecking error (in milliseconds)
 
   --k8spodreadytimeout=k8spodreadytimeout
-      [default: 600000] Waiting time for Pod Ready condition (in milliseconds)
+      [default: 60000] Waiting time for Pod Ready condition (in milliseconds)
 
   --k8spodwaittimeout=k8spodwaittimeout
-      [default: 600000] Waiting time for Pod scheduled condition (in milliseconds)
+      [default: 60000] Waiting time for Pod scheduled condition (in milliseconds)
 
   --olm-channel=olm-channel
       Olm channel to install Red Hat OpenShift Dev Spaces, f.e. stable.
@@ -303,9 +293,6 @@ OPTIONS
 
   --skip-cert-manager
       Skip installing Cert Manager (Kubernetes cluster only).
-
-  --skip-cluster-availability-check
-      Skip cluster availability check. The check is a simple request to ensure the cluster is reachable.
 
   --skip-devworkspace-operator
       Skip installing Dev Workspace Operator (Kubernetes cluster only).
@@ -335,7 +322,7 @@ OPTIONS
       persistent volume(s) storage class name to use to store Red Hat OpenShift Dev Spaces workspaces data
 ```
 
-_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e62e-redhat/src/commands/server/deploy.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e5a2-redhat/src/commands/server/deploy.ts)_
 
 ## `dsc server:logs`
 
@@ -348,12 +335,12 @@ USAGE
 OPTIONS
   -d, --directory=directory        Directory to store logs into
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-devspaces'
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project.
   --skip-kubernetes-health-check   Skip Kubernetes health check
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e62e-redhat/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e5a2-redhat/src/commands/server/logs.ts)_
 
 ## `dsc server:start`
 
@@ -366,10 +353,7 @@ USAGE
 OPTIONS
   -d, --directory=directory                                Directory to store logs into
   -h, --help                                               show CLI help
-
-  -n, --chenamespace=chenamespace                          Red Hat OpenShift Dev Spaces Openshift Project. Default to
-                                                           'openshift-devspaces'
-
+  -n, --chenamespace=chenamespace                          Red Hat OpenShift Dev Spaces Openshift Project.
   --batch                                                  Batch mode. Running a command without end user interaction.
 
   --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 1200000] Waiting time for Pod downloading image (in
@@ -378,16 +362,19 @@ OPTIONS
   --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout    [default: 60000] Waiting time for Pod rechecking error (in
                                                            milliseconds)
 
-  --k8spodreadytimeout=k8spodreadytimeout                  [default: 600000] Waiting time for Pod Ready condition (in
+  --k8spodreadytimeout=k8spodreadytimeout                  [default: 60000] Waiting time for Pod Ready condition (in
                                                            milliseconds)
 
-  --k8spodwaittimeout=k8spodwaittimeout                    [default: 600000] Waiting time for Pod scheduled condition
-                                                           (in milliseconds)
+  --k8spodwaittimeout=k8spodwaittimeout                    [default: 60000] Waiting time for Pod scheduled condition (in
+                                                           milliseconds)
 
   --skip-kubernetes-health-check                           Skip Kubernetes health check
+
+  --telemetry=on|off                                       Enable or disable telemetry. This flag skips a prompt and
+                                                           enable/disable telemetry
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e62e-redhat/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e5a2-redhat/src/commands/server/start.ts)_
 
 ## `dsc server:status`
 
@@ -399,11 +386,11 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-devspaces'
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project.
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e62e-redhat/src/commands/server/status.ts)_
+_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e5a2-redhat/src/commands/server/status.ts)_
 
 ## `dsc server:stop`
 
@@ -415,17 +402,12 @@ USAGE
 
 OPTIONS
   -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project. Default to 'openshift-devspaces'
-
-  --che-selector=che-selector      [default: app=devspaces,component=devspaces] Selector for Red Hat OpenShift Dev
-                                   Spaces server resources
-
+  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project.
   --skip-kubernetes-health-check   Skip Kubernetes health check
-
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e62e-redhat/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e5a2-redhat/src/commands/server/stop.ts)_
 
 ## `dsc server:update`
 
@@ -436,14 +418,8 @@ USAGE
   $ dsc server:update
 
 OPTIONS
-  -a, --installer=olm|operator                             Installer type. If not set, default is olm for OpenShift >=
-                                                           4.2, and operator for earlier versions.
-
   -h, --help                                               show CLI help
-
-  -n, --chenamespace=chenamespace                          Red Hat OpenShift Dev Spaces Openshift Project. Default to
-                                                           'openshift-devspaces'
-
+  -n, --chenamespace=chenamespace                          Red Hat OpenShift Dev Spaces Openshift Project.
   -t, --templates=templates                                Path to the templates folder
 
   -y, --yes                                                Automatic yes to prompts; assume "yes" as answer to all
@@ -455,10 +431,15 @@ OPTIONS
                                                            CheCluster CR used by the operator. This parameter is used
                                                            only when the installer is the 'operator' or the 'olm'.
 
-  --skip-devworkspace-operator                             Skip updating Dev Workspace Operator (Kubernetes cluster
+  --che-operator-image=che-operator-image                  Container image of the operator. This parameter is used only
+                                                           when the installer is the operator or OLM.
+
+  --skip-devworkspace-operator                             Skip installing Dev Workspace Operator (Kubernetes cluster
                                                            only).
 
   --skip-kubernetes-health-check                           Skip Kubernetes health check
+
+  --skip-version-check                                     Skip minimal versions check.
 
   --telemetry=on|off                                       Enable or disable telemetry. This flag skips a prompt and
                                                            enable/disable telemetry
@@ -474,7 +455,7 @@ EXAMPLES
   dsc server:update --che-operator-cr-patch-yaml patch.yaml
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e62e-redhat/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.4.0-CI-e5a2-redhat/src/commands/server/update.ts)_
 
 ## `dsc update [CHANNEL]`
 
