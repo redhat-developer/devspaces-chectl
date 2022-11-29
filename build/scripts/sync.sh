@@ -163,6 +163,13 @@ pushd "${TARGETDIR}" >/dev/null
   sed -r -e '/"rules"\: \{/ a \ \ \ \ \ \ "@typescript-eslint/no-unused-vars": 0,' -i "${TARGETDIR}/${d}"
 popd >/dev/null
 
+# Fix compilation error
+pushd "${TARGETDIR}" >/dev/null
+  d=src/utils/utls.ts
+  echo "[INFO] Convert ${d}"
+  sed -i "${TARGETDIR}/${d}" -r -e "s|return EclipseChe.CHE_FLAVOR === CHE|// @ts-expect-error Make compilable\n  return EclipseChe.CHE_FLAVOR === CHE|g"
+popd >/dev/null
+
 replaceVar()
 {
   cat ${replaceFile} | jq --arg updateName "${updateName}" --arg updateVal "${updateVal}" ''${updateName}'="'"${updateVal}"'"' > ${replaceFile}.2
