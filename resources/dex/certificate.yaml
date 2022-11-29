@@ -31,7 +31,7 @@ spec:
   secretName: dex.tls
   subject:
     organizations:
-      - Local Red Hat OpenShift Dev Spaces
+      - Local Eclipse Che
   usages:
     - server auth
     - digital signature

@@ -1,6 +1,6 @@
 {
   "name": "dsc",
-  "version": "3.4.0-CI-e62e-redhat",
+  "version": "3.4.0-CI-redhat",
   "description": "Red Hat OpenShift Dev Spaces CLI",
   "keywords": [
     "oclif"
@@ -24,8 +24,8 @@
     "/prepare-templates.js"
   ],
   "scripts": {
-    "e2e-minikube-operator": "export PLATFORM=minikube && export INSTALLER=operator && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
-    "e2e-openshift": "export PLATFORM=openshift && export INSTALLER=operator && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
+    "e2e-minikube": "export PLATFORM=minikube && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
+    "e2e-openshift": "export PLATFORM=openshift && yarn jest ./test/e2e/e2e.test.ts --testRegex='/test/(e2e)/.*.test.ts'",
     "format": "tsfmt -r --useTsfmt tsfmt.json",
     "gnirts-ci": "node .ci/obfuscate/gnirts.js",
     "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-operator && npm run -s postinstall-cleanup",

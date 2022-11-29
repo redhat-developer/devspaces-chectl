@@ -36,7 +36,7 @@ describe('Test Che upgrade', () => {
   })
 
   describe('Test Che update', () => {
-    it('Update Red Hat OpenShift Dev Spaces Version', async () => {
+    it('Update Eclipse Che Version', async () => {
       const binChectl = E2eHelper.getChectlBinaries()
       // scale deployments down to free up some resources
       await helper.runCliCommand('kubectl', ['scale', 'deployment', 'che', '--replicas=0', `-n ${NAMESPACE}`])

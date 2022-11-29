@@ -22,7 +22,7 @@ data:
     - id: {{CLIENT_ID}}
       redirectURIs:
       - 'https://{{DOMAIN}}/oauth/callback'
-      name: 'Red Hat OpenShift Dev Spaces'
+      name: 'Eclipse Che'
       secret: {{CLIENT_SECRET}}
     enablePasswordDB: true
     staticPasswords:
