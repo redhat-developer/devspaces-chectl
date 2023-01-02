@@ -1,6 +1,6 @@
 {
   "name": "dsc",
-  "version": "3.5.0-CI-d56a-redhat",
+  "version": "3.5.0-CI-redhat",
   "description": "Red Hat OpenShift Dev Spaces CLI",
   "keywords": [
     "oclif"
@@ -81,7 +81,7 @@
     "axios": "^0.21.1",
     "cli-ux": "^6.0.9",
     "command-exists": "^1.2.9",
-    "countries-and-timezones": "^3.3.0",
+    "countries-and-timezones": "^3.4.0",
     "devspaces-operator": "https://github.com/redhat-developer/devspaces-images#devspaces-3-rhel-8",
     "devworkspace-operator": "https://github.com/devfile/devworkspace-operator#main",
     "execa": "^5.1.1",
@@ -109,7 +109,7 @@
     "@types/countries-and-timezones": "^3.2.3",
     "@types/fs-extra": "^9.0.13",
     "@types/getos": "^3.0.1",
-    "@types/jest": "29.2.3",
+    "@types/jest": "29.2.4",
     "@types/js-yaml": "^4.0.5",
     "@types/listr": "^0.14.4",
     "@types/node": "^18",
@@ -118,10 +118,10 @@
     "@types/rimraf": "^3.0.2",
     "@types/semver": "^7.3.13",
     "@types/unzipper": "^0.10.5",
-    "@types/uuid": "^8.3.4",
+    "@types/uuid": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
-    "chai": "^4.3.6",
+    "chai": "^4.3.7",
     "eslint": "^7.32.0",
     "eslint-config-oclif": "^3.1.0",
     "eslint-config-oclif-typescript": "^1.0.3",
