@@ -136,6 +136,15 @@ platformString="export const PLATFORM = string({\n\
   required: true,\n\
 })"
 
+channelString="export const OLM_CHANNEL = string({\n\
+  description: \`Olm channel to install \${EclipseChe.PRODUCT_NAME}.\n\
+     The default 'stable' value will deploy the latest supported stable version of \${EclipseChe.PRODUCT_NAME} from the Red Hat Ecosystem Catalog.'\n\
+     'latest' allows to deploy the latest unreleased version from quay.io.\n\
+     'fast' or 'next' will deploy the next unreleased, unsupported, CI version of \${EclipseChe.PRODUCT_NAME} from quay.io.\`,\n\
+  options: ['stable', 'latest', 'fast', 'next'],\n\
+  default: 'stable',\n\
+})"
+
 # Patch flags
 pushd "${TARGETDIR}" >/dev/null
 	d=src/flags.ts
@@ -148,6 +157,10 @@ pushd "${TARGETDIR}" >/dev/null
   # Update platform flag
   perl -0777 -p -i -e 's|(export const PLATFORM = string\(\{.*?\}\))| ${1} =~ /.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
   sed -r -e "s#INSERT-CONTENT-HERE#${platformString}#" -i "${TARGETDIR}/${d}"
+
+  # Update channel flag
+  perl -0777 -p -i -e 's|(export const OLM_CHANNEL = string\(\{.*?\}\))| ${1} =~ /.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
+  sed -r -e "s#INSERT-CONTENT-HERE#${channelString}#" -i "${TARGETDIR}/${d}"
 
   # Convert
   sed -r \
