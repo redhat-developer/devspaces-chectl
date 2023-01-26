@@ -139,7 +139,7 @@ platformString="export const PLATFORM = string({\n\
 channelString="export const OLM_CHANNEL = string({\n\
   description: \`Olm channel to install \${EclipseChe.PRODUCT_NAME}.\n\
      The default 'stable' value allows to deploy stable version of \${EclipseChe.PRODUCT_NAME}.'\n\
-     'latest' allows to deploy the latest version.\n\
+     'latest' allows to deploy the latest unreleased version from quay.io.\n\
      'fast' and 'next' are goes for same and allow to install a next version of \${EclipseChe.PRODUCT_NAME}.\`,\n\
   options: ['stable', 'latest', 'fast', 'next'],\n\
   default: 'stable',\n\
