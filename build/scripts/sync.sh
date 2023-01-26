@@ -140,7 +140,7 @@ channelString="export const OLM_CHANNEL = string({\n\
   description: \`Olm channel to install \${EclipseChe.PRODUCT_NAME}.\n\
      The default 'stable' value will deploy the latest supported stable version of \${EclipseChe.PRODUCT_NAME} from the Red Hat Ecosystem Catalog.'\n\
      'latest' allows to deploy the latest unreleased version from quay.io.\n\
-     'fast' and 'next' are goes for same and allow to install a next version of \${EclipseChe.PRODUCT_NAME}.\`,\n\
+     'fast' or 'next' will deploy the next unreleased, unsupported, CI version of \${EclipseChe.PRODUCT_NAME} from quay.io.\`,\n\
   options: ['stable', 'latest', 'fast', 'next'],\n\
   default: 'stable',\n\
 })"
