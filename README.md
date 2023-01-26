@@ -114,7 +114,7 @@ OPTIONS
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-058ca-redhat/src/commands/cacert/export.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-69c0-redhat/src/commands/cacert/export.ts)_
 
 ## `dsc dashboard:open`
 
@@ -130,7 +130,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-058ca-redhat/src/commands/dashboard/open.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-69c0-redhat/src/commands/dashboard/open.ts)_
 
 ## `dsc help [COMMANDS]`
 
@@ -165,7 +165,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-058ca-redhat/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-69c0-redhat/src/commands/server/debug.ts)_
 
 ## `dsc server:delete`
 
@@ -193,7 +193,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-058ca-redhat/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-69c0-redhat/src/commands/server/delete.ts)_
 
 ## `dsc server:deploy`
 
@@ -276,10 +276,13 @@ OPTIONS
   --k8spodwaittimeout=k8spodwaittimeout
       [default: 60000] Waiting time for Pod scheduled condition (in milliseconds)
 
-  --olm-channel=olm-channel
-      Olm channel to install Red Hat OpenShift Dev Spaces, f.e. stable.
-      If options was not set, will be used default version for package manifest.
-      This parameter is used only when the installer is the 'olm'.
+  --olm-channel=stable|latest|fast|next
+      [default: stable] Olm channel to install Red Hat OpenShift Dev Spaces.
+      The default 'stable' value will deploy the latest supported stable version of Red Hat OpenShift Dev Spaces from the
+      Red Hat Ecosystem Catalog.'
+      'latest' allows to deploy the latest unreleased version from quay.io.
+      'fast' or 'next' will deploy the next unreleased, unsupported, CI version of Red Hat OpenShift Dev Spaces from
+      quay.io.
 
   --package-manifest-name=package-manifest-name
       Package manifest name to subscribe to Red Hat OpenShift Dev Spaces OLM package manifest.
@@ -322,7 +325,7 @@ OPTIONS
       persistent volume(s) storage class name to use to store Red Hat OpenShift Dev Spaces workspaces data
 ```
 
-_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-058ca-redhat/src/commands/server/deploy.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-69c0-redhat/src/commands/server/deploy.ts)_
 
 ## `dsc server:logs`
 
@@ -340,7 +343,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-058ca-redhat/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-69c0-redhat/src/commands/server/logs.ts)_
 
 ## `dsc server:start`
 
@@ -374,7 +377,7 @@ OPTIONS
                                                            enable/disable telemetry
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-058ca-redhat/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-69c0-redhat/src/commands/server/start.ts)_
 
 ## `dsc server:status`
 
@@ -390,7 +393,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-058ca-redhat/src/commands/server/status.ts)_
+_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-69c0-redhat/src/commands/server/status.ts)_
 
 ## `dsc server:stop`
 
@@ -407,7 +410,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-058ca-redhat/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-69c0-redhat/src/commands/server/stop.ts)_
 
 ## `dsc server:update`
 
@@ -455,7 +458,7 @@ EXAMPLES
   dsc server:update --che-operator-cr-patch-yaml patch.yaml
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-058ca-redhat/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.5.0-CI-69c0-redhat/src/commands/server/update.ts)_
 
 ## `dsc update [CHANNEL]`
 
