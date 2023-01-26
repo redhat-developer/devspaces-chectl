@@ -243,9 +243,12 @@ export const AUTO_UPDATE = boolean({
 
 export const OLM_CHANNEL_FLAG = 'olm-channel'
 export const OLM_CHANNEL = string({
-  description: `Olm channel to install ${EclipseChe.PRODUCT_NAME}, f.e. stable.
-                    If options was not set, will be used default version for package manifest.
-                    This parameter is used only when the installer is the 'olm'.`,
+  description: `Olm channel to install ${EclipseChe.PRODUCT_NAME}.
+     The default 'stable' value will deploy the latest supported stable version of ${EclipseChe.PRODUCT_NAME} from the Red Hat Ecosystem Catalog.'
+     'latest' allows to deploy the latest unreleased version from quay.io.
+     'fast' or 'next' will deploy the next unreleased, unsupported, CI version of ${EclipseChe.PRODUCT_NAME} from quay.io.`,
+  options: ['stable', 'latest', 'fast', 'next'],
+  default: 'stable',
 })
 
 export const PACKAGE_MANIFEST_FLAG = 'package-manifest-name'
