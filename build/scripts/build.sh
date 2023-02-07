@@ -29,8 +29,8 @@ PUBLISH_ARTIFACTS_TO_RCM=0
 
 # for publishing to RCM only
 RCMGHOST="rcm-guest.hosts.prod.psi.bos.redhat.com"
-DESTHOST="crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@${RCMGHOST}"
-KERBEROS_USER="crw-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM"
+DESTHOST="devspaces-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@${RCMGHOST}"
+KERBEROS_USER="devspaces-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM"
 
 MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 DEFAULT_TAG=${MIDSTM_BRANCH#*-}; DEFAULT_TAG=${DEFAULT_TAG%%-*}
@@ -309,16 +309,16 @@ if [[ $PUBLISH_ARTIFACTS_TO_RCM -eq 1 ]]; then
     fi
 
     # TODO CRW-1919 remove this when we no longer need it
-    export KRB5CCNAME=/var/tmp/crw-build_ccache
+    export KRB5CCNAME=/var/tmp/devspaces-build_ccache
 
     # accept host key
     echo "${RCMGHOST},10.19.166.58 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEApd6cnyFVRnS2EFf4qeNvav0o+xwd7g7AYeR9dxzJmCR3nSoVHA4Q/kV0qvWkyuslvdA41wziMgSpwq6H/DPLt41RPGDgJ5iGB5/EDo3HAKfnFmVAXzYUrJSrYd25A1eUDYHLeObtcL/sC/5bGPp/0deohUxLtgyLya4NjZoYPQY8vZE6fW56/CTyTdCEWohDRUqX76sgKlVBkYVbZ3uj92GZ9M88NgdlZk74lOsy5QiMJsFQ6cpNw+IPW3MBCd5NHVYFv/nbA3cTJHy25akvAwzk8Oi3o9Vo0Z4PSs2SsD9K9+UvCfP1TUTI4PXS8WpJV6cxknprk0PSIkDdNODzjw==
 " >> ~/.ssh/known_hosts
 
-    # if no kerb ticket for crw-build user, attempt to create one
-    if [[ ! $(klist | grep crw-build) ]]; then
+    # if no kerb ticket for devspaces-build user, attempt to create one
+    if [[ ! $(klist | grep devspaces-build) ]]; then
         cat /etc/redhat-release
-        keytab=$(find /mnt/hudson_workspace/ $HOME $WORKSPACE -name "*crw-build*keytab*" 2>/dev/null | head -1)
+        keytab=$(find /mnt/hudson_workspace/ $HOME $WORKSPACE -name "*devspaces-build*keytab*" 2>/dev/null | head -1)
         kinit "${KERBEROS_USER}" -kt $keytab || true
         klist
     fi
@@ -342,7 +342,7 @@ if [[ $PUBLISH_ARTIFACTS_TO_RCM -eq 1 ]]; then
     ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/devspaces/devspaces-${CSV_VERSION}/ && ls -la ${TARBALL_PREFIX}*" || true
 
     # trigger release
-    ssh "${DESTHOST}" "kinit -k -t ~/crw_crw-build-keytab ${KERBEROS_USER}; /mnt/redhat/scripts/rel-eng/utility/bus-clients/stage-mw-release devspaces-${CSV_VERSION}"
+    ssh "${DESTHOST}" "kinit -k -t ~/devspaces-build-keytab ${KERBEROS_USER}; /mnt/redhat/scripts/rel-eng/utility/bus-clients/stage-mw-release devspaces-${CSV_VERSION}"
 
     # drop connection to remote host so Jenkins cleanup won't delete files we just created
     fusermount -uz ${WORKSPACE}/RCMG-ssh || true
