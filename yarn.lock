@@ -2456,11 +2456,11 @@ detect-newline@^3.0.0:
 
 "devspaces-operator@https://github.com/redhat-developer/devspaces-images#devspaces-3-rhel-8":
   version "0.0.0"
-  resolved "https://github.com/redhat-developer/devspaces-images#0e384d70549417f079cccc688b15a1406d564a57"
+  resolved "https://github.com/redhat-developer/devspaces-images#c7a9072b858e481b2f421930be033b36e8ea8882"
 
 "devworkspace-operator@https://github.com/devfile/devworkspace-operator#main":
   version "0.0.0"
-  resolved "https://github.com/devfile/devworkspace-operator#ab6c9fa287ec7c1f2268030f1bce13cb94c63dd9"
+  resolved "https://github.com/devfile/devworkspace-operator#a4c8aaa00d30c64623a00292c6f49d1288eb85f3"
 
 diff-sequences@^29.3.1:
   version "29.3.1"
