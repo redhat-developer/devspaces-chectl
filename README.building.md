@@ -19,6 +19,6 @@ rm -fr $HOME/.cache/yarn/v6/
 	--server-tag 3.y-zz --operator-tag 3.y-zzz
 
 # build for multiple platforms
-platforms="linux-x64,darwin-x64,win32-x64"
+platforms="linux-x64,darwin-x64,darwin-arm64,win32-x64"
 yarn && npx oclif-dev pack -t ${platforms}
 ```

@@ -17,7 +17,7 @@
 set -e
 
 # defaults
-platforms="linux-x64,darwin-x64,win32-x64"
+platforms="linux-x64,darwin-x64,darwin-arm64,win32-x64"
 versionSuffix=""
 
 # five steps
