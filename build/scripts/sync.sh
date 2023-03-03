@@ -22,20 +22,20 @@ usage () {
 	echo "Example: $0 -b ${MIDSTM_BRANCH} -s /absolute/path/to/chectl -t /absolute/path/to/dsc"
 	echo ""
 	echo "Options:
-	--crw-version ${DEFAULT_TAG}     (compute from MIDSTM_BRANCH if not set)
+	--ds-version ${DEFAULT_TAG}     (compute from MIDSTM_BRANCH if not set)
 	"
 	exit 1
 }
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    '-b'|'--crw-branch') MIDSTM_BRANCH="$2"; shift 1;; # branch of redhat-developer/codeready-workspaces/pom.xml to check as default CHE_VERSION
+    '-b'|'--ds-branch') MIDSTM_BRANCH="$2"; shift 1;; # branch of redhat-developer/codeready-workspaces/pom.xml to check as default CHE_VERSION
 	# paths to use for input and ouput
 	'-s') SOURCEDIR="$2"; SOURCEDIR="${SOURCEDIR%/}"; shift 1;;
 	'-t') TARGETDIR="$2"; TARGETDIR="${TARGETDIR%/}"; shift 1;;
 	'--help'|'-h') usage;;
 	# optional tag overrides
-	'--crw-version') DS_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
+	'--ds-version') DS_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
   esac
   shift 1
 done
@@ -193,7 +193,7 @@ replaceVar()
   mv "${replaceFile}.2" "${replaceFile}"
 }
 
-# update package.json to latest branch of crw-operator
+# update package.json to latest branch of operator
 replaceFile="${TARGETDIR}/package.json"
 if [[ -f ${replaceFile} ]]; then
 	echo "[INFO] Convert package.json (sed #2)"

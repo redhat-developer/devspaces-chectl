@@ -11,8 +11,8 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 # script to build 1 or two versions of dsc (RH and Quay flavours), then optionally:
-# * push artifacts to github (GA only)
-# * push artifacts to rcm-guest (GA only)
+# * push artifacts to github
+# * push artifacts to spmm-util (GA only)
 
 set -e
 
@@ -24,17 +24,15 @@ versionSuffix=""
 DO_SYNC=1
 DO_REDHAT_BUILD=1
 DO_QUAY_BUILD=1
-PUBLISH_ARTIFACTS_TO_GITHUB=0
-PUBLISH_ARTIFACTS_TO_RCM=0
-
-# for publishing to RCM only
-RCMGHOST="rcm-guest.hosts.prod.psi.bos.redhat.com"
-DESTHOST="devspaces-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@${RCMGHOST}"
-KERBEROS_USER="devspaces-build/codeready-workspaces-jenkins.rhev-ci-vms.eng.rdu2.redhat.com@REDHAT.COM"
+PUBLISH_TO_GITHUB=0
+PUBLISH=0 # by default don't publish sources to spmm-util
+REMOTE_USER_AND_HOST="devspaces-build@spmm-util.hosts.stage.psi.bos.redhat.com"
 
 MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 DEFAULT_TAG=${MIDSTM_BRANCH#*-}; DEFAULT_TAG=${DEFAULT_TAG%%-*}
 if [[ $DEFAULT_TAG == "2" ]]; then latestNext="next"; else latestNext="latest"; fi
+
+if [[ ! ${WORKSPACE} ]] || [[ ! -d ${WORKSPACE} ]]; then WORKSPACE=/tmp; fi
 
 # default value for Jenkins builds
 if [[ -d ${WORKSPACE}/sources ]]; then
@@ -50,7 +48,7 @@ else
 fi
 
 usageSegKey() {
-	echo 'Setup:
+    echo 'Setup:
 
 First, export your segment write key to inject it into src/hooks/analytics/analytics.ts
 
@@ -63,37 +61,38 @@ If pushing to Github, export your GITHUB_TOKEN:
     usage
 }
 usage () {
-	echo "Usage:
+    echo "Usage:
 
   $0 -v 3.yy.z -b MIDSTM_BRANCH -s /path/to/chectl -i /path/to/devspaces-images/ [-t /path/to/dsc/]  [--suffix RC_or_GA]
 
 Example:
 
-  $0 -v ${DEFAULT_TAG}.0 -b ${MIDSTM_BRANCH} -s /path/to/chectl/ -i /path/to/devspaces-images/ -t ${DSC_DIR} --suffix RC"
-	echo ""
-	echo "Options:
-    --suffix [RC or GA]  optionally, build an RC (copy to quay) or GA (copy to quay and RCM guest)
-    --crw-version ${DEFAULT_TAG}   compute from MIDSTM_BRANCH if not set
-	"
-	exit 1
+  $0 -v ${DEFAULT_TAG}.0 -b ${MIDSTM_BRANCH} -s /path/to/chectl/ -i /path/to/devspaces-images/ -t ${DSC_DIR} --suffix RC
+
+Options:
+    --suffix [RC or GA]               optionally, build an RC (copy to quay) or GA (copy to quay and spmm-util)
+    --ds-version ${DEFAULT_TAG}      compute from MIDSTM_BRANCH if not set
+    --publish                         publish GA bits for a release to $REMOTE_USER_AND_HOST
+    --desthost user@destination-host  specific an alternate destination host for publishing
+"
+    exit 1
 }
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-	'-v') CSV_VERSION="$2"; shift 1;;
-    '-b'|'--crw-branch') MIDSTM_BRANCH="$2"; shift 1;; # branch of redhat-developer/devspaces/pom.xml to check as default CHE_VERSION
-	# paths to use for input and ouput
-	'-s') SOURCE_DIR="$2"; SOURCE_DIR="${SOURCE_DIR%/}"; shift 1;;
-	'-t') DSC_DIR="$2"; DSC_DIR="${DSC_DIR%/}"; shift 1;;
-	'-i') DSIMG_DIR="$2"; DSIMG_DIR="${DSIMG_DIR%/}"; shift 1;;
-	'--help'|'-h') usageSegKey;;
-	# optional tag overrides
+    '-v') CSV_VERSION="$2"; shift 1;;
+    '-b'|'--ds-branch') MIDSTM_BRANCH="$2"; shift 1;; # branch of redhat-developer/devspaces/pom.xml to check as default CHE_VERSION
+    # paths to use for input and ouput
+    '-s') SOURCE_DIR="$2"; SOURCE_DIR="${SOURCE_DIR%/}"; shift 1;;
+    '-t') DSC_DIR="$2"; DSC_DIR="${DSC_DIR%/}"; shift 1;;
+    '-i') DSIMG_DIR="$2"; DSIMG_DIR="${DSIMG_DIR%/}"; shift 1;;
+    '--help'|'-h') usageSegKey;;
+    # optional tag overrides
     '--suffix') versionSuffix="$2"; shift 1;;
-	'--crw-version') DS_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
-    '--gh') PUBLISH_ARTIFACTS_TO_GITHUB=1;;
-    '--rcm') PUBLISH_ARTIFACTS_TO_RCM=1;;
-    '--desthost') DESTHOST="$2"; shift 1;;
-    '--kerbuser') KERBEROS_USER="$2"; shift 1;;
+    '--ds-version') DS_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
+    '--gh') PUBLISH_TO_GITHUB=1;;
+    '--publish') PUBLISH=1;;
+    '--desthost') REMOTE_USER_AND_HOST="$2"; shift 1;;
     '--no-sync') DO_SYNC=0;;
     '--no-redhat') DO_REDHAT_BUILD=0;;
     '--no-quay') DO_QUAY_BUILD=0;;
@@ -102,7 +101,7 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if [[ ! "${SEGMENT_WRITE_KEY}" ]]; then usageSegKey; fi
-if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]] && [[ ! "${GITHUB_TOKEN}" ]]; then usageSegKey; fi
+if [[ $PUBLISH_TO_GITHUB -eq 1 ]] && [[ ! "${GITHUB_TOKEN}" ]]; then usageSegKey; fi
 if [[ ! -d "${SOURCE_DIR}" ]] || [[ ! -d "${DSC_DIR}" ]] || [[ ! -d "${DSIMG_DIR}" ]]; then usage; fi
 if [[ ${DSC_DIR} == "." ]]; then usage; fi
 if [[ ! ${DS_VERSION} ]]; then DS_VERSION="${CSV_VERSION%.*}"; fi
@@ -159,7 +158,7 @@ if [[ $DO_SYNC -eq 1 ]]; then
 
     pushd $DSC_DIR >/dev/null
         ./build/scripts/sync.sh -b ${MIDSTM_BRANCH} -s ${SOURCE_DIR} -t ${DSC_DIR} \
-            --crw-version ${DS_VERSION}
+            --ds-version ${DS_VERSION}
         # commit changes
         set -x
         git add .
@@ -260,7 +259,7 @@ pushd $DSC_DIR >/dev/null
     ./build/scripts/add-crwctl.sh
 popd >/dev/null
 
-if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
+if [[ $PUBLISH_TO_GITHUB -eq 1 ]]; then
     ########################################################################
     echo "[INFO] 5. Publish to GH"
     ########################################################################
@@ -300,50 +299,27 @@ if [[ $PUBLISH_ARTIFACTS_TO_GITHUB -eq 1 ]]; then
     popd >/dev/null
 fi
 
-if [[ $PUBLISH_ARTIFACTS_TO_RCM -eq 1 ]]; then
-    ########################################################################
-    echo "[INFO] 6. Publish to RCM"
-    ########################################################################
-    if [[ ! ${WORKSPACE} ]] || [[ ! -d ${WORKSPACE} ]]; then
-        WORKSPACE=/tmp
-    fi
+# optionally, push files to spmm-util server as part of a GA release
+if [[ $PUBLISH -eq 1 ]]; then
+    set -x
+    # create an empty dir into which we will make subfolders
+    empty_dir=$(mktemp -d)
 
-    # TODO CRW-1919 remove this when we no longer need it
-    export KRB5CCNAME=/var/tmp/devspaces-build_ccache
+    # delete old releases before pushing latest one, to keep disk usage low: DO NOT delete 'build-requirements' folder as we use that for storing binaries we can't yet build ourselves in OSBS
+    # note that this operation will only REMOVE old versions
+    rsync -rlP --delete --exclude=build-requirements --exclude="devspaces-${CSV_VERSION}" "$empty_dir"/ "${REMOTE_USER_AND_HOST}:staging/devspaces/"
 
-    # accept host key
-    echo "${RCMGHOST},10.19.166.58 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEApd6cnyFVRnS2EFf4qeNvav0o+xwd7g7AYeR9dxzJmCR3nSoVHA4Q/kV0qvWkyuslvdA41wziMgSpwq6H/DPLt41RPGDgJ5iGB5/EDo3HAKfnFmVAXzYUrJSrYd25A1eUDYHLeObtcL/sC/5bGPp/0deohUxLtgyLya4NjZoYPQY8vZE6fW56/CTyTdCEWohDRUqX76sgKlVBkYVbZ3uj92GZ9M88NgdlZk74lOsy5QiMJsFQ6cpNw+IPW3MBCd5NHVYFv/nbA3cTJHy25akvAwzk8Oi3o9Vo0Z4PSs2SsD9K9+UvCfP1TUTI4PXS8WpJV6cxknprk0PSIkDdNODzjw==
-" >> ~/.ssh/known_hosts
+    # move files we want to rsync into the correct folder name
+    mkdir -p "${WORKSPACE}/devspaces-${CSV_VERSION}/"
+    mv "${DSC_DIR}"/dist/channels/redhat/*gz "${WORKSPACE}/devspaces-${CSV_VERSION}/"
 
-    # if no kerb ticket for devspaces-build user, attempt to create one
-    if [[ ! $(klist | grep devspaces-build) ]]; then
-        cat /etc/redhat-release
-        keytab=$(find /mnt/hudson_workspace/ $HOME $WORKSPACE -name "*devspaces-build*keytab*" 2>/dev/null | head -1)
-        kinit "${KERBEROS_USER}" -kt $keytab || true
-        klist
-    fi
+    # next, update existing devspaces-${CSV_VERSION} folder (or create it not exist)
+    rsync -rlP --exclude "dsc*.tar.gz" --exclude "*-quay-*.tar.gz" "${WORKSPACE}/devspaces-${CSV_VERSION}" "${REMOTE_USER_AND_HOST}:staging/devspaces/"
 
-    # set up sshfs mount
-    RCMG="${DESTHOST}:/mnt/rcm-guest/staging/devspaces"
-    sshfs --version
-    for mnt in RCMG; do
-        mkdir -p ${WORKSPACE}/${mnt}-ssh;
-        if [[ $(file ${WORKSPACE}/${mnt}-ssh 2>&1) == *"Transport endpoint is not connected"* ]]; then fusermount -uz ${WORKSPACE}/${mnt}-ssh; fi
-        if [[ ! -d ${WORKSPACE}/${mnt}-ssh/devspaces ]]; then sshfs ${!mnt} ${WORKSPACE}/${mnt}-ssh || true; fi
-    done
+    # trigger staging 
+    ssh "${REMOTE_USER_AND_HOST}" "stage-mw-release devspaces-${CSV_VERSION}"
 
-    # copy files to rcm-guest
-    ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/devspaces && mkdir -p devspaces-${CSV_VERSION}/ && ls -la . "
-    rsync -zrlt --rsh=ssh --protocol=28 --exclude "dsc*.tar.gz" --exclude "*-quay-*.tar.gz" \
-    ${DSC_DIR}/dist/channels/redhat/*gz \
-    ${WORKSPACE}/${mnt}-ssh/devspaces-${CSV_VERSION}/
-
-    # echo what we have on disk
-    ssh "${DESTHOST}" "cd /mnt/rcm-guest/staging/devspaces/devspaces-${CSV_VERSION}/ && ls -la ${TARBALL_PREFIX}*" || true
-
-    # trigger release
-    ssh "${DESTHOST}" "kinit -k -t ~/devspaces-build-keytab ${KERBEROS_USER}; /mnt/redhat/scripts/rel-eng/utility/bus-clients/stage-mw-release devspaces-${CSV_VERSION}"
-
-    # drop connection to remote host so Jenkins cleanup won't delete files we just created
-    fusermount -uz ${WORKSPACE}/RCMG-ssh || true
+    # cleanup 
+    rm -fr "$empty_dir"
+    set +x
 fi
