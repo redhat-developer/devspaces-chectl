@@ -1,6 +1,6 @@
 {
   "name": "dsc",
-  "version": "3.6.0-CI-a5ce-redhat",
+  "version": "3.6.0-CI-redhat",
   "description": "Red Hat OpenShift Dev Spaces CLI",
   "keywords": [
     "oclif"
@@ -71,7 +71,7 @@
     "@kubernetes/client-node": "0.14.3",
     "@oclif/command": "^1",
     "@oclif/config": "^1",
-    "@oclif/parser": "^3.8.7",
+    "@oclif/parser": "^3.8.10",
     "@oclif/plugin-autocomplete": "^1.3.10",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-update": "^1.5.0",
@@ -81,7 +81,7 @@
     "axios": "^0.21.1",
     "cli-ux": "^6.0.9",
     "command-exists": "^1.2.9",
-    "countries-and-timezones": "^3.4.0",
+    "countries-and-timezones": "^3.4.1",
     "devspaces-operator": "https://github.com/redhat-developer/devspaces-images#devspaces-3-rhel-8",
     "devworkspace-operator": "https://github.com/devfile/devworkspace-operator#main",
     "execa": "^5.1.1",
@@ -109,7 +109,7 @@
     "@types/countries-and-timezones": "^3.2.3",
     "@types/fs-extra": "^11.0.1",
     "@types/getos": "^3.0.1",
-    "@types/jest": "29.2.6",
+    "@types/jest": "29.4.0",
     "@types/js-yaml": "^4.0.5",
     "@types/listr": "^0.14.4",
     "@types/node": "^18",
@@ -127,7 +127,7 @@
     "eslint-config-oclif-typescript": "^1.0.3",
     "eslint-plugin-header": "^3.1.1",
     "eslint-plugin-no-null": "^1.0.2",
-    "jest": "^29.3.1",
+    "jest": "^29.4.2",
     "ts-jest": "^29.0.5",
     "ts-node": "^10",
     "typescript": "^4.3",
