@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2021-2022 Red Hat, Inc.
+# Copyright (c) 2021-2023 Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -15,6 +15,9 @@
 # * push artifacts to spmm-util (GA only)
 
 set -e
+
+# today's date in yyyy-mm-dd format to use to ensure each GA push is a unique folder
+today=$(date +%Y-%m-%d)
 
 # defaults
 platforms="linux-x64,darwin-x64,darwin-arm64,win32-x64"
@@ -44,7 +47,7 @@ fi
 if [[ -d "${WORKSPACE}/devspaces-chectl" ]]; then
     DSC_DIR="${WORKSPACE}/devspaces-chectl"
 else
-    DSC_DIR=`pwd`
+    DSC_DIR=$(pwd)
 fi
 
 usageSegKey() {
@@ -110,6 +113,7 @@ if [[ ! ${CSV_VERSION} ]]; then usage; fi
 # compute branch from already-checked out sources dir
 SOURCE_BRANCH=$(cd "$SOURCE_DIR"; git rev-parse --abbrev-ref HEAD)
 
+
 ###############################################################
 
 pushd $DSC_DIR >/dev/null
@@ -129,6 +133,7 @@ fi
 # RENAME artifacts to include version in the tarball: devspaces-3.0.0-dsc-*.tar.gz
 # do not include SHA1 so that the tar can be used in QE CI processes without wildcard
 TARBALL_PREFIX="devspaces-${CSV_VERSION}"
+TODAY_DIR="${WORKSPACE}/${TARBALL_PREFIX}.${today}/"
 
 # compute latest tags for server and operator from quay; also set prerelease=false for GA
 repoFlag="--quay"
@@ -307,17 +312,17 @@ if [[ $PUBLISH -eq 1 ]]; then
 
     # delete old releases before pushing latest one, to keep disk usage low: DO NOT delete 'build-requirements' folder as we use that for storing binaries we can't yet build ourselves in OSBS
     # note that this operation will only REMOVE old versions
-    rsync -rlP --delete --exclude=build-requirements --exclude="devspaces-${CSV_VERSION}" "$empty_dir"/ "${REMOTE_USER_AND_HOST}:staging/devspaces/"
+    rsync -rlP --delete --exclude=build-requirements --exclude="${TARBALL_PREFIX}.${today}" "$empty_dir"/ "${REMOTE_USER_AND_HOST}:staging/devspaces/"
 
     # move files we want to rsync into the correct folder name
-    mkdir -p "${WORKSPACE}/devspaces-${CSV_VERSION}/"
-    mv "${DSC_DIR}"/dist/channels/redhat/*gz "${WORKSPACE}/devspaces-${CSV_VERSION}/"
+    mkdir -p "${TODAY_DIR}/"
+    mv "${DSC_DIR}"/dist/channels/redhat/*gz "${TODAY_DIR}/"
 
-    # next, update existing devspaces-${CSV_VERSION} folder (or create it not exist)
-    rsync -rlP --exclude "dsc*.tar.gz" --exclude "*-quay-*.tar.gz" "${WORKSPACE}/devspaces-${CSV_VERSION}" "${REMOTE_USER_AND_HOST}:staging/devspaces/"
+    # next, update existing ${TARBALL_PREFIX}.${today} folder (or create it not exist)
+    rsync -rlP --exclude "dsc*.tar.gz" --exclude "*-quay-*.tar.gz" "${TODAY_DIR}" "${REMOTE_USER_AND_HOST}:staging/devspaces/"
 
     # trigger staging 
-    ssh "${REMOTE_USER_AND_HOST}" "stage-mw-release devspaces-${CSV_VERSION}"
+    ssh "${REMOTE_USER_AND_HOST}" "stage-mw-release ${TARBALL_PREFIX}.${today}"
 
     # cleanup 
     rm -fr "$empty_dir"
