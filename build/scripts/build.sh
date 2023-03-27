@@ -133,7 +133,7 @@ fi
 # RENAME artifacts to include version in the tarball: devspaces-3.0.0-dsc-*.tar.gz
 # do not include SHA1 so that the tar can be used in QE CI processes without wildcard
 TARBALL_PREFIX="devspaces-${CSV_VERSION}"
-TODAY_DIR="${WORKSPACE}/${TARBALL_PREFIX}.${today}/"
+TODAY_DIR="${WORKSPACE}/${TARBALL_PREFIX}.${today}"
 
 # compute latest tags for server and operator from quay; also set prerelease=false for GA
 repoFlag="--quay"
