@@ -2463,7 +2463,7 @@ detect-newline@^3.0.0:
 
 "devspaces-operator@https://github.com/redhat-developer/devspaces-images#devspaces-3-rhel-8":
   version "0.0.0"
-  resolved "https://github.com/redhat-developer/devspaces-images#9793330a4863ac193c8d4f8d33caa6dc85ac51c0"
+  resolved "https://github.com/redhat-developer/devspaces-images#7d6514e7cac5e0288abfc49a406d041729759fc0"
 
 "devworkspace-operator@https://github.com/devfile/devworkspace-operator#main":
   version "0.0.0"
