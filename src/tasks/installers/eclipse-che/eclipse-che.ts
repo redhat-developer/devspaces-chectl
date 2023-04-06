@@ -25,6 +25,7 @@ export namespace EclipseChe {
   export const VALIDATING_WEBHOOK = 'org.eclipse.che'
   export const MUTATING_WEBHOOK = 'org.eclipse.che'
   export const CONFIG_MAP = 'che'
+  export const PLUGIN_REGISTRY_CONFIG_MAP = 'plugin-registry'
   export const CONSOLE_LINK = 'che'
   export const PROMETHEUS = 'prometheus-k8s'
   export const IMAGE_CONTENT_SOURCE_POLICY = 'quay.io'
@@ -58,8 +59,8 @@ export namespace EclipseChe {
   export const OPERATOR_IMAGE_NEXT_TAG = 'next'
 
   // Doc links
-  export const DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.6/'
-  export const DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.6/html/release_notes_and_known_issues/index'
+  export const DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.7/'
+  export const DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.7/html/release_notes_and_known_issues/index'
   export const DOC_LINK_CONFIGURE_API_SERVER = 'https://kubernetes.io/docs/reference/access-authn-authz/authentication/#configuring-the-api-server'
 
   // Components
