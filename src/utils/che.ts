@@ -151,4 +151,10 @@ export namespace Che {
 
     throw new Error(`Route ${EclipseChe.CHE_FLAVOR} not found`)
   }
+
+  export async function isEmbeddedPluginRegistryConfigured(namespace: string): Promise<boolean> {
+    const kubeClient = KubeClient.getInstance()
+    await kubeClient.waitConfigMap(EclipseChe.PLUGIN_REGISTRY_CONFIG_MAP, namespace)
+    return await kubeClient.getConfigMapValue(EclipseChe.PLUGIN_REGISTRY_CONFIG_MAP, namespace, 'START_OPENVSX') === 'true'
+  }
 }
