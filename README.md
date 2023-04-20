@@ -114,7 +114,7 @@ OPTIONS
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-d9c1b-redhat/src/commands/cacert/export.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-5a30-redhat/src/commands/cacert/export.ts)_
 
 ## `dsc dashboard:open`
 
@@ -130,7 +130,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-d9c1b-redhat/src/commands/dashboard/open.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-5a30-redhat/src/commands/dashboard/open.ts)_
 
 ## `dsc help [COMMANDS]`
 
@@ -165,7 +165,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-d9c1b-redhat/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-5a30-redhat/src/commands/server/debug.ts)_
 
 ## `dsc server:delete`
 
@@ -193,7 +193,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-d9c1b-redhat/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-5a30-redhat/src/commands/server/delete.ts)_
 
 ## `dsc server:deploy`
 
@@ -322,7 +322,7 @@ OPTIONS
       persistent volume(s) storage class name to use to store Red Hat OpenShift Dev Spaces workspaces data
 ```
 
-_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-d9c1b-redhat/src/commands/server/deploy.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-5a30-redhat/src/commands/server/deploy.ts)_
 
 ## `dsc server:logs`
 
@@ -340,7 +340,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-d9c1b-redhat/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-5a30-redhat/src/commands/server/logs.ts)_
 
 ## `dsc server:start`
 
@@ -374,7 +374,7 @@ OPTIONS
                                                            enable/disable telemetry
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-d9c1b-redhat/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-5a30-redhat/src/commands/server/start.ts)_
 
 ## `dsc server:status`
 
@@ -390,7 +390,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-d9c1b-redhat/src/commands/server/status.ts)_
+_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-5a30-redhat/src/commands/server/status.ts)_
 
 ## `dsc server:stop`
 
@@ -407,7 +407,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-d9c1b-redhat/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-5a30-redhat/src/commands/server/stop.ts)_
 
 ## `dsc server:update`
 
@@ -418,30 +418,80 @@ USAGE
   $ dsc server:update
 
 OPTIONS
-  -h, --help                                               show CLI help
-  -n, --chenamespace=chenamespace                          Red Hat OpenShift Dev Spaces Openshift Project.
-  -t, --templates=templates                                Path to the templates folder
+  -h, --help
+      show CLI help
 
-  -y, --yes                                                Automatic yes to prompts; assume "yes" as answer to all
-                                                           prompts and run non-interactively
+  -n, --chenamespace=chenamespace
+      Red Hat OpenShift Dev Spaces Openshift Project.
 
-  --batch                                                  Batch mode. Running a command without end user interaction.
+  -t, --templates=templates
+      Path to the templates folder
 
-  --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml  Path to a yaml file that overrides the default values in
-                                                           CheCluster CR used by the operator. This parameter is used
-                                                           only when the installer is the 'operator' or the 'olm'.
+  -y, --yes
+      Automatic yes to prompts; assume "yes" as answer to all prompts and run non-interactively
 
-  --che-operator-image=che-operator-image                  Container image of the operator. This parameter is used only
-                                                           when the installer is the operator or OLM.
+  --[no-]auto-update
+      Auto update approval strategy for installation Red Hat OpenShift Dev Spaces.
+      With this strategy will be provided auto-update Red Hat OpenShift Dev Spaces without any human interaction.
+      By default this flag is enabled.
+      This parameter is used only when the installer is 'olm'.
 
-  --skip-devworkspace-operator                             Skip installing Dev Workspace Operator.
+  --batch
+      Batch mode. Running a command without end user interaction.
 
-  --skip-kubernetes-health-check                           Skip Kubernetes health check
+  --catalog-source-name=catalog-source-name
+      OLM catalog source to install Red Hat OpenShift Dev Spaces operator.
+      This parameter is used only when the installer is the 'olm'.
 
-  --skip-version-check                                     Skip minimal versions check.
+  --catalog-source-namespace=catalog-source-namespace
+      Namespace for OLM catalog source to install Red Hat OpenShift Dev Spaces operator.
+      This parameter is used only when the installer is the 'olm'.
 
-  --telemetry=on|off                                       Enable or disable telemetry. This flag skips a prompt and
-                                                           enable/disable telemetry
+  --catalog-source-yaml=catalog-source-yaml
+      Path to a yaml file that describes custom catalog source for installation Red Hat OpenShift Dev Spaces operator.
+      Catalog source will be applied to the namespace with Red Hat OpenShift Dev Spaces operator.
+      Also you need define 'olm-channel' name and 'package-manifest-name'.
+      This parameter is used only when the installer is the 'olm'.
+
+  --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
+      Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used
+      only when the installer is the 'operator' or the 'olm'.
+
+  --che-operator-image=che-operator-image
+      Container image of the operator. This parameter is used only when the installer is the operator or OLM.
+
+  --olm-channel=stable|latest|fast|next
+      [default: stable] Olm channel to install Red Hat OpenShift Dev Spaces.
+      The default 'stable' value will deploy the latest supported stable version of Red Hat OpenShift Dev Spaces from the
+      Red Hat Ecosystem Catalog.'
+      'latest' allows to deploy the latest unreleased version from quay.io.
+      'fast' or 'next' will deploy the next unreleased, unsupported, CI version of Red Hat OpenShift Dev Spaces from
+      quay.io.
+
+  --package-manifest-name=package-manifest-name
+      Package manifest name to subscribe to Red Hat OpenShift Dev Spaces OLM package manifest.
+      This parameter is used only when the installer is the 'olm'.
+
+  --skip-devworkspace-operator
+      Skip installing Dev Workspace Operator.
+
+  --skip-kubernetes-health-check
+      Skip Kubernetes health check
+
+  --skip-version-check
+      Skip minimal versions check.
+
+  --starting-csv=starting-csv
+      Starting cluster service version(CSV) for installation Red Hat OpenShift Dev Spaces.
+      Flags uses to set up start installation version Che.
+      For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
+      Then OLM will install Red Hat OpenShift Dev Spaces with version 7.10.0.
+      Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known
+      version.
+      This parameter is used only when the installer is 'olm'.
+
+  --telemetry=on|off
+      Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 
 EXAMPLES
   # Update Red Hat OpenShift Dev Spaces:
@@ -452,9 +502,12 @@ EXAMPLES
 
   # Update Red Hat OpenShift Dev Spaces and update its configuration in the custom resource:
   dsc server:update --che-operator-cr-patch-yaml patch.yaml
+
+  # Update Red Hat OpenShift Dev Spaces and switch to a different channel:
+  dsc server:update --olm-channel next
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-d9c1b-redhat/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-5a30-redhat/src/commands/server/update.ts)_
 
 ## `dsc update [CHANNEL]`
 
