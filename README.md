@@ -114,7 +114,7 @@ OPTIONS
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8dec0-redhat/src/commands/cacert/export.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8a33-redhat/src/commands/cacert/export.ts)_
 
 ## `dsc dashboard:open`
 
@@ -130,7 +130,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8dec0-redhat/src/commands/dashboard/open.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8a33-redhat/src/commands/dashboard/open.ts)_
 
 ## `dsc help [COMMANDS]`
 
@@ -165,7 +165,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8dec0-redhat/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8a33-redhat/src/commands/server/debug.ts)_
 
 ## `dsc server:delete`
 
@@ -193,7 +193,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8dec0-redhat/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8a33-redhat/src/commands/server/delete.ts)_
 
 ## `dsc server:deploy`
 
@@ -322,7 +322,7 @@ OPTIONS
       persistent volume(s) storage class name to use to store Red Hat OpenShift Dev Spaces workspaces data
 ```
 
-_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8dec0-redhat/src/commands/server/deploy.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8a33-redhat/src/commands/server/deploy.ts)_
 
 ## `dsc server:logs`
 
@@ -340,7 +340,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8dec0-redhat/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8a33-redhat/src/commands/server/logs.ts)_
 
 ## `dsc server:start`
 
@@ -374,7 +374,7 @@ OPTIONS
                                                            enable/disable telemetry
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8dec0-redhat/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8a33-redhat/src/commands/server/start.ts)_
 
 ## `dsc server:status`
 
@@ -390,7 +390,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8dec0-redhat/src/commands/server/status.ts)_
+_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8a33-redhat/src/commands/server/status.ts)_
 
 ## `dsc server:stop`
 
@@ -407,7 +407,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8dec0-redhat/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8a33-redhat/src/commands/server/stop.ts)_
 
 ## `dsc server:update`
 
@@ -507,7 +507,7 @@ EXAMPLES
   dsc server:update --olm-channel next
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8dec0-redhat/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-8a33-redhat/src/commands/server/update.ts)_
 
 ## `dsc update [CHANNEL]`
 
