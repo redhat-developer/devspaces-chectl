@@ -114,7 +114,7 @@ OPTIONS
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-6a25-redhat/src/commands/cacert/export.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-e4d5-redhat/src/commands/cacert/export.ts)_
 
 ## `dsc dashboard:open`
 
@@ -130,7 +130,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-6a25-redhat/src/commands/dashboard/open.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-e4d5-redhat/src/commands/dashboard/open.ts)_
 
 ## `dsc help [COMMANDS]`
 
@@ -165,7 +165,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-6a25-redhat/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-e4d5-redhat/src/commands/server/debug.ts)_
 
 ## `dsc server:delete`
 
@@ -193,7 +193,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-6a25-redhat/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-e4d5-redhat/src/commands/server/delete.ts)_
 
 ## `dsc server:deploy`
 
@@ -227,35 +227,37 @@ OPTIONS
       Auto update approval strategy for installation Red Hat OpenShift Dev Spaces.
       With this strategy will be provided auto-update Red Hat OpenShift Dev Spaces without any human interaction.
       By default this flag is enabled.
-      This parameter is used only when the installer is 'olm'.
 
   --batch
       Batch mode. Running a command without end user interaction.
 
+  --catalog-source-image=catalog-source-image
+      OLM catalog source image or index bundle (IIB) from which to install the Red Hat OpenShift Dev Spaces operator.
+
   --catalog-source-name=catalog-source-name
-      OLM catalog source to install Red Hat OpenShift Dev Spaces operator.
-      This parameter is used only when the installer is the 'olm'.
+      Name of the OLM catalog source or index bundle (IIB) from which to install Red Hat OpenShift Dev Spaces operator.
 
   --catalog-source-namespace=catalog-source-namespace
       Namespace for OLM catalog source to install Red Hat OpenShift Dev Spaces operator.
-      This parameter is used only when the installer is the 'olm'.
 
   --catalog-source-yaml=catalog-source-yaml
       Path to a yaml file that describes custom catalog source for installation Red Hat OpenShift Dev Spaces operator.
       Catalog source will be applied to the namespace with Red Hat OpenShift Dev Spaces operator.
       Also you need define 'olm-channel' name and 'package-manifest-name'.
-      This parameter is used only when the installer is the 'olm'.
 
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
       Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used
       only when the installer is the 'operator' or the 'olm'.
 
   --che-operator-cr-yaml=che-operator-cr-yaml
-      Path to a yaml file that defines a CheCluster used by the operator. This parameter is used only when the installer
-      is the 'operator' or the 'olm'.
+      Path to a yaml file that defines a CheCluster used by the operator.
 
   --che-operator-image=che-operator-image
-      Container image of the operator. This parameter is used only when the installer is the operator or OLM.
+      Container image of the operator.
+
+  --cluster-monitoring
+      Enable cluster monitoring to scrape Red Hat OpenShift Dev Spaces metrics in Prometheus.
+      This parameter is used only when the platform is 'openshift'.
 
   --debug
       'Enables the debug mode for Red Hat OpenShift Dev Spaces server. To debug Red Hat OpenShift Dev Spaces server from
@@ -286,7 +288,6 @@ OPTIONS
 
   --package-manifest-name=package-manifest-name
       Package manifest name to subscribe to Red Hat OpenShift Dev Spaces OLM package manifest.
-      This parameter is used only when the installer is the 'olm'.
 
   --plugin-registry-url=plugin-registry-url
       The URL of the external plugin registry.
@@ -313,7 +314,6 @@ OPTIONS
       Then OLM will install Red Hat OpenShift Dev Spaces with version 7.10.0.
       Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known
       version.
-      This parameter is used only when the installer is 'olm'.
 
   --telemetry=on|off
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
@@ -322,7 +322,7 @@ OPTIONS
       persistent volume(s) storage class name to use to store Red Hat OpenShift Dev Spaces workspaces data
 ```
 
-_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-6a25-redhat/src/commands/server/deploy.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-e4d5-redhat/src/commands/server/deploy.ts)_
 
 ## `dsc server:logs`
 
@@ -340,7 +340,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-6a25-redhat/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-e4d5-redhat/src/commands/server/logs.ts)_
 
 ## `dsc server:start`
 
@@ -374,7 +374,7 @@ OPTIONS
                                                            enable/disable telemetry
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-6a25-redhat/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-e4d5-redhat/src/commands/server/start.ts)_
 
 ## `dsc server:status`
 
@@ -390,7 +390,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-6a25-redhat/src/commands/server/status.ts)_
+_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-e4d5-redhat/src/commands/server/status.ts)_
 
 ## `dsc server:stop`
 
@@ -407,7 +407,7 @@ OPTIONS
   --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-6a25-redhat/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-e4d5-redhat/src/commands/server/stop.ts)_
 
 ## `dsc server:update`
 
@@ -434,31 +434,30 @@ OPTIONS
       Auto update approval strategy for installation Red Hat OpenShift Dev Spaces.
       With this strategy will be provided auto-update Red Hat OpenShift Dev Spaces without any human interaction.
       By default this flag is enabled.
-      This parameter is used only when the installer is 'olm'.
 
   --batch
       Batch mode. Running a command without end user interaction.
 
+  --catalog-source-image=catalog-source-image
+      OLM catalog source image or index bundle (IIB) from which to install the Red Hat OpenShift Dev Spaces operator.
+
   --catalog-source-name=catalog-source-name
-      OLM catalog source to install Red Hat OpenShift Dev Spaces operator.
-      This parameter is used only when the installer is the 'olm'.
+      Name of the OLM catalog source or index bundle (IIB) from which to install Red Hat OpenShift Dev Spaces operator.
 
   --catalog-source-namespace=catalog-source-namespace
       Namespace for OLM catalog source to install Red Hat OpenShift Dev Spaces operator.
-      This parameter is used only when the installer is the 'olm'.
 
   --catalog-source-yaml=catalog-source-yaml
       Path to a yaml file that describes custom catalog source for installation Red Hat OpenShift Dev Spaces operator.
       Catalog source will be applied to the namespace with Red Hat OpenShift Dev Spaces operator.
       Also you need define 'olm-channel' name and 'package-manifest-name'.
-      This parameter is used only when the installer is the 'olm'.
 
   --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
       Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used
       only when the installer is the 'operator' or the 'olm'.
 
   --che-operator-image=che-operator-image
-      Container image of the operator. This parameter is used only when the installer is the operator or OLM.
+      Container image of the operator.
 
   --olm-channel=stable|latest|fast|next
       [default: stable] Olm channel to install Red Hat OpenShift Dev Spaces.
@@ -470,7 +469,6 @@ OPTIONS
 
   --package-manifest-name=package-manifest-name
       Package manifest name to subscribe to Red Hat OpenShift Dev Spaces OLM package manifest.
-      This parameter is used only when the installer is the 'olm'.
 
   --skip-devworkspace-operator
       Skip installing Dev Workspace Operator.
@@ -488,7 +486,6 @@ OPTIONS
       Then OLM will install Red Hat OpenShift Dev Spaces with version 7.10.0.
       Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known
       version.
-      This parameter is used only when the installer is 'olm'.
 
   --telemetry=on|off
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
@@ -503,11 +500,20 @@ EXAMPLES
   # Update Red Hat OpenShift Dev Spaces and update its configuration in the custom resource:
   dsc server:update --che-operator-cr-patch-yaml patch.yaml
 
-  # Update Red Hat OpenShift Dev Spaces and switch to a different channel:
+  # Update Red Hat OpenShift Dev Spaces from the provided channel:
   dsc server:update --olm-channel next
+
+  # Update Red Hat OpenShift Dev Spaces from the provided CatalogSource and channel:
+  dsc server:update --olm-channel fast --catalog-source-name MyCatalogName --catalog-source-namespace MyCatalogNamespace
+
+  # Create CatalogSource based on provided image and update Red Hat OpenShift Dev Spaces from it:
+  dsc server:update --olm-channel latest --catalog-source-image MyCatalogImage
+
+  # Create a CatalogSource defined in yaml file and update Red Hat OpenShift Dev Spaces from it:
+  dsc server:update --olm-channel stable --catalog-source-yaml PATH_TO_CATALOG_SOURCE_YAML
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-6a25-redhat/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.7.0-CI-e4d5-redhat/src/commands/server/update.ts)_
 
 ## `dsc update [CHANNEL]`
 
