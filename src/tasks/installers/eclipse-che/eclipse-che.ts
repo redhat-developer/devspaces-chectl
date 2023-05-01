@@ -40,7 +40,6 @@ export namespace EclipseChe {
   export const PACKAGE = PRODUCT_ID
   export const STABLE_CHANNEL = 'stable'
   export const STABLE_CHANNEL_CATALOG_SOURCE = 'redhat-operators'
-  export const STABLE_CATALOG_SOURCE_IMAGE = 'quay.io/eclipse/eclipse-che-olm-catalog:stable'
   export const NEXT_CHANNEL = 'fast'
   export const NEXT_CHANNEL_CATALOG_SOURCE = 'devspaces-fast'
   export const NEXT_CATALOG_SOURCE_IMAGE = 'quay.io/eclipse/eclipse-che-olm-catalog:next'
