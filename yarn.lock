@@ -2461,9 +2461,13 @@ detect-newline@^3.0.0:
   resolved "https://registry.yarnpkg.com/detect-newline/-/detect-newline-3.1.0.tgz#576f5dfc63ae1a192ff192d8ad3af6308991b651"
   integrity sha512-TLz+x/vEXm/Y7P7wn1EJFNLxYpUD4TgMosxY6fAVJUnJMbupHBOncxyWUG9OpTaH9EBD7uFI5LfEgmMOc54DsA==
 
+"devspaces-operator@https://github.com/redhat-developer/devspaces-images#devspaces-3-rhel-8":
+  version "0.0.0"
+  resolved "https://github.com/redhat-developer/devspaces-images#e5c1dc7bb5ef620308898683a2301d7943790b76"
+
 "devworkspace-operator@https://github.com/devfile/devworkspace-operator#main":
   version "0.0.0"
-  resolved "https://github.com/devfile/devworkspace-operator#39c517c8471552206d26dd1f3e06286be81f70b0"
+  resolved "https://github.com/devfile/devworkspace-operator#89370ced2f9eaa4e31de11de76ff15b36032e0ca"
 
 diff-sequences@^29.4.2:
   version "29.4.2"
@@ -2503,10 +2507,6 @@ ecc-jsbn@~0.1.1:
   dependencies:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
-
-"eclipse-che-operator@https://github.com/eclipse-che/che-operator#main":
-  version "0.0.0"
-  resolved "https://github.com/eclipse-che/che-operator#4bcc78a27a2ea562eb7f105c46e9dd21bdb172d7"
 
 editorconfig@^0.15.0:
   version "0.15.3"
