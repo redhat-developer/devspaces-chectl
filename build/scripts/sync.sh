@@ -66,7 +66,6 @@ echo "/.github/
 /make-release.sh
 /.ci/
 /hack/
-/crwctl
 " > /tmp/rsync-excludes
 echo "Rsync ${SOURCEDIR} to ${TARGETDIR}"
 rsync -azrlt --checksum --exclude-from /tmp/rsync-excludes --delete "${SOURCEDIR}"/ "${TARGETDIR}"/
