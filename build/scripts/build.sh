@@ -257,16 +257,9 @@ if [[ $DO_QUAY_BUILD -eq 1 ]]; then
     popd >/dev/null
 fi
 
-########################################################################
-echo "[INFO] 4. include crwctl binary/readme"
-########################################################################
-pushd $DSC_DIR >/dev/null
-    ./build/scripts/add-crwctl.sh
-popd >/dev/null
-
 if [[ $PUBLISH_TO_GITHUB -eq 1 ]]; then
     ########################################################################
-    echo "[INFO] 5. Publish to GH"
+    echo "[INFO] 4. Publish to GH"
     ########################################################################
 
     # requires hub cli
@@ -306,6 +299,10 @@ fi
 
 # optionally, push files to spmm-util server as part of a GA release
 if [[ $PUBLISH -eq 1 ]]; then
+    ########################################################################
+    echo "[INFO] 5. Publish to spmm-util and stage MW release (for GA builds)"
+    ########################################################################
+
     set -x
     # create an empty dir into which we will make subfolders
     empty_dir=$(mktemp -d)
