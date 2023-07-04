@@ -5,7 +5,7 @@ The [Red Hat OpenShift Dev Spaces](https://developers.redhat.com/products/opensh
 
 For OpenShift 4, can also use the OperatorHub installation method:
 
-https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.0/html/installation_guide/installing-codeready-workspaces-on-ocp-4#installing-codeready-workspaces-on-openshift-4-from-operatorhub_installing-codeready-workspaces-on-openshift-container-platform-4
+https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.6/html-single/administration_guide/index#installing-devspaces
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 
@@ -217,8 +217,7 @@ OPTIONS
       Red Hat OpenShift Dev Spaces Openshift Project.
 
   -p, --platform=openshift|crc
-      (required) [default: openshift] Type of OpenShift platform. Valid values are "openshift", "crc (for CodeReady
-      Containers)".
+      (required) [default: openshift] Type of OpenShift platform. Valid values are "openshift", "crc (for OpenShift Local)".
 
   -t, --templates=templates
       Path to the templates folder

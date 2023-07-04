@@ -29,7 +29,7 @@ usage () {
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    '-b'|'--ds-branch') MIDSTM_BRANCH="$2"; shift 1;; # branch of redhat-developer/codeready-workspaces/pom.xml to check as default CHE_VERSION
+    '-b'|'--ds-branch') MIDSTM_BRANCH="$2"; shift 1;;
 	# paths to use for input and ouput
 	'-s') SOURCEDIR="$2"; SOURCEDIR="${SOURCEDIR%/}"; shift 1;;
 	'-t') TARGETDIR="$2"; TARGETDIR="${TARGETDIR%/}"; shift 1;;
@@ -129,7 +129,7 @@ domainString="export const DOMAIN = string({\n\
 
 platformString="export const PLATFORM = string({\n\
   char: 'p',\n\
-  description: 'Type of OpenShift platform. Valid values are \\\\\"openshift\\\\\", \\\\\"crc (for CodeReady Containers)\\\\\".',\n\
+  description: 'Type of OpenShift platform. Valid values are \\\\\"openshift\\\\\", \\\\\"crc (for OpenShift Local)\\\\\".',\n\
   options: ['openshift', 'crc'],\n\
   default: 'openshift',\n\
   required: true,\n\
@@ -208,7 +208,7 @@ if [[ -f ${replaceFile} ]]; then
 		["${DEFAULT_TAG}.0-CI-redhat"]='.version'
 		["./bin/run"]='.bin["dsc"]'
 		["https://issues.jboss.org/projects/CRW/issues"]='.bugs'
-		["https://developers.redhat.com/products/codeready-workspaces"]='.homepage'
+		["https://developers.redhat.com/products/openshift-dev-spaces"]='.homepage'
 		["redhat-developer/devspaces-chectl"]='.repository'
 		["redhat-developer.dsc"]='.oclif["macos"]["identifier"]'
 		["https://redhat-developer.github.io/devspaces-chectl/"]='.oclif["update"]["s3"]["host"]'
