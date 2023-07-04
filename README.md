@@ -1,7 +1,7 @@
 dsc
 ======
 
-The [Red Hat OpenShift Dev Spaces (formerly Red Hat OpenShift Dev Spaces)](https://developers.redhat.com/products/codeready-workspaces/overview) CLI for OpenShift is `dsc`.
+The [Red Hat OpenShift Dev Spaces](https://developers.redhat.com/products/openshift-dev-spaces/overview) CLI for OpenShift is `dsc`.
 
 For OpenShift 4, can also use the OperatorHub installation method:
 
