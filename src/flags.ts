@@ -17,7 +17,7 @@ import {CheCtlContext, InfrastructureContext} from './context'
 export const PLATFORM_FLAG = 'platform'
 export const PLATFORM = string({
   char: 'p',
-  description: 'Type of OpenShift platform. Valid values are \"openshift\", \"crc (for CodeReady Containers)\".',
+  description: 'Type of OpenShift platform. Valid values are \"openshift\", \"crc (for OpenShift Local)\".',
   options: ['openshift', 'crc'],
   default: 'openshift',
   required: true,

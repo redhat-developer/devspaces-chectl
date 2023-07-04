@@ -1,11 +1,11 @@
 {
   "name": "dsc",
-  "version": "3.8.0-CI-8cd1-redhat",
+  "version": "3.8.0-CI-redhat",
   "description": "Red Hat OpenShift Dev Spaces CLI",
   "keywords": [
     "oclif"
   ],
-  "homepage": "https://developers.redhat.com/products/codeready-workspaces",
+  "homepage": "https://developers.redhat.com/products/openshift-dev-spaces",
   "bugs": "https://issues.jboss.org/projects/CRW/issues",
   "repository": "redhat-developer/devspaces-chectl",
   "license": "EPL-2.0",
