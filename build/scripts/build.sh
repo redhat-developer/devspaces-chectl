@@ -279,12 +279,26 @@ if [[ $PUBLISH_TO_GITHUB -eq 1 ]]; then
     sleep 10s
 
     # upload artifacts for each platform + sources tarball
+    countToUpload=0
     for channel in quay redhat; do
         pushd ${DSC_DIR}/dist/channels/${channel}/
             echo "[INFO] Publish $channel assets to ${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets GH release"
             /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --publish-assets -b "${MIDSTM_BRANCH}" -v "${CSV_VERSION}-${VERSION_SUFFIX}" --asset-name "dsc" "devspaces-*tar.gz" --asset-type "Installer binaries and sources"
         popd >/dev/null
+        channelFiles=$(find ${DSC_DIR}/dist/channels/${channel}/ -name "devspaces-*tar.gz" | wc -l)
+        countToUpload=$(( countToUpload + channelFiles ))
+        # check if upload was successful by checking the release for the same # of assets
+        assetsUploaded=$(cd ${DSC_DIR}/dist/channels/${channel}/; hub release show ${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets -f %as; echo)
+        countAssetsUploaded=$(echo "$assetsUploaded" | wc -l)
         echo "[INFO] Published assets: https://github.com/redhat-developer/devspaces-chectl/releases/tag/${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets"
+        if [[ $countToUpload -ne $countAssetsUploaded ]]; then
+            echo " + Assets to upload: $countToUpload"
+            echo " - Assets uploaded:  $countAssetsUploaded"
+            echo "=====================================================>"
+            echo "$assetsUploaded"
+            echo "<====================================================="
+            exit 1
+        fi
     done
 
     # cleanup
