@@ -26,7 +26,7 @@ versionSuffix=""
 # five steps
 DO_SYNC=1
 DO_REDHAT_BUILD=1
-DO_QUAY_BUILD=1
+DO_QUAY_BUILD=0 # disabled as of 2023-08-25, CRW-4819. No longer needed.
 PUBLISH_TO_GITHUB=0
 PUBLISH=0 # by default don't publish sources to spmm-util
 REMOTE_USER_AND_HOST="devspaces-build@spmm-util.hosts.stage.psi.bos.redhat.com"
@@ -135,13 +135,9 @@ fi
 TARBALL_PREFIX="devspaces-${CSV_VERSION}"
 TODAY_DIR="${WORKSPACE}/${TARBALL_PREFIX}.${today}"
 
-# compute latest tags for server and operator from quay; also set prerelease=false for GA
-repoFlag="--quay"
-repoOrg="devspaces"
+# set prerelease=false for GA
 if [[ $versionSuffix == "GA" ]]; then
     DSC_TAG="${CSV_VERSION}-${versionSuffix}"
-    repoFlag="--stage"
-    repoOrg="devspaces"
     PRE_RELEASE="--release" # not a --prerelease
 fi
 
@@ -281,23 +277,25 @@ if [[ $PUBLISH_TO_GITHUB -eq 1 ]]; then
     # upload artifacts for each platform + sources tarball
     countToUpload=0
     for channel in quay redhat; do
-        pushd ${DSC_DIR}/dist/channels/${channel}/
-            echo "[INFO] Publish $channel assets to ${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets GH release"
-            /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --publish-assets -b "${MIDSTM_BRANCH}" -v "${CSV_VERSION}-${VERSION_SUFFIX}" --asset-name "dsc" "devspaces-*tar.gz" --asset-type "Installer binaries and sources"
-        popd >/dev/null
-        channelFiles=$(find ${DSC_DIR}/dist/channels/${channel}/ -name "devspaces-*tar.gz" | wc -l)
-        countToUpload=$(( countToUpload + channelFiles ))
-        # check if upload was successful by checking the release for the same # of assets
-        assetsUploaded=$(cd ${DSC_DIR}/dist/channels/${channel}/; hub release show ${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets -f %as; echo)
-        countAssetsUploaded=$(echo "$assetsUploaded" | wc -l)
-        echo "[INFO] Published assets: https://github.com/redhat-developer/devspaces-chectl/releases/tag/${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets"
-        if [[ $countToUpload -ne $countAssetsUploaded ]]; then
-            echo " + Assets to upload: $countToUpload"
-            echo " - Assets uploaded:  $countAssetsUploaded"
-            echo "=====================================================>"
-            echo "$assetsUploaded"
-            echo "<====================================================="
-            exit 1
+        if [[ -d "${DSC_DIR}/dist/channels/${channel}/" ]]; then
+            pushd "${DSC_DIR}/dist/channels/${channel}/" || exit 1
+                echo "[INFO] Publish $channel assets to ${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets GH release"
+                /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --publish-assets -b "${MIDSTM_BRANCH}" -v "${CSV_VERSION}-${VERSION_SUFFIX}" --asset-name "dsc" "devspaces-*tar.gz" --asset-type "Installer binaries and sources"
+            popd >/dev/null || exit 1
+            channelFiles=$(find "${DSC_DIR}/dist/channels/${channel}/" -name "devspaces-*tar.gz" | wc -l)
+            countToUpload=$(( countToUpload + channelFiles ))
+            # check if upload was successful by checking the release for the same # of assets
+            assetsUploaded=$(cd "${DSC_DIR}/dist/channels/${channel}/"; hub release show ${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets -f %as; echo)
+            countAssetsUploaded=$(echo "$assetsUploaded" | wc -l)
+            echo "[INFO] Published assets: https://github.com/redhat-developer/devspaces-chectl/releases/tag/${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets"
+            if [[ $countToUpload -ne $countAssetsUploaded ]]; then
+                echo " + Assets to upload: $countToUpload"
+                echo " - Assets uploaded:  $countAssetsUploaded"
+                echo "=====================================================>"
+                echo "$assetsUploaded"
+                echo "<====================================================="
+                exit 1
+            fi
         fi
     done
 
