@@ -27,7 +27,8 @@ versionSuffix=""
 DO_SYNC=1
 DO_REDHAT_BUILD=1
 DO_QUAY_BUILD=0 # disabled as of 2023-08-25, CRW-4819. No longer needed.
-PUBLISH_TO_GITHUB=0
+PUBLISH_TO_GITHUB=0 # disabled as of 2023-08-25, CRW-4818. Replaced by PUBLISH_CI
+PUBLISH_CI=0 # publish into https://download.devel.redhat.com/rcm-guest/staging/devspaces/CI/
 PUBLISH=0 # by default don't publish sources to spmm-util
 REMOTE_USER_AND_HOST="devspaces-build@spmm-util.hosts.stage.psi.bos.redhat.com"
 
@@ -75,7 +76,8 @@ Example:
 Options:
     --suffix [RC or GA]               optionally, build an RC (copy to quay) or GA (copy to quay and spmm-util)
     --ds-version ${DEFAULT_TAG}      compute from MIDSTM_BRANCH if not set
-    --publish                         publish GA bits for a release to $REMOTE_USER_AND_HOST
+    --ci                              publish CI bits for any build to $REMOTE_USER_AND_HOST
+    --publish                         publish GA bits for a release to $REMOTE_USER_AND_HOST and stage for release
     --desthost user@destination-host  specific an alternate destination host for publishing
 "
     exit 1
@@ -93,7 +95,8 @@ while [[ "$#" -gt 0 ]]; do
     # optional tag overrides
     '--suffix') versionSuffix="$2"; shift 1;;
     '--ds-version') DS_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
-    '--gh') PUBLISH_TO_GITHUB=1;;
+    '--gh') PUBLISH_TO_GITHUB=1;; # deprecated
+    '--ci') PUBLISH_CI=1;;
     '--publish') PUBLISH=1;;
     '--desthost') REMOTE_USER_AND_HOST="$2"; shift 1;;
     '--no-sync') DO_SYNC=0;;
@@ -112,7 +115,6 @@ if [[ ! ${CSV_VERSION} ]]; then usage; fi
 
 # compute branch from already-checked out sources dir
 SOURCE_BRANCH=$(cd "$SOURCE_DIR"; git rev-parse --abbrev-ref HEAD)
-
 
 ###############################################################
 
@@ -202,6 +204,7 @@ if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
     popd >/dev/null
 fi
 
+# TODO CRW-4819 remove this whole block + support for DO_QUAY_BUILD
 if [[ $DO_QUAY_BUILD -eq 1 ]]; then
     ########################################################################
     echo "[INFO] 3a. Prepare ${MIDSTM_BRANCH}-quay branch of devspaces operator repo"
@@ -253,6 +256,7 @@ if [[ $DO_QUAY_BUILD -eq 1 ]]; then
     popd >/dev/null
 fi
 
+# TODO CRW-4818 remove this whole block once we're happy w/ pushing to download.devel
 if [[ $PUBLISH_TO_GITHUB -eq 1 ]]; then
     ########################################################################
     echo "[INFO] 4. Publish to GH"
@@ -309,6 +313,32 @@ if [[ $PUBLISH_TO_GITHUB -eq 1 ]]; then
     popd >/dev/null
 fi
 
+# replaces publishing to GitHub releases; instead simply rsync files to https://download.devel.redhat.com/rcm-guest/staging/devspaces/CI/
+if [[ $PUBLISH_CI -eq 1 ]]; then
+    ########################################################################
+    echo "[INFO] 4. Publish CI builds to spmm-util"
+    ########################################################################
+
+    set -x
+    # create an empty dir into which we will make subfolders
+    empty_dir=$(mktemp -d)
+
+    # delete old releases before pushing latest one, to keep disk usage low
+    # note that this operation will only REMOVE old versions
+    rsync -rlP --delete --exclude="${TARBALL_PREFIX}.${today}" "$empty_dir"/ "${REMOTE_USER_AND_HOST}:staging/devspaces/CI/"
+
+    # move files we want to rsync into the correct folder name
+    mkdir -p "${CSV_VERSION}-${VERSION_SUFFIX}/"
+    mv "${DSC_DIR}"/dist/channels/redhat/*gz "${CSV_VERSION}-${VERSION_SUFFIX}/"
+
+    # next, update existing ${CSV_VERSION}-${VERSION_SUFFIX} folder (or create it not exist)
+    rsync -rlP --exclude "dsc*.tar.gz" --exclude "*-quay-*.tar.gz" "${CSV_VERSION}-${VERSION_SUFFIX}" "${REMOTE_USER_AND_HOST}:staging/devspaces/CI/"
+
+    # cleanup 
+    rm -fr "$empty_dir"
+    set +x
+fi
+
 # optionally, push files to spmm-util server as part of a GA release
 if [[ $PUBLISH -eq 1 ]]; then
     ########################################################################
@@ -319,21 +349,22 @@ if [[ $PUBLISH -eq 1 ]]; then
     # create an empty dir into which we will make subfolders
     empty_dir=$(mktemp -d)
 
-    # delete old releases before pushing latest one, to keep disk usage low: DO NOT delete 'build-requirements' folder as we use that for storing binaries we can't yet build ourselves in OSBS
+    # delete old releases before pushing latest one, to keep disk usage low: DO NOT delete 'CI' or 'build-requirements' folders as we use them
+    # for storing CI builds and binaries we can't yet build ourselves in OSBS
     # note that this operation will only REMOVE old versions
-    rsync -rlP --delete --exclude=build-requirements --exclude="${TARBALL_PREFIX}.${today}" "$empty_dir"/ "${REMOTE_USER_AND_HOST}:staging/devspaces/"
+    rsync -rlP --delete --exclude=CI --exclude=build-requirements --exclude="${TARBALL_PREFIX}.${today}" "$empty_dir"/ "${REMOTE_USER_AND_HOST}:staging/devspaces/"
 
     # move files we want to rsync into the correct folder name
     mkdir -p "${TODAY_DIR}/"
     mv "${DSC_DIR}"/dist/channels/redhat/*gz "${TODAY_DIR}/"
 
-    # next, update existing ${TARBALL_PREFIX}.${today} folder (or create it not exist)
+    # next, update existing ${TODAY_DIR} folder (or create it not exist)
     rsync -rlP --exclude "dsc*.tar.gz" --exclude "*-quay-*.tar.gz" "${TODAY_DIR}" "${REMOTE_USER_AND_HOST}:staging/devspaces/"
 
     # trigger staging 
     ssh "${REMOTE_USER_AND_HOST}" "stage-mw-release ${TARBALL_PREFIX}.${today}"
 
-    # cleanup 
+    # cleanup
     rm -fr "$empty_dir"
     set +x
 fi
