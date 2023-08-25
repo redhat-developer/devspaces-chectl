@@ -26,7 +26,7 @@ versionSuffix=""
 # five steps
 DO_SYNC=1
 DO_REDHAT_BUILD=1
-DO_QUAY_BUILD=1
+DO_QUAY_BUILD=0 # disabled as of 2023-08-25, CRW-4819. No longer needed.
 PUBLISH_TO_GITHUB=0
 PUBLISH=0 # by default don't publish sources to spmm-util
 REMOTE_USER_AND_HOST="devspaces-build@spmm-util.hosts.stage.psi.bos.redhat.com"
