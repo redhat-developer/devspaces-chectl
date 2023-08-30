@@ -1,6 +1,6 @@
 {
   "name": "dsc",
-  "version": "3.9.0-CI-7d144-redhat",
+  "version": "3.9.0-CI-redhat",
   "description": "Red Hat OpenShift Dev Spaces CLI",
   "keywords": [
     "oclif"
@@ -134,7 +134,7 @@
     "typescript-formatter": "7.2.2"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "oclif": {
     "commands": "./lib/commands",
