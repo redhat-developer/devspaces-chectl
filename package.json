@@ -1,6 +1,6 @@
 {
   "name": "dsc",
-  "version": "3.9.0-CI-3f6c-redhat",
+  "version": "3.10.0-CI-redhat",
   "description": "Red Hat OpenShift Dev Spaces CLI",
   "keywords": [
     "oclif"
@@ -82,8 +82,8 @@
     "cli-ux": "^6.0.9",
     "command-exists": "^1.2.9",
     "countries-and-timezones": "^3.4.1",
-    "devspaces-operator": "https://github.com/redhat-developer/devspaces-images#devspaces-3-rhel-8",
-    "devworkspace-operator": "https://github.com/devfile/devworkspace-operator#main",
+    "devspaces-operator": "https://github.com/redhat-developer/devspaces-images#devspaces-3.9-rhel-8",
+    "devworkspace-operator": "https://github.com/devfile/devworkspace-operator#v0.23.0",
     "execa": "^5.1.1",
     "fancy-test": "^2.0.12",
     "fs-extra": "^11.1.0",
