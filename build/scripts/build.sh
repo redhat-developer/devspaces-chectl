@@ -26,14 +26,14 @@ versionSuffix=""
 # five steps
 DO_SYNC=1
 DO_REDHAT_BUILD=1
-DO_QUAY_BUILD=0 # disabled as of 2023-08-25, CRW-4819. No longer needed.
 PUBLISH_TO_GITHUB=0
+PUBLISH_TO_QUAY=0
 PUBLISH=0 # by default don't publish sources to spmm-util
 REMOTE_USER_AND_HOST="devspaces-build@spmm-util.hosts.stage.psi.bos.redhat.com"
 
 MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 DEFAULT_TAG=${MIDSTM_BRANCH#*-}; DEFAULT_TAG=${DEFAULT_TAG%%-*}
-if [[ $DEFAULT_TAG == "2" ]]; then latestNext="next"; else latestNext="latest"; fi
+if [[ $DEFAULT_TAG == "3" ]]; then DEFAULT_TAG="3.yy"; fi
 
 if [[ ! ${WORKSPACE} ]] || [[ ! -d ${WORKSPACE} ]]; then WORKSPACE=/tmp; fi
 
@@ -73,10 +73,11 @@ Example:
   $0 -v ${DEFAULT_TAG}.0 -b ${MIDSTM_BRANCH} -s /path/to/chectl/ -i /path/to/devspaces-images/ -t ${DSC_DIR} --suffix RC
 
 Options:
-    --suffix [RC or GA]               optionally, build an RC (copy to quay) or GA (copy to quay and spmm-util)
-    --ds-version ${DEFAULT_TAG}      compute from MIDSTM_BRANCH if not set
-    --publish                         publish GA bits for a release to $REMOTE_USER_AND_HOST
-    --desthost user@destination-host  specific an alternate destination host for publishing
+    --suffix [RC or GA]       optionally, build an RC (copy to quay) or GA (copy to quay and spmm-util)
+    --ds-version ${DEFAULT_TAG}         compute from MIDSTM_BRANCH if not set
+    --quay                    publish containers to quay  
+    --publish                 publish GA tarballs for a release to $REMOTE_USER_AND_HOST
+    --desthost user@desthost  specific an alternate destination host for publishing
 "
     exit 1
 }
@@ -94,11 +95,11 @@ while [[ "$#" -gt 0 ]]; do
     '--suffix') versionSuffix="$2"; shift 1;;
     '--ds-version') DS_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
     '--gh') PUBLISH_TO_GITHUB=1;;
+    '--quay') PUBLISH_TO_QUAY=1;;
     '--publish') PUBLISH=1;;
     '--desthost') REMOTE_USER_AND_HOST="$2"; shift 1;;
     '--no-sync') DO_SYNC=0;;
     '--no-redhat') DO_REDHAT_BUILD=0;;
-    '--no-quay') DO_QUAY_BUILD=0;;
   esac
   shift 1
 done
@@ -112,7 +113,6 @@ if [[ ! ${CSV_VERSION} ]]; then usage; fi
 
 # compute branch from already-checked out sources dir
 SOURCE_BRANCH=$(cd "$SOURCE_DIR"; git rev-parse --abbrev-ref HEAD)
-
 
 ###############################################################
 
@@ -130,7 +130,7 @@ if [[ "${versionSuffix}" ]]; then
     DSC_TAG="${CSV_VERSION}-${versionSuffix}-${SHORT_SHA1}"
 fi
 
-# RENAME artifacts to include version in the tarball: devspaces-3.0.0-dsc-*.tar.gz
+# RENAME artifacts to include version in the tarball: devspaces-3.10.0-dsc-*.tar.gz
 # do not include SHA1 so that the tar can be used in QE CI processes without wildcard
 TARBALL_PREFIX="devspaces-${CSV_VERSION}"
 TODAY_DIR="${WORKSPACE}/${TARBALL_PREFIX}.${today}"
@@ -180,7 +180,7 @@ if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
         rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/
         echo "Insert SEGMENT_WRITE_KEY = $SEGMENT_WRITE_KEY into src/hooks/analytics/analytics.ts (redhat version)"
         sed -i "s|INSERT-KEY-HERE|${SEGMENT_WRITE_KEY}|g" src/hooks/analytics/analytics.ts
-        yarn && npx oclif-dev pack -t ${platforms}
+        yarn && npx oclif pack tarballs -t ${platforms} --no-xz --parallel
         mv dist/channels/*redhat dist/channels/redhat
         # copy from generic name specific name, so E2E/CI jobs can access tarballs from generic folder and filename (name doesn't change between builds)
         while IFS= read -r -d '' d; do
@@ -202,60 +202,18 @@ if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
     popd >/dev/null
 fi
 
-if [[ $DO_QUAY_BUILD -eq 1 ]]; then
+if [[ $PUBLISH_TO_QUAY -eq 1 ]]; then
     ########################################################################
-    echo "[INFO] 3a. Prepare ${MIDSTM_BRANCH}-quay branch of devspaces operator repo"
+    echo "[INFO] 4. Publish containers to Quay"
     ########################################################################
-    # check out from MIDSTM_BRANCH
-    pushd ${DSIMG_DIR} >/dev/null
-        git branch ${MIDSTM_BRANCH}-quay -f
-        git checkout ${MIDSTM_BRANCH}-quay
-        # CRW-1579 change yamls to use quay image, and :latest or :next
-        # do not use :3.y to allow stable builds to be auto-updated via dsc on ocp3.11 - :latest tag triggers always-update (?)
-        FILES="devspaces-operator/config/manager/manager.yaml devspaces-operator-bundle/manifests/devspaces.csv.yaml"
-        for d in ${FILES}; do
-            sed -i ${d} -r -e "s#registry.redhat.io/devspaces/(.+):(.+)#quay.io/devspaces/\1:${latestNext}#g"
-        done
 
-        # push to ${MIDSTM_BRANCH}-quay branch
-        git commit -s -m "ci: [update] Push ${MIDSTM_BRANCH} to ${MIDSTM_BRANCH}-quay branch" ${FILES}
-        git push origin ${MIDSTM_BRANCH}-quay -f
-    popd >/dev/null
-
-    ########################################################################
-    echo "[INFO] 3b. Build dsc using ${MIDSTM_BRANCH}-quay branch, -quay suffix and quay.io/devspaces/ URLs"
-    ########################################################################
-    pushd ${DSC_DIR} >/dev/null
-        YAML_REPO="`cat package.json | jq -r '.dependencies["devspaces-operator"]'`-quay"
-        jq -M --arg YAML_REPO "${YAML_REPO}" '.dependencies["devspaces-operator"] = $YAML_REPO' package.json > package.json2
-        jq -M --arg DSC_TAG "${DSC_TAG}-quay" '.version = $DSC_TAG' package.json2 > package.json
-        rm -f package.json2
-        git diff -u package.json
-        git tag -f "${DSC_TAG}-quay"
-        rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo
-        echo "Insert SEGMENT_WRITE_KEY = $SEGMENT_WRITE_KEY into src/hooks/analytics/analytics.ts (quay version)"
-        sed -i "s|INSERT-KEY-HERE|${SEGMENT_WRITE_KEY}|g" src/hooks/analytics/analytics.ts
-        yarn && npx oclif-dev pack -t ${platforms}
-        mv dist/channels/*quay dist/channels/quay
-        # copy from generic name specific name, so E2E/CI jobs can access tarballs from generic folder and filename (name doesn't change between builds)
-        while IFS= read -r -d '' d; do
-            e=${d/quay\/dsc/quay\/${TARBALL_PREFIX}-quay-dsc}
-            cp ${d} ${e}
-        done <   <(find dist/channels/quay -type f -name "*gz" -print0)
-        pwd; du ./dist/channels/*/*gz
-
-        # purge generated binaries and temp files
-        rm -fr coverage/ lib/ node_modules/ templates/ tmp/
-
-        # create sources tarball in the same dir where we have the per-arch binaries
-        tar czf /tmp/${TARBALL_PREFIX}-quay-dsc-sources.tar.gz --exclude=./dist/channels/*/* ./* && \
-        mv /tmp/${TARBALL_PREFIX}-quay-dsc-sources.tar.gz ${DSC_DIR}/dist/channels/quay/
-    popd >/dev/null
+    # copy from ${DSC_DIR}/dist/channels/redhat/ into a container
 fi
 
+# deprecated
 if [[ $PUBLISH_TO_GITHUB -eq 1 ]]; then
     ########################################################################
-    echo "[INFO] 4. Publish to GH"
+    echo "[INFO] 4b. Publish tarballs to GH"
     ########################################################################
 
     # requires hub cli
@@ -312,7 +270,7 @@ fi
 # optionally, push files to spmm-util server as part of a GA release
 if [[ $PUBLISH -eq 1 ]]; then
     ########################################################################
-    echo "[INFO] 5. Publish to spmm-util and stage MW release (for GA builds)"
+    echo "[INFO] 5. Publish tarballs to spmm-util and stage MW release (for GA builds)"
     ########################################################################
 
     set -x
