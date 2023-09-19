@@ -44,9 +44,12 @@ RUN rm -fr coverage/ lib/ node_modules/ templates/ tmp/; \
     DSC_FULL_VERSION="$(cat dist/dsc-*linux-x64-buildmanifest | grep -E "tar.gz" | sed -r -e "s@.+/(.+)-linux-x64.+@\1@")"; \
     tar czf dist/${DSC_FULL_VERSION}-sources.tar.gz \
         --exclude=./bin --exclude=./dist ./* && \
-    # TODO rename to devspaces-3.10.0-dsc-linux-arm64.tar.gz and devspaces-3.10.0-dsc-sources.tar.gz
-    for d in dist/*.gz; do mv $d ${d/${DSC_FULL_VERSION}/dsc-${DSC_SHORT_VERSION}}; done; \
-    mv dist/*gz /tarballs/; \
-    rm -fr /dsc/
+    # rename long names to devspaces-3.10.0-dsc-linux-arm64.tar.gz and devspaces-3.10.0-dsc-sources.tar.gz
+    for d in dist/*.gz; do mv $d ${d/${DSC_FULL_VERSION}/dsc-${DSC_SHORT_VERSION}}; done
+    # mkdir -p /tarballs/; mv dist/*gz /tarballs/; \
+    # rm -fr /dsc/
 
+# https://registry.access.redhat.com/ubi9-micro
+FROM registry.access.redhat.com/ubi9-micro:9.2
 WORKDIR /tarballs/
+COPY --from=builder /dsc/dist/*gz /tarballs/
