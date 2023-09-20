@@ -9,9 +9,11 @@
 #
 # for a given build of localhost/dsc:next, extract and install for the current OS
 container="localhost/dsc:next"
+QUIET="-q"
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
+    '-v') QUIET="";;
     *) container="$1";;
   esac
   shift 1
@@ -45,8 +47,7 @@ else
   SUFFIX=win32-x64.tar.gz
 fi
 rm -fr $TMPDIR/dsc/ "$unpackdir"
-# get more verbose output by removing -q 
-/tmp/containerExtract.sh -q "$container" --tar-flags dsc/*${SUFFIX}
+/tmp/containerExtract.sh ${QUIET} "$container" --tar-flags dsc/*${SUFFIX}
 cd "$unpackdir" || exit
 # shellcheck disable=SC2086
 tar xzf dsc/dsc-*${SUFFIX} -C $TMPDIR
