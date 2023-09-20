@@ -6,10 +6,10 @@
 /package-lock.json
 /tmp
 node_modules
-dsc-v*.tgz
+dsc*gz
 coverage
 .vscode
-bin/dsc-*
+bin/
 tsconfig.tsbuildinfo
 oclif.manifest.json
 # templates are added at post-install step
