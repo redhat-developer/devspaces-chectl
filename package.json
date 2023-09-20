@@ -103,7 +103,7 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@oclif/dev-cli": "^1",
+    "@oclif": "^3",
     "@oclif/test": "^2",
     "@types/chai": "^4",
     "@types/command-exists": "^1.2.0",
