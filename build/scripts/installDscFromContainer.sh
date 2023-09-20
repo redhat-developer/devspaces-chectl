@@ -13,10 +13,9 @@ QUIET="-q"
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    '-v') QUIET="";;
-    *) container="$1";;
+    '-v') QUIET=""; shift;;
+    *) container="$1"; shift;;
   esac
-  shift 1
 done
 
 TMPDIR="/tmp"
