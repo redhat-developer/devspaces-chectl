@@ -15,7 +15,7 @@ metadata:
 components:
   - name: tools
     container:
-      image: registry.redhat.io/devspaces/udi-rhel8:3.10
+      image: quay.io/devspaces/udi-rhel8:next
       cpuLimit: 500m
       cpuRequest: 500m
       memoryLimit: 5G
