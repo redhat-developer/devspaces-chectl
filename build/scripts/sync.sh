@@ -61,6 +61,7 @@ echo "/.github/
 /docs/
 /dist/
 /bin/
+run-script-in-docker.sh
 /RELEASE.md
 /CONTRIBUTING.md
 /make-release.sh
