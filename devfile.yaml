@@ -21,16 +21,7 @@ components:
       memoryLimit: 5G
       memoryRequest: 1G
 commands:
-  - id: 1-build-cli
-    exec:
-      label: "Build dsc via commandline"
-      component: tools
-      group:
-        kind: build
-      workingDir: ${PROJECT_SOURCE}
-      commandLine: >-
-        yarn; npx oclif pack tarballs --no-xz
-  - id: 2-build-container
+  - id: 1-build-dsc-container
     exec:
       label: "Build dsc in a container"
       component: tools
@@ -39,3 +30,13 @@ commands:
       workingDir: ${PROJECT_SOURCE}
       commandLine: >-
         podman build . -t dsc:next -f build/dockerfiles/Dockerfile 
+  - id: 2-extract-dsc-container
+    exec:
+      label: "Extract contents of dsc container"
+      component: tools
+      group:
+        kind: build
+      workingDir: ${PROJECT_SOURCE}
+      commandLine: >-
+        curl -sSLko /tmp/containerExtract.sh https://raw.githubusercontent.com/redhat-developer/devspaces/devspaces-3-rhel-8/product/containerExtract.sh && chmod +x /tmp/containerExtract.sh
+        /tmp/containerExtract.sh localhost/dsc:next --tar-flags dsc/
