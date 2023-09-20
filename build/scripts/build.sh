@@ -182,10 +182,10 @@ if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
         podman rmi localhost/dsc:next -f
         podman build . -t localhost/dsc:next -f build/dockerfiles/Dockerfile $CACHEFLAG
         ./build/scripts/installDscFromContainer.sh
-        # cp /tmp/dsc/package.json /tmp/dsc/README.md .
-        git diff -u package.json
+        cp /tmp/dsc/package.json /tmp/dsc/README.md /tmp/dsc/yarn.lock .
+        git diff -u
         git tag -f "${DSC_TAG}-redhat"
-        git commit -s -m "ci: [update] package.json + README.md" package.json README.md || true
+        git commit -s -m "ci: [update] package.json, yarn.lock + README.md" package.json yarn.lock README.md || true
         git push origin ${MIDSTM_BRANCH} || true
     popd >/dev/null
 fi
