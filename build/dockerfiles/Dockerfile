@@ -47,14 +47,12 @@ RUN rm -fr coverage/ lib/ node_modules/ templates/ tmp/; \
     for d in dist/*.gz; do \
         # rename long names to devspaces-3.10.0-dsc-linux-arm64.tar.gz and devspaces-3.10.0-dsc-sources.tar.gz
         mv $d ${d/${DSC_FULL_VERSION}/dsc-${DSC_SHORT_VERSION}}; \
-        # unpack the tarballs so we can run them directly from the container
-        if [[ $d != *"sources"* ]]; then \
-            mkdir -p /dsc-build/unpacked/${DSC_FULL_VERSION}; \
-            tar xzf ${d/${DSC_FULL_VERSION}/dsc-${DSC_SHORT_VERSION}} -C /dsc-build/unpacked/${DSC_FULL_VERSION}; \
-        fi; \
     done
+    
 
 # https://registry.access.redhat.com/ubi9-micro
 FROM registry.access.redhat.com/ubi9-micro:9.2
 WORKDIR /dsc/
-COPY --from=builder /dsc-build/dist/*gz /dsc-build/unpacked/* /dsc/
+# Note: if we wanted to unpack tarballs within the container, need to install libstdc++.so.6 here to run from within the container.
+# Instead, see devfile.yaml for how to fetch, extract from the container, and unpack/install dsc.
+COPY --from=builder /dsc-build/dist/*gz /dsc/
