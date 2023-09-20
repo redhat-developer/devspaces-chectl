@@ -20,7 +20,7 @@ ENV SEGMENT_WRITE_KEY=${SEGMENT_WRITE_KEY} \
     DSC_PLATFORMS=${DSC_PLATFORMS} \
     DSC_SHORT_VERSION=${DSC_SHORT_VERSION}
 
-WORKDIR /dsc/
+WORKDIR /dsc-build/
 # NOTE: when we move to node 18.17 or 20, can move up to npm@10
 RUN dnf -y -q update --exclude=unbound-libs; \
     # subscription-manager repos --enable codeready-builder-for-rhel-9-$(arch)-rpms; \
@@ -31,7 +31,7 @@ RUN dnf -y -q update --exclude=unbound-libs; \
     ln -s /usr/bin/7za /usr/bin/7z
 RUN npm i -g yarn@1 oclif@3 npm@9
 RUN \
-    cd /; git clone --depth 1 https://github.com/redhat-developer/devspaces-chectl dsc && cd dsc/; \
+    cd /; git clone --depth 1 https://github.com/redhat-developer/devspaces-chectl dsc-build && cd dsc-build/; \
     rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/; \
     echo "Insert SEGMENT_WRITE_KEY = $SEGMENT_WRITE_KEY into src/hooks/analytics/analytics.ts"; \
     sed -i "s|INSERT-KEY-HERE|${SEGMENT_WRITE_KEY}|g" src/hooks/analytics/analytics.ts; \
@@ -44,12 +44,17 @@ RUN rm -fr coverage/ lib/ node_modules/ templates/ tmp/; \
     DSC_FULL_VERSION="$(cat dist/dsc-*linux-x64-buildmanifest | grep -E "tar.gz" | sed -r -e "s@.+/(.+)-linux-x64.+@\1@")"; \
     tar czf dist/${DSC_FULL_VERSION}-sources.tar.gz \
         --exclude=./bin --exclude=./dist ./* && \
-    # rename long names to devspaces-3.10.0-dsc-linux-arm64.tar.gz and devspaces-3.10.0-dsc-sources.tar.gz
-    for d in dist/*.gz; do mv $d ${d/${DSC_FULL_VERSION}/dsc-${DSC_SHORT_VERSION}}; done
-    # mkdir -p /tarballs/; mv dist/*gz /tarballs/; \
-    # rm -fr /dsc/
+    for d in dist/*.gz; do \
+        # rename long names to devspaces-3.10.0-dsc-linux-arm64.tar.gz and devspaces-3.10.0-dsc-sources.tar.gz
+        mv $d ${d/${DSC_FULL_VERSION}/dsc-${DSC_SHORT_VERSION}}; \
+        # unpack the tarballs so we can run them directly from the container
+        if [[ $d != *"sources"* ]]; then \
+            mkdir -p /dsc-build/unpacked/${DSC_FULL_VERSION}; \
+            tar xzf ${d/${DSC_FULL_VERSION}/dsc-${DSC_SHORT_VERSION}} -C /dsc-build/unpacked/${DSC_FULL_VERSION}; \
+        fi; \
+    done
 
 # https://registry.access.redhat.com/ubi9-micro
 FROM registry.access.redhat.com/ubi9-micro:9.2
-WORKDIR /tarballs/
-COPY --from=builder /dsc/dist/*gz /tarballs/
+WORKDIR /dsc/
+COPY --from=builder /dsc-build/dist/*gz /dsc-build/unpacked/* /dsc/
