@@ -196,12 +196,18 @@ replaceVar()
 # update package.json to latest branch of operator
 replaceFile="${TARGETDIR}/package.json"
 if [[ -f ${replaceFile} ]]; then
-	echo "[INFO] Convert package.json (sed #2)"
+	echo "[INFO] Convert package.json (sed)"
 	sed -i ${replaceFile} -r \
 		-e 's#Eclipse Che#Red Hat OpenShift Dev Spaces#g' \
-		-e 's#eclipse-che-operator#devspaces-operator#g'
+		-e 's#eclipse-che-operator#devspaces-operator#g' \
 
-	echo "[INFO] Convert package.json (jq #1)"
+	echo "[INFO] Convert package.json - switch to oclif 3"
+	sed -i ${replaceFile} -r \
+		-e 's#"@oclif/dev-cli": "\^1"#"@oclif": "^3"#g' \
+    -e 's#oclif-dev pack#oclif pack tarballs --no-xz --parallel#g' \
+		-e 's#oclif-dev #oclif #g'
+
+	echo "[INFO] Convert package.json (jq)"
 	declare -A package_replacements=(
 		["https://github.com/redhat-developer/devspaces-images#${MIDSTM_BRANCH}"]='.dependencies["devspaces-operator"]'
 		["dsc"]='.name'
@@ -220,9 +226,14 @@ if [[ -f ${replaceFile} ]]; then
 	done
 	echo -n "[INFO] Sort package.json (to avoid nuissance commits): "
 	pushd ${TARGETDIR} >/dev/null
-	npx -q sort-package-json
+  	npx -q sort-package-json
 	popd >/dev/null
+
+  set -x
+  cat $replaceFile | grep oclif | grep dev
+  set +x
 fi
+
 
 # update yarn.lock and package.json; report any problems
 yarn && yarn check || true

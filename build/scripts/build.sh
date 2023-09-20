@@ -26,6 +26,7 @@ versionSuffix=""
 # five steps
 DO_SYNC=1
 DO_REDHAT_BUILD=1
+CACHEFLAG="--no-cache" # always build a fresh container; use --cache flag to null this string
 PUBLISH_TO_GITHUB=0
 PUBLISH_TO_QUAY=0
 PUBLISH=0 # by default don't publish sources to spmm-util
@@ -77,6 +78,7 @@ Options:
     --ds-version ${DEFAULT_TAG}         compute from MIDSTM_BRANCH if not set
     --quay                    publish containers to quay  
     --publish                 publish GA tarballs for a release to $REMOTE_USER_AND_HOST
+    --cache                   use local podman layer cache for a faster build
     --desthost user@desthost  specific an alternate destination host for publishing
 "
     exit 1
@@ -100,6 +102,7 @@ while [[ "$#" -gt 0 ]]; do
     '--desthost') REMOTE_USER_AND_HOST="$2"; shift 1;;
     '--no-sync') DO_SYNC=0;;
     '--no-redhat') DO_REDHAT_BUILD=0;;
+    '--cache') CACHEFLAG="";;
   esac
   shift 1
 done
@@ -175,28 +178,13 @@ if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
     pushd $DSC_DIR >/dev/null
         # clean up from previous build if applicable
         jq -M --arg DSC_TAG "${DSC_TAG}-redhat" '.version = $DSC_TAG' package.json > package.json2; mv -f package.json2 package.json
+
+        podman rmi localhost/dsc:next -f
+        podman build . -t localhost/dsc:next -f build/dockerfiles/Dockerfile $CACHEFLAG
+        ./build/scripts/installDscFromContainer.sh
+        # cp /tmp/dsc/package.json /tmp/dsc/README.md .
         git diff -u package.json
         git tag -f "${DSC_TAG}-redhat"
-        rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/
-        echo "Insert SEGMENT_WRITE_KEY = $SEGMENT_WRITE_KEY into src/hooks/analytics/analytics.ts (redhat version)"
-        sed -i "s|INSERT-KEY-HERE|${SEGMENT_WRITE_KEY}|g" src/hooks/analytics/analytics.ts
-        yarn && npx oclif pack tarballs -t ${platforms} --no-xz --parallel
-        mv dist/channels/*redhat dist/channels/redhat
-        # copy from generic name specific name, so E2E/CI jobs can access tarballs from generic folder and filename (name doesn't change between builds)
-        while IFS= read -r -d '' d; do
-            e=${d/redhat\/dsc/redhat\/${TARBALL_PREFIX}-dsc}
-            cp ${d} ${e}
-        done <   <(find dist/channels/redhat -type f -name "*gz" -print0)
-
-        # purge generated binaries and temp files
-        rm -fr coverage/ lib/ node_modules/ templates/ tmp/
-
-        # create sources tarball in the same dir where we have the per-arch binaries
-        tar czf /tmp/${TARBALL_PREFIX}-dsc-sources.tar.gz --exclude=./dist/channels/*/* ./* && \
-        mv /tmp/${TARBALL_PREFIX}-dsc-sources.tar.gz ${DSC_DIR}/dist/channels/redhat/
-
-        pwd; du ./dist/channels/*/*gz
-
         git commit -s -m "ci: [update] package.json + README.md" package.json README.md || true
         git push origin ${MIDSTM_BRANCH} || true
     popd >/dev/null
@@ -204,10 +192,16 @@ fi
 
 if [[ $PUBLISH_TO_QUAY -eq 1 ]]; then
     ########################################################################
-    echo "[INFO] 4. Publish containers to Quay"
+    echo "[INFO] 4. Publish container with tarballs and sources to Quay"
     ########################################################################
-
-    # copy from ${DSC_DIR}/dist/channels/redhat/ into a container
+    # copy container to quay
+    skopeo --insecure-policy copy --all docker://localhost/dsc:next docker://quay.io/devspaces/dsc:${DSC_TAG}
+    skopeo --insecure-policy copy --all docker://localhost/dsc:next docker://quay.io/devspaces/dsc:${DS_VERSION}
+    if [[ $MIDSTM_BRANCH == "devspaces-3-rhel-8" ]]; then
+        skopeo --insecure-policy copy --all docker://localhost/dsc:next docker://quay.io/devspaces/dsc:next
+    elif [[ $MIDSTM_BRANCH == "devspaces-3."*"-rhel-8" ]]; then
+        skopeo --insecure-policy copy --all docker://localhost/dsc:next docker://quay.io/devspaces/dsc:latest
+    fi
 fi
 
 # deprecated
