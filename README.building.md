@@ -9,16 +9,16 @@ To build in Jenkins:
 To build locally:
 
 ```
-# purge local yarn cache
-rm -fr $HOME/.cache/yarn/v6/
-
-# sync from upstream chectl
-./build/scripts/sync.sh -b devspaces-3-rhel-8 \
-  -s ${WORKSPACE}/chectl \
-  -t ${WORKSPACE}/dsc \
-	--server-tag 3.y-zz --operator-tag 3.y-zzz
-
-# build for multiple platforms
-platforms="linux-x64,darwin-x64,darwin-arm64,win32-x64"
-yarn && npx oclif-dev pack -t ${platforms}
+podman build . -t localhost/dsc:next -f build/dockerfiles/Dockerfile 
 ```
+
+To extract dsc from the container and install it under /tmp/dsc:
+
+```
+./build/scripts/installDscFromContainer.sh
+```
+
+To build in Dev Sandbox:
+
+1. Launch a workspace from the [devfile.yaml](devfile.yaml) in this repo.
+2. See `To build locally` commands above, or check the commands in the [devfile.yaml](devfile.yaml).
