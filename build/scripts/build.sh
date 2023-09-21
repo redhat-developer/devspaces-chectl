@@ -165,9 +165,9 @@ if [[ $DO_SYNC -eq 1 ]]; then
             --ds-version ${DS_VERSION}
         # # commit changes
         # set -x
-        # git add .
-        # git commit -s -m "ci: [sync] Push chectl @ ${SOURCE_BRANCH} to devspaces-chectl @ ${MIDSTM_BRANCH}" . || true
-        # git push origin ${MIDSTM_BRANCH} || true
+        git add .
+        git commit -s -m "ci: [sync] Push chectl @ ${SOURCE_BRANCH} to devspaces-chectl @ ${MIDSTM_BRANCH}" . || true
+        git push origin ${MIDSTM_BRANCH} || true
     popd >/dev/null
 fi
 

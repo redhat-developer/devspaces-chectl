@@ -38,7 +38,7 @@ RUN \
     rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/; \
     echo "Insert SEGMENT_WRITE_KEY = $SEGMENT_WRITE_KEY into src/hooks/analytics/analytics.ts"; \
     sed -i "s|INSERT-KEY-HERE|${SEGMENT_WRITE_KEY}|g" src/hooks/analytics/analytics.ts; \
-    # WORKAROUND https://github.com/oclif/oclif/blob/main/src/tarballs/node.ts#L70 -- replace 'shasum -a 256 -c -' with 'sha256sum -c -'
+    # WORKAROUND https://github.com/oclif/oclif/blob/main/src/tarballs/node.ts#L62 -- replace 'shasum -a 256 -c -' with 'sha256sum -c -'
     echo "#!/bin/sh" > /usr/bin/shasum; echo "shift 2; sha256sum \$*" >> /usr/bin/shasum; chmod +x /usr/bin/shasum
 
 # build dsc tarballs
@@ -50,10 +50,11 @@ RUN \
     rm -fr coverage/ lib/ node_modules/ templates/ tmp/; \
     # create sources tarball in the same dir with same name as the per-arch binaries
     DSC_FULL_VERSION="$(cat dist/dsc-*linux-x64-buildmanifest | grep -E "tar.gz" | sed -r -e "s@.+/(.+)-linux-x64.+@\1@")"; \
+    if [[ ! $DSC_FULL_VERSION ]]; then DSC_FULL_VERSION="dsc"; fi
     echo "Got DSC_FULL_VERSION = $DSC_FULL_VERSION"; \
     tar czf dist/${DSC_FULL_VERSION}-sources.tar.gz --exclude=./bin --exclude=./dist ./* && \
     # rename long names to devspaces-3.10.0-dsc-linux-arm64.tar.gz and devspaces-3.10.0-dsc-sources.tar.gz
-    for d in dist/*.gz; do \
+    for d in $(find dist/ *.gz); do \
         mv $d ${d/${DSC_FULL_VERSION}/dsc-${CSV_VERSION}}; \
     done
 
