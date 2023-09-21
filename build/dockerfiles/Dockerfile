@@ -42,7 +42,7 @@ RUN \
     echo "#!/bin/sh" > /usr/bin/shasum; echo "shift 2; sha256sum \$*" >> /usr/bin/shasum; chmod +x /usr/bin/shasum
 
 # build dsc tarballs
-RUN yarn && yarn pack-binaries -t ${DSC_PLATFORMS}
+RUN yarn && echo "Build dsc binaries for these arches: ${DSC_PLATFORMS}"; yarn pack-binaries -t ${DSC_PLATFORMS}
 
 # hadolint ignore=DL4006,SC2086
 RUN \

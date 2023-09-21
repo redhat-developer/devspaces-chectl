@@ -203,7 +203,7 @@ if [[ -f ${replaceFile} ]]; then
 
 	echo "[INFO] Convert package.json - switch to oclif 3"
 	sed -i ${replaceFile} -r \
-		-e 's#"@oclif/dev-cli": "\^1"#"@oclif": "^3"#g' \
+		-e 's#"@oclif/dev-cli": "\^1"#"oclif": "^3"#g' \
     -e 's#oclif-dev pack#oclif pack tarballs --no-xz --parallel#g' \
 		-e 's#oclif-dev #oclif #g'
 
