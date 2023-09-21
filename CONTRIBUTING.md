@@ -104,7 +104,7 @@ For packaging binaries, [oclif](https://github.com/oclif/dev-cli) is used. It ge
 To start packaging just run `Package Binaries` commands from `My Workspace`. It will run the following in `/projects/dsc` directory.
 
 ```bash
-yarn oclif-dev pack
+yarn oclif pack tarballs --no-xz --parallel
 ```
 
 > Note: you need to build your `dsc` before by `yarn` command, or install all node packages by running `npm install` in `/projects/dsc` directory.
