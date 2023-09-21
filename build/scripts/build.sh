@@ -101,7 +101,7 @@ while [[ "$#" -gt 0 ]]; do
     '--publish') PUBLISH=1;;
     '--desthost') REMOTE_USER_AND_HOST="$2"; shift 1;;
     '--no-sync') DO_SYNC=0;;
-    '--no-redhat') DO_REDHAT_BUILD=0;;
+    '--no-build') DO_REDHAT_BUILD=0;;
     '--cache') CACHEFLAG="";;
   esac
   shift 1
@@ -173,11 +173,11 @@ fi
 
 if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
     ########################################################################
-    echo "[INFO] 2. Build dsc using -redhat suffix and registry.redhat.io/devspaces/ URLs"
+    echo "[INFO] 2. Build dsc using registry.redhat.io/devspaces/ URLs"
     ########################################################################
     pushd $DSC_DIR >/dev/null
         # clean up from previous build if applicable
-        jq -M --arg DSC_TAG "${DSC_TAG}-redhat" '.version = $DSC_TAG' package.json > package.json2; mv -f package.json2 package.json
+        jq -M --arg DSC_TAG "${DSC_TAG}" '.version = $DSC_TAG' package.json > package.json2; mv -f package.json2 package.json
 
         podman rmi quay.io/devspaces/dsc:${CSV_VERSION} -f
         podman build . -t quay.io/devspaces/dsc:${CSV_VERSION} -f build/dockerfiles/Dockerfile $CACHEFLAG \
@@ -187,7 +187,7 @@ if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
         ./build/scripts/installDscFromContainer.sh quay.io/devspaces/dsc:${CSV_VERSION} -v
         cp /tmp/dsc/package.json /tmp/dsc/README.md /tmp/dsc/yarn.lock .
         git diff -u
-        git tag -f "${DSC_TAG}-redhat"
+        git tag -f "${DSC_TAG}"
         git commit -s -m "ci: [update] package.json, yarn.lock + README.md" package.json yarn.lock README.md || true
         git push origin ${MIDSTM_BRANCH} || true
     popd >/dev/null
@@ -231,28 +231,26 @@ if [[ $PUBLISH_TO_GITHUB -eq 1 ]]; then
 
     # upload artifacts for each platform + sources tarball
     countToUpload=0
-    for channel in quay redhat; do
-        if [[ -d "${DSC_DIR}/dist/channels/${channel}/" ]]; then
-            pushd "${DSC_DIR}/dist/channels/${channel}/" || exit 1
-                echo "[INFO] Publish $channel assets to ${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets GH release"
-                /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --publish-assets -b "${MIDSTM_BRANCH}" -v "${CSV_VERSION}-${VERSION_SUFFIX}" --asset-name "dsc" "devspaces-*tar.gz" --asset-type "Installer binaries and sources"
-            popd >/dev/null || exit 1
-            channelFiles=$(find "${DSC_DIR}/dist/channels/${channel}/" -name "devspaces-*tar.gz" | wc -l)
-            countToUpload=$(( countToUpload + channelFiles ))
-            # check if upload was successful by checking the release for the same # of assets
-            assetsUploaded=$(cd "${DSC_DIR}/dist/channels/${channel}/"; hub release show ${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets -f %as; echo)
-            countAssetsUploaded=$(echo "$assetsUploaded" | wc -l)
-            echo "[INFO] Published assets: https://github.com/redhat-developer/devspaces-chectl/releases/tag/${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets"
-            if [[ $countToUpload -ne $countAssetsUploaded ]]; then
-                echo " + Assets to upload: $countToUpload"
-                echo " - Assets uploaded:  $countAssetsUploaded"
-                echo "=====================================================>"
-                echo "$assetsUploaded"
-                echo "<====================================================="
-                exit 1
-            fi
+    if [[ -d "${DSC_DIR}/dist/" ]]; then
+        pushd "${DSC_DIR}/dist/" || exit 1
+            echo "[INFO] Publish assets to ${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets GH release"
+            /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --publish-assets -b "${MIDSTM_BRANCH}" -v "${CSV_VERSION}-${VERSION_SUFFIX}" --asset-name "dsc" "devspaces-*tar.gz" --asset-type "Installer binaries and sources"
+        popd >/dev/null || exit 1
+        tarballFiles=$(find "${DSC_DIR}/dist/" -name "devspaces-*tar.gz" | wc -l)
+        countToUpload=$(( countToUpload + tarballFiles ))
+        # check if upload was successful by checking the release for the same # of assets
+        assetsUploaded=$(cd "${DSC_DIR}/dist/"; hub release show ${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets -f %as; echo)
+        countAssetsUploaded=$(echo "$assetsUploaded" | wc -l)
+        echo "[INFO] Published assets: https://github.com/redhat-developer/devspaces-chectl/releases/tag/${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets"
+        if [[ $countToUpload -ne $countAssetsUploaded ]]; then
+            echo " + Assets to upload: $countToUpload"
+            echo " - Assets uploaded:  $countAssetsUploaded"
+            echo "=====================================================>"
+            echo "$assetsUploaded"
+            echo "<====================================================="
+            exit 1
         fi
-    done
+    fi
 
     # cleanup
     rm -f /tmp/uploadAssetsToGHRelease.sh
@@ -280,7 +278,7 @@ if [[ $PUBLISH -eq 1 ]]; then
 
     # move files we want to rsync into the correct folder name
     mkdir -p "${TODAY_DIR}/"
-    mv "${DSC_DIR}"/dist/channels/redhat/*gz "${TODAY_DIR}/"
+    mv "${DSC_DIR}"/dist/*gz "${TODAY_DIR}/"
 
     # next, update existing ${TARBALL_PREFIX}.${today} folder (or create it not exist)
     rsync -rlP --exclude "dsc*.tar.gz" --exclude "*-quay-*.tar.gz" "${TODAY_DIR}" "${REMOTE_USER_AND_HOST}:staging/devspaces/"

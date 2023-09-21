@@ -212,7 +212,7 @@ if [[ -f ${replaceFile} ]]; then
 		["https://github.com/redhat-developer/devspaces-images#${MIDSTM_BRANCH}"]='.dependencies["devspaces-operator"]'
 		["dsc"]='.name'
 		["Red Hat OpenShift Dev Spaces CLI"]='.description'
-		["${DEFAULT_TAG}.0-CI-redhat"]='.version'
+		["${DEFAULT_TAG}.0-CI"]='.version'
 		["./bin/run"]='.bin["dsc"]'
 		["https://issues.jboss.org/projects/CRW/issues"]='.bugs'
 		["https://developers.redhat.com/products/openshift-dev-spaces"]='.homepage'

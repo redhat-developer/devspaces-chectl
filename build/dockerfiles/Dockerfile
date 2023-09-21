@@ -50,6 +50,7 @@ RUN \
     rm -fr coverage/ lib/ node_modules/ templates/ tmp/; \
     # create sources tarball in the same dir with same name as the per-arch binaries
     DSC_FULL_VERSION="$(cat dist/dsc-*linux-x64-buildmanifest | grep -E "tar.gz" | sed -r -e "s@.+/(.+)-linux-x64.+@\1@")"; \
+    echo "Got DSC_FULL_VERSION = $DSC_FULL_VERSION"; \
     tar czf dist/${DSC_FULL_VERSION}-sources.tar.gz --exclude=./bin --exclude=./dist ./* && \
     # rename long names to devspaces-3.10.0-dsc-linux-arm64.tar.gz and devspaces-3.10.0-dsc-sources.tar.gz
     for d in dist/*.gz; do \
