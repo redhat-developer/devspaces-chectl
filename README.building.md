@@ -9,7 +9,7 @@ To build in Jenkins:
 To build locally:
 
 ```
-podman build . -t localhost/dsc:next -f build/dockerfiles/Dockerfile 
+podman build . -t quay.io/devspaces/dsc:next -f build/dockerfiles/Dockerfile 
 ```
 
 To extract dsc from the container and install it under /tmp/dsc:

@@ -179,9 +179,12 @@ if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
         # clean up from previous build if applicable
         jq -M --arg DSC_TAG "${DSC_TAG}-redhat" '.version = $DSC_TAG' package.json > package.json2; mv -f package.json2 package.json
 
-        podman rmi localhost/dsc:next -f
-        podman build . -t localhost/dsc:next -f build/dockerfiles/Dockerfile $CACHEFLAG
-        ./build/scripts/installDscFromContainer.sh
+        podman rmi quay.io/devspaces/dsc:${CSV_VERSION} -f
+        podman build . -t quay.io/devspaces/dsc:${CSV_VERSION} -f build/dockerfiles/Dockerfile $CACHEFLAG \
+            --build-arg SEGMENT_WRITE_KEY=${SEGMENT_WRITE_KEY} \
+            --build-arg CSV_VERSION=${CSV_VERSION} \
+            --build=arg DSC_PLATFORMS=${platforms}
+        ./build/scripts/installDscFromContainer.sh quay.io/devspaces/dsc:${CSV_VERSION} -v
         cp /tmp/dsc/package.json /tmp/dsc/README.md /tmp/dsc/yarn.lock .
         git diff -u
         git tag -f "${DSC_TAG}-redhat"
@@ -195,12 +198,12 @@ if [[ $PUBLISH_TO_QUAY -eq 1 ]]; then
     echo "[INFO] 4. Publish container with tarballs and sources to Quay"
     ########################################################################
     # copy container to quay
-    skopeo --insecure-policy copy --all docker://localhost/dsc:next docker://quay.io/devspaces/dsc:${DSC_TAG}
-    skopeo --insecure-policy copy --all docker://localhost/dsc:next docker://quay.io/devspaces/dsc:${DS_VERSION}
+    skopeo --insecure-policy copy --all docker://quay.io/devspaces/dsc:next docker://quay.io/devspaces/dsc:${DSC_TAG}
+    skopeo --insecure-policy copy --all docker://quay.io/devspaces/dsc:next docker://quay.io/devspaces/dsc:${DS_VERSION}
     if [[ $MIDSTM_BRANCH == "devspaces-3-rhel-8" ]]; then
-        skopeo --insecure-policy copy --all docker://localhost/dsc:next docker://quay.io/devspaces/dsc:next
+        skopeo --insecure-policy copy --all docker://quay.io/devspaces/dsc:next docker://quay.io/devspaces/dsc:next
     elif [[ $MIDSTM_BRANCH == "devspaces-3."*"-rhel-8" ]]; then
-        skopeo --insecure-policy copy --all docker://localhost/dsc:next docker://quay.io/devspaces/dsc:latest
+        skopeo --insecure-policy copy --all docker://quay.io/devspaces/dsc:next docker://quay.io/devspaces/dsc:latest
     fi
 fi
 

@@ -7,8 +7,8 @@
 #
 # SPDX-License-Identifier: EPL-2.0
 #
-# for a given build of localhost/dsc:next, extract and install for the current OS
-container="localhost/dsc:next"
+# for a given build of quay.io/devspaces/dsc:next, extract and install for the current OS
+container="quay.io/devspaces/dsc:next"
 QUIET="-q"
 
 while [[ "$#" -gt 0 ]]; do
