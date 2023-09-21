@@ -183,7 +183,7 @@ if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
         podman build . -t quay.io/devspaces/dsc:${CSV_VERSION} -f build/dockerfiles/Dockerfile $CACHEFLAG \
             --build-arg SEGMENT_WRITE_KEY=${SEGMENT_WRITE_KEY} \
             --build-arg CSV_VERSION=${CSV_VERSION} \
-            --build=arg DSC_PLATFORMS=${platforms}
+            --build-arg DSC_PLATFORMS=${platforms}
         ./build/scripts/installDscFromContainer.sh quay.io/devspaces/dsc:${CSV_VERSION} -v
         cp /tmp/dsc/package.json /tmp/dsc/README.md /tmp/dsc/yarn.lock .
         git diff -u

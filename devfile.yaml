@@ -33,7 +33,7 @@ commands:
 # optional other flags to pass include:
 # --no-cache
 # --build-arg CSV_VERSION=3.yy.z \
-# --build=arg DSC_PLATFORMS=linux-x64,darwin-x64,darwin-arm64,win32-x64
+# --build-arg DSC_PLATFORMS=linux-x64,darwin-x64,darwin-arm64,win32-x64
 # --build-arg SEGMENT_WRITE_KEY=... \
   - id: 2-extract-dsc-container
     exec:
