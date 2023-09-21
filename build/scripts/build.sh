@@ -163,11 +163,11 @@ if [[ $DO_SYNC -eq 1 ]]; then
     pushd $DSC_DIR >/dev/null
         ./build/scripts/sync.sh -b ${MIDSTM_BRANCH} -s ${SOURCE_DIR} -t ${DSC_DIR} \
             --ds-version ${DS_VERSION}
-        # commit changes
-        set -x
-        git add .
-        git commit -s -m "ci: [sync] Push chectl @ ${SOURCE_BRANCH} to devspaces-chectl @ ${MIDSTM_BRANCH}" . || true
-        git push origin ${MIDSTM_BRANCH} || true
+        # # commit changes
+        # set -x
+        # git add .
+        # git commit -s -m "ci: [sync] Push chectl @ ${SOURCE_BRANCH} to devspaces-chectl @ ${MIDSTM_BRANCH}" . || true
+        # git push origin ${MIDSTM_BRANCH} || true
     popd >/dev/null
 fi
 
