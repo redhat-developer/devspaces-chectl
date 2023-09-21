@@ -54,7 +54,7 @@ RUN \
     echo "Got DSC_FULL_VERSION = $DSC_FULL_VERSION"; \
     tar czf dist/${DSC_FULL_VERSION}-sources.tar.gz --exclude=./bin --exclude=./dist ./* && \
     # rename long names to devspaces-3.10.0-dsc-linux-arm64.tar.gz and devspaces-3.10.0-dsc-sources.tar.gz
-    for d in $(find dist/ *.gz); do \
+    for d in $(find dist/ -name "*.gz"); do \
         mv $d ${d/${DSC_FULL_VERSION}/dsc-${CSV_VERSION}}; \
     done
 
