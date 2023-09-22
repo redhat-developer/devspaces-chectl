@@ -37,7 +37,7 @@ RUN \
     cd /; git clone --depth 1 https://github.com/redhat-developer/devspaces-chectl dsc-build && cd dsc-build/; \
     rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/; \
     echo "Insert SEGMENT_WRITE_KEY = $SEGMENT_WRITE_KEY into src/hooks/analytics/analytics.ts"; \
-    sed -i "s|INSERT-KEY-HERE|${SEGMENT_WRITE_KEY}|g" src/hooks/analytics/analytics.ts
+    sed -i "s|INSERT-KEY-HERE|${SEGMENT_WRITE_KEY}|g" src/hooks/analytics/analytics.ts; \
     # WORKAROUND https://github.com/oclif/oclif/blob/main/src/tarballs/node.ts#L62 -- replace 'shasum -a 256 -c -' with 'sha256sum -c -'
     echo "#!/bin/sh" > /usr/bin/shasum; echo "shift 2; sha256sum \$*" >> /usr/bin/shasum; chmod +x /usr/bin/shasum
 
