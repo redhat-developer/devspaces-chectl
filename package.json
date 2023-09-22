@@ -1,6 +1,6 @@
 {
   "name": "dsc",
-  "version": "3.10.0-CI-b2dd-redhat",
+  "version": "3.10.0-CI-redhat",
   "description": "Red Hat OpenShift Dev Spaces CLI",
   "keywords": [
     "oclif"
@@ -31,15 +31,15 @@
     "postinstall": "npm run -s postinstall-repositories && npm run -s postinstall-operator && npm run -s postinstall-cleanup",
     "lint": "eslint --cache=true --no-error-on-unmatched-pattern=true '{src,tests}/**/*.ts'",
     "lint:fix": "eslint --fix --cache=true --no-error-on-unmatched-pattern=true \"{src,tests}/**/*.{ts,tsx}\"",
-    "prepack": "yarn lint && rm -rf lib && rm -rf tsconfig.tsbuildinfo && tsc -b && oclif-dev manifest && oclif-dev readme && yarn gnirts-ci",
+    "prepack": "yarn lint && rm -rf lib && rm -rf tsconfig.tsbuildinfo && tsc -b && oclif manifest && oclif readme && yarn gnirts-ci",
     "postpack": "rm -f oclif.manifest.json",
-    "pack-binaries": "oclif-dev pack",
+    "pack-binaries": "export PATH=${PATH}:$(pwd)/bin/shasum; oclif pack tarballs --no-xz --parallel",
     "postinstall-cleanup": "rimraf node_modules/devspaces-operator && rimraf node_modules/devworkspace-operator",
     "postinstall-operator": "node prepare-templates.js",
     "postinstall-repositories": "yarn upgrade devspaces-operator devworkspace-operator",
     "test": "jest --collect-coverage",
     "test-watch": "jest --watchAll",
-    "version": "oclif-dev readme && git add README.md",
+    "version": "oclif readme && git add README.md",
     "watch": "tsc --watch"
   },
   "jest": {
@@ -102,7 +102,6 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@oclif/dev-cli": "^1",
     "@oclif/test": "^2",
     "@types/chai": "^4",
     "@types/command-exists": "^1.2.0",
@@ -128,6 +127,7 @@
     "eslint-plugin-header": "^3.1.1",
     "eslint-plugin-no-null": "^1.0.2",
     "jest": "^29.4.2",
+    "oclif": "^3",
     "ts-jest": "^29.0.5",
     "ts-node": "^10",
     "typescript": "^4.3",
