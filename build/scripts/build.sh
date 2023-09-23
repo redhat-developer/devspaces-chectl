@@ -27,8 +27,8 @@ versionSuffix=""
 DO_SYNC=1
 DO_REDHAT_BUILD=1
 CACHEFLAG="--no-cache" # always build a fresh container; use --cache flag to null this string
-PUBLISH_TO_GITHUB=0
-PUBLISH_TO_QUAY=0
+PUBLISH_TO_GITHUB=0 # CRW-4855 deprecated, remove when publishing to quay is completed
+PUBLISH_TO_QUAY=0 # new for DS 3.10
 PUBLISH=0 # by default don't publish sources to spmm-util
 REMOTE_USER_AND_HOST="devspaces-build@spmm-util.hosts.stage.psi.bos.redhat.com"
 
@@ -96,7 +96,7 @@ while [[ "$#" -gt 0 ]]; do
     # optional tag overrides
     '--suffix') versionSuffix="$2"; shift 1;;
     '--ds-version') DS_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
-    '--gh') PUBLISH_TO_GITHUB=1;;
+    '--gh') PUBLISH_TO_GITHUB=1;; # CRW-4855 deprecated, remove when publishing to quay is completed
     '--quay') PUBLISH_TO_QUAY=1;;
     '--publish') PUBLISH=1;;
     '--desthost') REMOTE_USER_AND_HOST="$2"; shift 1;;
@@ -108,7 +108,10 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if [[ ! "${SEGMENT_WRITE_KEY}" ]]; then usageSegKey; fi
+
+# CRW-4855 deprecated, remove when publishing to quay is completed
 if [[ $PUBLISH_TO_GITHUB -eq 1 ]] && [[ ! "${GITHUB_TOKEN}" ]]; then usageSegKey; fi
+
 if [[ ! -d "${SOURCE_DIR}" ]] || [[ ! -d "${DSC_DIR}" ]] || [[ ! -d "${DSIMG_DIR}" ]]; then usage; fi
 if [[ ${DSC_DIR} == "." ]]; then usage; fi
 if [[ ! ${DS_VERSION} ]]; then DS_VERSION="${CSV_VERSION%.*}"; fi
@@ -207,7 +210,7 @@ if [[ $PUBLISH_TO_QUAY -eq 1 ]]; then
     fi
 fi
 
-# deprecated
+# CRW-4855 deprecated, remove when publishing to quay is completed
 if [[ $PUBLISH_TO_GITHUB -eq 1 ]]; then
     ########################################################################
     echo "[INFO] 4b. Publish tarballs to GH"
