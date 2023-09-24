@@ -16,10 +16,12 @@ USER 0
 # pass in segment key, x.y.z version, and platforms via --build-arg flags
 ARG SEGMENT_WRITE_KEY=INSERT_KEY_HERE \
     CSV_VERSION="3.yy.z" \
-    DSC_PLATFORMS="linux-x64"
+    DSC_PLATFORMS="linux-x64" \
+    BRANCHTAG="devspaces-3-rhel-8"
 ENV SEGMENT_WRITE_KEY=${SEGMENT_WRITE_KEY} \
     DSC_PLATFORMS=${DSC_PLATFORMS} \
-    CSV_VERSION=${CSV_VERSION}
+    CSV_VERSION=${CSV_VERSION} \
+    BRANCHTAG=${BRANCHTAG}
 
 WORKDIR /dsc-build/
 
@@ -34,7 +36,7 @@ RUN \
     ln -s /usr/bin/7za /usr/bin/7z; \
     # NOTE: when we move to node 18.17 or 20, can use npm@10
     npm i -g yarn@1 oclif@3 npm@9; \
-    cd /; git clone --depth 1 https://github.com/redhat-developer/devspaces-chectl dsc-build && cd dsc-build/; \
+    cd /; git clone --depth 1 https://github.com/redhat-developer/devspaces-chectl -b ${BRANCHTAG} dsc-build && cd dsc-build/; \
     rm -fr lib/ node_modules/ templates/ tmp/ tsconfig.tsbuildinfo dist/; \
     echo "Insert SEGMENT_WRITE_KEY = $SEGMENT_WRITE_KEY into src/hooks/analytics/analytics.ts"; \
     sed -i "s|INSERT-KEY-HERE|${SEGMENT_WRITE_KEY}|g" src/hooks/analytics/analytics.ts; \

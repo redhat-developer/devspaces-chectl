@@ -179,6 +179,8 @@ if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
     echo "[INFO] 2. Build dsc using registry.redhat.io/devspaces/ URLs"
     ########################################################################
     pushd $DSC_DIR >/dev/null
+        BRANCHTAG=$(git rev-parse --abbrev-ref HEAD)
+
         # clean up from previous build if applicable
         jq -M --arg DSC_TAG "${DSC_TAG}" '.version = $DSC_TAG' package.json > package.json2; mv -f package.json2 package.json
 
@@ -186,7 +188,8 @@ if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
         podman build . -t quay.io/devspaces/dsc:${CSV_VERSION} -f build/dockerfiles/Dockerfile $CACHEFLAG \
             --build-arg SEGMENT_WRITE_KEY=${SEGMENT_WRITE_KEY} \
             --build-arg CSV_VERSION=${CSV_VERSION} \
-            --build-arg DSC_PLATFORMS=${platforms}
+            --build-arg DSC_PLATFORMS=${platforms} \
+            --build-arg BRANCHTAG=${BRANCHTAG}
         ./build/scripts/installDscFromContainer.sh quay.io/devspaces/dsc:${CSV_VERSION} -v
         cp /tmp/dsc/package.json /tmp/dsc/README.md /tmp/dsc/yarn.lock .
         git diff -u
