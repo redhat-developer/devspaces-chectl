@@ -9,7 +9,6 @@ node_modules
 dsc*gz
 coverage
 .vscode
-bin/
 tsconfig.tsbuildinfo
 oclif.manifest.json
 # templates are added at post-install step
