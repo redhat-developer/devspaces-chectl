@@ -53,7 +53,7 @@ rm -fr $TMPDIR/dsc/ "$unpackdir"
 /tmp/containerExtract.sh ${QUIET} --tmpdir "$unpackdir" "$container" --tar-flags dsc/*${SUFFIX}
 cd "$unpackdir"/$(echo "$container" | tr "/:" "--")* || exit
 # shellcheck disable=SC2086
-tar xzf dsc/dsc-*${SUFFIX} -C $TMPDIR
+tar xzf dsc/devspaces-*${SUFFIX} -C $TMPDIR
 cd $TMPDIR || exit 
 echo;echo "[INFO] dsc installed as $TMPDIR/dsc/bin/dsc";echo
 $TMPDIR/dsc/bin/dsc --help
