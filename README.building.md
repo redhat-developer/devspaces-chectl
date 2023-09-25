@@ -15,7 +15,7 @@ podman build . -t quay.io/devspaces/dsc:next -f build/dockerfiles/Dockerfile
 To extract dsc from the container and install it under /tmp/dsc:
 
 ```
-./build/scripts/installDscFromContainer.sh
+./build/scripts/installDscFromContainer.sh quay.io/devspaces/dsc:next -v
 ```
 
 To build in Dev Sandbox:

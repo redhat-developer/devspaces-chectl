@@ -11,6 +11,10 @@
 container="quay.io/devspaces/dsc:next"
 QUIET="-q"
 
+if [[ "$#" -le 0 ]]; then
+  echo "Usage: $0 repo/org/container@tag [-v]"; exit
+fi
+
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     '-v') QUIET=""; shift;;
@@ -46,8 +50,8 @@ else
   SUFFIX=win32-x64.tar.gz
 fi
 rm -fr $TMPDIR/dsc/ "$unpackdir"
-/tmp/containerExtract.sh ${QUIET} "$container" --tar-flags dsc/*${SUFFIX}
-cd "$unpackdir" || exit
+/tmp/containerExtract.sh ${QUIET} --tmpdir "$unpackdir" "$container" --tar-flags dsc/*${SUFFIX}
+cd "$unpackdir"/$(echo "$container" | tr "/:" "--")* || exit
 # shellcheck disable=SC2086
 tar xzf dsc/dsc-*${SUFFIX} -C $TMPDIR
 cd $TMPDIR || exit 
