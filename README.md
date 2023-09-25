@@ -124,7 +124,7 @@ DESCRIPTION
   Retrieves Red Hat OpenShift Dev Spaces self-signed certificate
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/cacert/export.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/cacert/export.ts)_
 
 ## `dsc dashboard:open`
 
@@ -144,7 +144,7 @@ DESCRIPTION
   Open Red Hat OpenShift Dev Spaces dashboard
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/dashboard/open.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/dashboard/open.ts)_
 
 ## `dsc help [COMMANDS]`
 
@@ -186,7 +186,7 @@ DESCRIPTION
   Enable local debug of Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/server/debug.ts)_
 
 ## `dsc server:delete`
 
@@ -213,7 +213,7 @@ DESCRIPTION
   delete any Red Hat OpenShift Dev Spaces related resource
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/server/delete.ts)_
 
 ## `dsc server:deploy`
 
@@ -356,7 +356,7 @@ DESCRIPTION
   Deploy Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/server/deploy.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/server/deploy.ts)_
 
 ## `dsc server:logs`
 
@@ -378,7 +378,7 @@ DESCRIPTION
   Collect Red Hat OpenShift Dev Spaces logs
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/server/logs.ts)_
 
 ## `dsc server:start`
 
@@ -408,7 +408,7 @@ DESCRIPTION
   Start Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/server/start.ts)_
 
 ## `dsc server:status`
 
@@ -428,7 +428,7 @@ DESCRIPTION
   Status Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/server/status.ts)_
+_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/server/status.ts)_
 
 ## `dsc server:stop`
 
@@ -449,7 +449,7 @@ DESCRIPTION
   stop Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/server/stop.ts)_
 
 ## `dsc server:update`
 
@@ -572,7 +572,7 @@ EXAMPLES
     $ dsc server:update --olm-channel stable --catalog-source-yaml PATH_TO_CATALOG_SOURCE_YAML
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/server/update.ts)_
 
 ## `dsc update [CHANNEL]`
 
