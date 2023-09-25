@@ -70,18 +70,24 @@ display autocomplete installation instructions
 
 ```
 USAGE
-  $ dsc autocomplete [SHELL]
+  $ dsc autocomplete [SHELL] [-r]
 
 ARGUMENTS
   SHELL  shell type
 
-OPTIONS
+FLAGS
   -r, --refresh-cache  Refresh cache (ignores displaying instructions)
+
+DESCRIPTION
+  display autocomplete installation instructions
 
 EXAMPLES
   $ dsc autocomplete
+
   $ dsc autocomplete bash
+
   $ dsc autocomplete zsh
+
   $ dsc autocomplete --refresh-cache
 ```
 
@@ -93,10 +99,10 @@ Retrieves Red Hat OpenShift Dev Spaces self-signed certificate
 
 ```
 USAGE
-  $ dsc cacert:export
+  $ dsc cacert:export [-h] [-n <value>] [--telemetry on|off] [-d <value>]
 
-OPTIONS
-  -d, --destination=destination
+FLAGS
+  -d, --destination=<value>
       Destination where to store Red Hat OpenShift Dev Spaces self-signed CA certificate.
       If the destination is a file (might not exist), then the certificate will be saved there in PEM format.
       If the destination is a directory, then cheCA.crt file will be created there with Red Hat OpenShift Dev Spaces
@@ -107,14 +113,18 @@ OPTIONS
   -h, --help
       show CLI help
 
-  -n, --chenamespace=chenamespace
+  -n, --chenamespace=<value>
       Red Hat OpenShift Dev Spaces Openshift Project.
 
-  --telemetry=on|off
+  --telemetry=<option>
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+      <options: on|off>
+
+DESCRIPTION
+  Retrieves Red Hat OpenShift Dev Spaces self-signed certificate
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-b2dd-redhat/src/commands/cacert/export.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/cacert/export.ts)_
 
 ## `dsc dashboard:open`
 
@@ -122,15 +132,19 @@ Open Red Hat OpenShift Dev Spaces dashboard
 
 ```
 USAGE
-  $ dsc dashboard:open
+  $ dsc dashboard:open [-h] [-n <value>] [--telemetry on|off]
 
-OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project.
-  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+FLAGS
+  -h, --help                  show CLI help
+  -n, --chenamespace=<value>  Red Hat OpenShift Dev Spaces Openshift Project.
+  --telemetry=<option>        Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+                              <options: on|off>
+
+DESCRIPTION
+  Open Red Hat OpenShift Dev Spaces dashboard
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-b2dd-redhat/src/commands/dashboard/open.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/dashboard/open.ts)_
 
 ## `dsc help [COMMANDS]`
 
@@ -138,13 +152,16 @@ Display help for dsc.
 
 ```
 USAGE
-  $ dsc help [COMMANDS]
+  $ dsc help [COMMANDS] [-n]
 
 ARGUMENTS
   COMMANDS  Command to show help for.
 
-OPTIONS
+FLAGS
   -n, --nested-commands  Include all nested commands in the output.
+
+DESCRIPTION
+  Display help for dsc.
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.2.0/src/commands/help.ts)_
@@ -155,17 +172,21 @@ Enable local debug of Red Hat OpenShift Dev Spaces server
 
 ```
 USAGE
-  $ dsc server:debug
+  $ dsc server:debug [-h] [--debug-port <value>] [-n <value>] [--telemetry on|off] [--skip-kubernetes-health-check]
 
-OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project.
-  --debug-port=debug-port          [default: 8000] Red Hat OpenShift Dev Spaces server debug port
-  --skip-kubernetes-health-check   Skip Kubernetes health check
-  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+FLAGS
+  -h, --help                      show CLI help
+  -n, --chenamespace=<value>      Red Hat OpenShift Dev Spaces Openshift Project.
+  --debug-port=<value>            [default: 8000] Red Hat OpenShift Dev Spaces server debug port
+  --skip-kubernetes-health-check  Skip Kubernetes health check
+  --telemetry=<option>            Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+                                  <options: on|off>
+
+DESCRIPTION
+  Enable local debug of Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-b2dd-redhat/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/server/debug.ts)_
 
 ## `dsc server:delete`
 
@@ -173,27 +194,26 @@ delete any Red Hat OpenShift Dev Spaces related resource
 
 ```
 USAGE
-  $ dsc server:delete
+  $ dsc server:delete [-h] [-n <value>] [--delete-all] [--delete-namespace] [--telemetry on|off]
+    [--skip-kubernetes-health-check] [-y | --batch]
 
-OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project.
+FLAGS
+  -h, --help                      show CLI help
+  -n, --chenamespace=<value>      Red Hat OpenShift Dev Spaces Openshift Project.
+  -y, --yes                       Automatic yes to prompts; assume "yes" as answer to all prompts and run
+                                  non-interactively
+  --batch                         Batch mode. Running a command without end user interaction.
+  --delete-all                    Indicates to delete Red Hat OpenShift Dev Spaces and Dev Workspace related resources
+  --delete-namespace              Indicates that a Red Hat OpenShift Dev Spaces namespace will be deleted as well
+  --skip-kubernetes-health-check  Skip Kubernetes health check
+  --telemetry=<option>            Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+                                  <options: on|off>
 
-  -y, --yes                        Automatic yes to prompts; assume "yes" as answer to all prompts and run
-                                   non-interactively
-
-  --batch                          Batch mode. Running a command without end user interaction.
-
-  --delete-all                     Indicates to delete Red Hat OpenShift Dev Spaces and Dev Workspace related resources
-
-  --delete-namespace               Indicates that a Red Hat OpenShift Dev Spaces namespace will be deleted as well
-
-  --skip-kubernetes-health-check   Skip Kubernetes health check
-
-  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+DESCRIPTION
+  delete any Red Hat OpenShift Dev Spaces related resource
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-b2dd-redhat/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/server/delete.ts)_
 
 ## `dsc server:deploy`
 
@@ -201,26 +221,35 @@ Deploy Red Hat OpenShift Dev Spaces server
 
 ```
 USAGE
-  $ dsc server:deploy
+  $ dsc server:deploy -p openshift|crc [-h] [-n <value>] [--batch] [-i <value>] [-t <value>]
+    [--devfile-registry-url <value>] [--plugin-registry-url <value>] [--k8spodwaittimeout <value>] [--k8spodreadytimeout
+    <value>] [--k8spoddownloadimagetimeout <value>] [--k8spoderrorrechecktimeout <value>] [-d <value>] [--debug]
+    [--che-operator-image <value>] [--che-operator-cr-yaml <value>] [--che-operator-cr-patch-yaml <value>]
+    [--workspace-pvc-storage-class-name <value>] [--skip-version-check] [--skip-cert-manager]
+    [--skip-devworkspace-operator] [--skip-oidc-provider-check] [--auto-update] [--starting-csv <value>]
+    [--package-manifest-name <value>] [--catalog-source-yaml <value> --olm-channel stable|latest|fast|next]
+    [--catalog-source-name <value> --catalog-source-namespace <value> ] [--catalog-source-image <value> ]
+    [--cluster-monitoring] [--telemetry on|off] [--skip-kubernetes-health-check]
 
-OPTIONS
-  -d, --directory=directory
+FLAGS
+  -d, --directory=<value>
       Directory to store logs into
 
   -h, --help
       show CLI help
 
-  -i, --cheimage=cheimage
+  -i, --cheimage=<value>
       Red Hat OpenShift Dev Spaces server container image
 
-  -n, --chenamespace=chenamespace
+  -n, --chenamespace=<value>
       Red Hat OpenShift Dev Spaces Openshift Project.
 
-  -p, --platform=openshift|crc
+  -p, --platform=<option>
       (required) [default: openshift] Type of OpenShift platform. Valid values are "openshift", "crc (for OpenShift
       Local)".
+      <options: openshift|crc>
 
-  -t, --templates=templates
+  -t, --templates=<value>
       Path to the templates folder
 
   --[no-]auto-update
@@ -231,28 +260,28 @@ OPTIONS
   --batch
       Batch mode. Running a command without end user interaction.
 
-  --catalog-source-image=catalog-source-image
+  --catalog-source-image=<value>
       OLM catalog source image or index bundle (IIB) from which to install the Red Hat OpenShift Dev Spaces operator.
 
-  --catalog-source-name=catalog-source-name
+  --catalog-source-name=<value>
       Name of the OLM catalog source or index bundle (IIB) from which to install Red Hat OpenShift Dev Spaces operator.
 
-  --catalog-source-namespace=catalog-source-namespace
+  --catalog-source-namespace=<value>
       Namespace for OLM catalog source to install Red Hat OpenShift Dev Spaces operator.
 
-  --catalog-source-yaml=catalog-source-yaml
+  --catalog-source-yaml=<value>
       Path to a yaml file that describes custom catalog source for installation Red Hat OpenShift Dev Spaces operator.
       Catalog source will be applied to the namespace with Red Hat OpenShift Dev Spaces operator.
       Also you need define 'olm-channel' name and 'package-manifest-name'.
 
-  --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
+  --che-operator-cr-patch-yaml=<value>
       Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used
       only when the installer is the 'operator' or the 'olm'.
 
-  --che-operator-cr-yaml=che-operator-cr-yaml
+  --che-operator-cr-yaml=<value>
       Path to a yaml file that defines a CheCluster used by the operator.
 
-  --che-operator-image=che-operator-image
+  --che-operator-image=<value>
       Container image of the operator.
 
   --cluster-monitoring
@@ -263,33 +292,34 @@ OPTIONS
       'Enables the debug mode for Red Hat OpenShift Dev Spaces server. To debug Red Hat OpenShift Dev Spaces server from
       localhost use 'server:debug' command.'
 
-  --devfile-registry-url=devfile-registry-url
+  --devfile-registry-url=<value>
       The URL of the external Devfile registry.
 
-  --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout
+  --k8spoddownloadimagetimeout=<value>
       [default: 1200000] Waiting time for Pod downloading image (in milliseconds)
 
-  --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout
+  --k8spoderrorrechecktimeout=<value>
       [default: 60000] Waiting time for Pod rechecking error (in milliseconds)
 
-  --k8spodreadytimeout=k8spodreadytimeout
+  --k8spodreadytimeout=<value>
       [default: 60000] Waiting time for Pod Ready condition (in milliseconds)
 
-  --k8spodwaittimeout=k8spodwaittimeout
+  --k8spodwaittimeout=<value>
       [default: 60000] Waiting time for Pod scheduled condition (in milliseconds)
 
-  --olm-channel=stable|latest|fast|next
+  --olm-channel=<option>
       [default: stable] Olm channel to install Red Hat OpenShift Dev Spaces.
       The default 'stable' value will deploy the latest supported stable version of Red Hat OpenShift Dev Spaces from the
       Red Hat Ecosystem Catalog.'
       'latest' allows to deploy the latest unreleased version from quay.io.
       'fast' or 'next' will deploy the next unreleased, unsupported, CI version of Red Hat OpenShift Dev Spaces from
       quay.io.
+      <options: stable|latest|fast|next>
 
-  --package-manifest-name=package-manifest-name
+  --package-manifest-name=<value>
       Package manifest name to subscribe to Red Hat OpenShift Dev Spaces OLM package manifest.
 
-  --plugin-registry-url=plugin-registry-url
+  --plugin-registry-url=<value>
       The URL of the external plugin registry.
 
   --skip-cert-manager
@@ -307,7 +337,7 @@ OPTIONS
   --skip-version-check
       Skip minimal versions check.
 
-  --starting-csv=starting-csv
+  --starting-csv=<value>
       Starting cluster service version(CSV) for installation Red Hat OpenShift Dev Spaces.
       Flags uses to set up start installation version Che.
       For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
@@ -315,14 +345,18 @@ OPTIONS
       Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known
       version.
 
-  --telemetry=on|off
+  --telemetry=<option>
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+      <options: on|off>
 
-  --workspace-pvc-storage-class-name=workspace-pvc-storage-class-name
+  --workspace-pvc-storage-class-name=<value>
       persistent volume(s) storage class name to use to store Red Hat OpenShift Dev Spaces workspaces data
+
+DESCRIPTION
+  Deploy Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-b2dd-redhat/src/commands/server/deploy.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/server/deploy.ts)_
 
 ## `dsc server:logs`
 
@@ -330,17 +364,21 @@ Collect Red Hat OpenShift Dev Spaces logs
 
 ```
 USAGE
-  $ dsc server:logs
+  $ dsc server:logs [-h] [-d <value>] [-n <value>] [--telemetry on|off] [--skip-kubernetes-health-check]
 
-OPTIONS
-  -d, --directory=directory        Directory to store logs into
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project.
-  --skip-kubernetes-health-check   Skip Kubernetes health check
-  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+FLAGS
+  -d, --directory=<value>         Directory to store logs into
+  -h, --help                      show CLI help
+  -n, --chenamespace=<value>      Red Hat OpenShift Dev Spaces Openshift Project.
+  --skip-kubernetes-health-check  Skip Kubernetes health check
+  --telemetry=<option>            Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+                                  <options: on|off>
+
+DESCRIPTION
+  Collect Red Hat OpenShift Dev Spaces logs
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-b2dd-redhat/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/server/logs.ts)_
 
 ## `dsc server:start`
 
@@ -348,33 +386,29 @@ Start Red Hat OpenShift Dev Spaces server
 
 ```
 USAGE
-  $ dsc server:start
+  $ dsc server:start [-h] [-n <value>] [--telemetry on|off] [--skip-kubernetes-health-check] [--batch]
+    [--k8spodwaittimeout <value>] [--k8spodreadytimeout <value>] [--k8spoddownloadimagetimeout <value>]
+    [--k8spoderrorrechecktimeout <value>] [-d <value>]
 
-OPTIONS
-  -d, --directory=directory                                Directory to store logs into
-  -h, --help                                               show CLI help
-  -n, --chenamespace=chenamespace                          Red Hat OpenShift Dev Spaces Openshift Project.
-  --batch                                                  Batch mode. Running a command without end user interaction.
+FLAGS
+  -d, --directory=<value>               Directory to store logs into
+  -h, --help                            show CLI help
+  -n, --chenamespace=<value>            Red Hat OpenShift Dev Spaces Openshift Project.
+  --batch                               Batch mode. Running a command without end user interaction.
+  --k8spoddownloadimagetimeout=<value>  [default: 1200000] Waiting time for Pod downloading image (in milliseconds)
+  --k8spoderrorrechecktimeout=<value>   [default: 60000] Waiting time for Pod rechecking error (in milliseconds)
+  --k8spodreadytimeout=<value>          [default: 60000] Waiting time for Pod Ready condition (in milliseconds)
+  --k8spodwaittimeout=<value>           [default: 60000] Waiting time for Pod scheduled condition (in milliseconds)
+  --skip-kubernetes-health-check        Skip Kubernetes health check
+  --telemetry=<option>                  Enable or disable telemetry. This flag skips a prompt and enable/disable
+                                        telemetry
+                                        <options: on|off>
 
-  --k8spoddownloadimagetimeout=k8spoddownloadimagetimeout  [default: 1200000] Waiting time for Pod downloading image (in
-                                                           milliseconds)
-
-  --k8spoderrorrechecktimeout=k8spoderrorrechecktimeout    [default: 60000] Waiting time for Pod rechecking error (in
-                                                           milliseconds)
-
-  --k8spodreadytimeout=k8spodreadytimeout                  [default: 60000] Waiting time for Pod Ready condition (in
-                                                           milliseconds)
-
-  --k8spodwaittimeout=k8spodwaittimeout                    [default: 60000] Waiting time for Pod scheduled condition (in
-                                                           milliseconds)
-
-  --skip-kubernetes-health-check                           Skip Kubernetes health check
-
-  --telemetry=on|off                                       Enable or disable telemetry. This flag skips a prompt and
-                                                           enable/disable telemetry
+DESCRIPTION
+  Start Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-b2dd-redhat/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/server/start.ts)_
 
 ## `dsc server:status`
 
@@ -382,15 +416,19 @@ Status Red Hat OpenShift Dev Spaces server
 
 ```
 USAGE
-  $ dsc server:status
+  $ dsc server:status [-h] [-n <value>] [--telemetry on|off]
 
-OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project.
-  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+FLAGS
+  -h, --help                  show CLI help
+  -n, --chenamespace=<value>  Red Hat OpenShift Dev Spaces Openshift Project.
+  --telemetry=<option>        Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+                              <options: on|off>
+
+DESCRIPTION
+  Status Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-b2dd-redhat/src/commands/server/status.ts)_
+_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/server/status.ts)_
 
 ## `dsc server:stop`
 
@@ -398,16 +436,20 @@ stop Red Hat OpenShift Dev Spaces server
 
 ```
 USAGE
-  $ dsc server:stop
+  $ dsc server:stop [-h] [-n <value>] [--telemetry on|off] [--skip-kubernetes-health-check]
 
-OPTIONS
-  -h, --help                       show CLI help
-  -n, --chenamespace=chenamespace  Red Hat OpenShift Dev Spaces Openshift Project.
-  --skip-kubernetes-health-check   Skip Kubernetes health check
-  --telemetry=on|off               Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+FLAGS
+  -h, --help                      show CLI help
+  -n, --chenamespace=<value>      Red Hat OpenShift Dev Spaces Openshift Project.
+  --skip-kubernetes-health-check  Skip Kubernetes health check
+  --telemetry=<option>            Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+                                  <options: on|off>
+
+DESCRIPTION
+  stop Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-b2dd-redhat/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/server/stop.ts)_
 
 ## `dsc server:update`
 
@@ -415,16 +457,20 @@ Update Red Hat OpenShift Dev Spaces server.
 
 ```
 USAGE
-  $ dsc server:update
+  $ dsc server:update [-h] [-n <value>] [-y | --batch] [-t <value>] [--che-operator-image <value>]
+    [--che-operator-cr-patch-yaml <value>] [--skip-devworkspace-operator] [--skip-kubernetes-health-check]
+    [--skip-version-check] [--telemetry on|off] [--package-manifest-name <value>] [--catalog-source-namespace <value>
+    --catalog-source-name <value> --olm-channel stable|latest|fast|next] [--catalog-source-yaml <value> ]
+    [--catalog-source-image <value> ] [--auto-update] [--starting-csv <value>]
 
-OPTIONS
+FLAGS
   -h, --help
       show CLI help
 
-  -n, --chenamespace=chenamespace
+  -n, --chenamespace=<value>
       Red Hat OpenShift Dev Spaces Openshift Project.
 
-  -t, --templates=templates
+  -t, --templates=<value>
       Path to the templates folder
 
   -y, --yes
@@ -438,36 +484,37 @@ OPTIONS
   --batch
       Batch mode. Running a command without end user interaction.
 
-  --catalog-source-image=catalog-source-image
+  --catalog-source-image=<value>
       OLM catalog source image or index bundle (IIB) from which to install the Red Hat OpenShift Dev Spaces operator.
 
-  --catalog-source-name=catalog-source-name
+  --catalog-source-name=<value>
       Name of the OLM catalog source or index bundle (IIB) from which to install Red Hat OpenShift Dev Spaces operator.
 
-  --catalog-source-namespace=catalog-source-namespace
+  --catalog-source-namespace=<value>
       Namespace for OLM catalog source to install Red Hat OpenShift Dev Spaces operator.
 
-  --catalog-source-yaml=catalog-source-yaml
+  --catalog-source-yaml=<value>
       Path to a yaml file that describes custom catalog source for installation Red Hat OpenShift Dev Spaces operator.
       Catalog source will be applied to the namespace with Red Hat OpenShift Dev Spaces operator.
       Also you need define 'olm-channel' name and 'package-manifest-name'.
 
-  --che-operator-cr-patch-yaml=che-operator-cr-patch-yaml
+  --che-operator-cr-patch-yaml=<value>
       Path to a yaml file that overrides the default values in CheCluster CR used by the operator. This parameter is used
       only when the installer is the 'operator' or the 'olm'.
 
-  --che-operator-image=che-operator-image
+  --che-operator-image=<value>
       Container image of the operator.
 
-  --olm-channel=stable|latest|fast|next
+  --olm-channel=<option>
       [default: stable] Olm channel to install Red Hat OpenShift Dev Spaces.
       The default 'stable' value will deploy the latest supported stable version of Red Hat OpenShift Dev Spaces from the
       Red Hat Ecosystem Catalog.'
       'latest' allows to deploy the latest unreleased version from quay.io.
       'fast' or 'next' will deploy the next unreleased, unsupported, CI version of Red Hat OpenShift Dev Spaces from
       quay.io.
+      <options: stable|latest|fast|next>
 
-  --package-manifest-name=package-manifest-name
+  --package-manifest-name=<value>
       Package manifest name to subscribe to Red Hat OpenShift Dev Spaces OLM package manifest.
 
   --skip-devworkspace-operator
@@ -479,7 +526,7 @@ OPTIONS
   --skip-version-check
       Skip minimal versions check.
 
-  --starting-csv=starting-csv
+  --starting-csv=<value>
       Starting cluster service version(CSV) for installation Red Hat OpenShift Dev Spaces.
       Flags uses to set up start installation version Che.
       For example: 'starting-csv' provided with value 'eclipse-che.v7.10.0' for stable channel.
@@ -487,33 +534,45 @@ OPTIONS
       Notice: this flag will be ignored with 'auto-update' flag. OLM with auto-update mode installs the latest known
       version.
 
-  --telemetry=on|off
+  --telemetry=<option>
       Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
+      <options: on|off>
+
+DESCRIPTION
+  Update Red Hat OpenShift Dev Spaces server.
 
 EXAMPLES
   # Update Red Hat OpenShift Dev Spaces:
-  dsc server:update
+
+    $ dsc server:update
 
   # Update Red Hat OpenShift Dev Spaces in 'eclipse-che' namespace:
-  dsc server:update -n eclipse-che
+
+    $ dsc server:update -n eclipse-che
 
   # Update Red Hat OpenShift Dev Spaces and update its configuration in the custom resource:
-  dsc server:update --che-operator-cr-patch-yaml patch.yaml
+
+    $ dsc server:update --che-operator-cr-patch-yaml patch.yaml
 
   # Update Red Hat OpenShift Dev Spaces from the provided channel:
-  dsc server:update --olm-channel next
+
+    $ dsc server:update --olm-channel next
 
   # Update Red Hat OpenShift Dev Spaces from the provided CatalogSource and channel:
-  dsc server:update --olm-channel fast --catalog-source-name MyCatalogName --catalog-source-namespace MyCatalogNamespace
+
+    $ dsc server:update --olm-channel fast --catalog-source-name MyCatalogName --catalog-source-namespace \
+      MyCatalogNamespace
 
   # Create CatalogSource based on provided image and update Red Hat OpenShift Dev Spaces from it:
-  dsc server:update --olm-channel latest --catalog-source-image MyCatalogImage
+
+    $ dsc server:update --olm-channel latest --catalog-source-image MyCatalogImage
 
   # Create a CatalogSource defined in yaml file and update Red Hat OpenShift Dev Spaces from it:
-  dsc server:update --olm-channel stable --catalog-source-yaml PATH_TO_CATALOG_SOURCE_YAML
+
+    $ dsc server:update --olm-channel stable --catalog-source-yaml PATH_TO_CATALOG_SOURCE_YAML
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-b2dd-redhat/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI-225ed/src/commands/server/update.ts)_
 
 ## `dsc update [CHANNEL]`
 
@@ -521,10 +580,13 @@ update the dsc CLI
 
 ```
 USAGE
-  $ dsc update [CHANNEL]
+  $ dsc update [CHANNEL] [--from-local]
 
-OPTIONS
+FLAGS
   --from-local  interactively choose an already installed version
+
+DESCRIPTION
+  update the dsc CLI
 ```
 
 _See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.5.0/src/commands/update.ts)_
