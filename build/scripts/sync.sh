@@ -18,24 +18,24 @@ MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 DEFAULT_TAG=${MIDSTM_BRANCH#*-}; DEFAULT_TAG=${DEFAULT_TAG%%-*};
 
 usage () {
-	echo "Usage:   $0 -b MIDSTM_BRANCH -s SOURCEDIR -t TARGETDIR"
-	echo "Example: $0 -b ${MIDSTM_BRANCH} -s /absolute/path/to/chectl -t /absolute/path/to/dsc"
-	echo ""
-	echo "Options:
-	--ds-version ${DEFAULT_TAG}     (compute from MIDSTM_BRANCH if not set)
-	"
-	exit 1
+  echo "Usage:   $0 -b MIDSTM_BRANCH -s SOURCEDIR -t TARGETDIR"
+  echo "Example: $0 -b ${MIDSTM_BRANCH} -s /absolute/path/to/chectl -t /absolute/path/to/dsc"
+  echo ""
+  echo "Options:
+  --ds-version ${DEFAULT_TAG}     (compute from MIDSTM_BRANCH if not set)
+  "
+  exit 1
 }
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     '-b'|'--ds-branch') MIDSTM_BRANCH="$2"; shift 1;;
-	# paths to use for input and ouput
-	'-s') SOURCEDIR="$2"; SOURCEDIR="${SOURCEDIR%/}"; shift 1;;
-	'-t') TARGETDIR="$2"; TARGETDIR="${TARGETDIR%/}"; shift 1;;
-	'--help'|'-h') usage;;
-	# optional tag overrides
-	'--ds-version') DS_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
+  # paths to use for input and ouput
+  '-s') SOURCEDIR="$2"; SOURCEDIR="${SOURCEDIR%/}"; shift 1;;
+  '-t') TARGETDIR="$2"; TARGETDIR="${TARGETDIR%/}"; shift 1;;
+  '--help'|'-h') usage;;
+  # optional tag overrides
+  '--ds-version') DS_VERSION="$2"; DEFAULT_TAG="$2"; shift 1;;
   esac
   shift 1
 done
@@ -61,6 +61,7 @@ echo "/.github/
 /docs/
 /dist/
 /bin/
+run-script-in-docker.sh
 /RELEASE.md
 /CONTRIBUTING.md
 /make-release.sh
@@ -76,15 +77,15 @@ find "${TARGETDIR}"/ -name "*.sh" -exec chmod +x {} \;
 
 # global / generic changes
 pushd "${SOURCEDIR}" >/dev/null
-	while IFS= read -r -d '' d; do
-		echo "[INFO] Convert ${d}"
-		if [[ -d "${SOURCEDIR}/${d%/*}" ]]; then mkdir -p "${TARGETDIR}"/"${d%/*}"; fi
-		sed -r \
-			-e "s|https://github.com/che-incubator/chectl|https://github.com/redhat-developer/devspaces-chectl|g" \
-			-e "s|chectl|dsc|g" \
-			-e "s|dsc-version|chectl-version|g" \
-		"$d" > "${TARGETDIR}/${d}"
-	done <   <(find src test resources configs package.json .ci/obfuscate/gnirts.js .eslintrc.js -type f -name "*" -print0) # include package.json in here too
+  while IFS= read -r -d '' d; do
+    echo "[INFO] Convert ${d}"
+    if [[ -d "${SOURCEDIR}/${d%/*}" ]]; then mkdir -p "${TARGETDIR}"/"${d%/*}"; fi
+    sed -r \
+      -e "s|https://github.com/che-incubator/chectl|https://github.com/redhat-developer/devspaces-chectl|g" \
+      -e "s|chectl|dsc|g" \
+      -e "s|dsc-version|chectl-version|g" \
+    "$d" > "${TARGETDIR}/${d}"
+  done <   <(find src test resources configs package.json .ci/obfuscate/gnirts.js .eslintrc.js -type f -name "*" -print0) # include package.json in here too
 popd >/dev/null
 
 # Productization
@@ -114,12 +115,12 @@ popd >/dev/null
 
 # Update prepare-templates.js
 pushd "${TARGETDIR}" >/dev/null
-	while IFS= read -r -d '' d; do
-		echo "[INFO] Convert ${d} - use subfolder"
-		sed -i "${TARGETDIR}/${d}" -r \
-			-e "s#'node_modules', 'eclipse-che-operator'#'node_modules', 'devspaces-operator', 'devspaces-operator'#" \
-			-e "s#'templates', 'che-operator'#'templates', 'devspaces-operator'#"
-	done <   <(find prepare-templates.js -print0)
+  while IFS= read -r -d '' d; do
+    echo "[INFO] Convert ${d} - use subfolder"
+    sed -i "${TARGETDIR}/${d}" -r \
+      -e "s#'node_modules', 'eclipse-che-operator'#'node_modules', 'devspaces-operator', 'devspaces-operator'#" \
+      -e "s#'templates', 'che-operator'#'templates', 'devspaces-operator'#"
+  done <   <(find prepare-templates.js -print0)
 popd >/dev/null
 
 domainString="export const DOMAIN = string({\n\
@@ -146,7 +147,7 @@ channelString="export const OLM_CHANNEL = string({\n\
 
 # Patch flags
 pushd "${TARGETDIR}" >/dev/null
-	d=src/flags.ts
+  d=src/flags.ts
   echo "[INFO] Convert ${d}"
 
   # Hide domain flag
@@ -163,8 +164,8 @@ pushd "${TARGETDIR}" >/dev/null
 
   # Convert
   sed -r \
-		-e "s|Kubernetes namespace|Openshift Project|g" \
-		-i "${TARGETDIR}/${d}"
+    -e "s|Kubernetes namespace|Openshift Project|g" \
+    -i "${TARGETDIR}/${d}"
 popd >/dev/null
 
 # Patch eslint rules to exclude unused vars
@@ -195,32 +196,40 @@ replaceVar()
 # update package.json to latest branch of operator
 replaceFile="${TARGETDIR}/package.json"
 if [[ -f ${replaceFile} ]]; then
-	echo "[INFO] Convert package.json (sed #2)"
-	sed -i ${replaceFile} -r \
-		-e 's#Eclipse Che#Red Hat OpenShift Dev Spaces#g' \
-		-e 's#eclipse-che-operator#devspaces-operator#g'
+  echo "[INFO] Convert package.json (sed)"
+  sed -i ${replaceFile} -r \
+    -e 's#Eclipse Che#Red Hat OpenShift Dev Spaces#g' \
+    -e 's#eclipse-che-operator#devspaces-operator#g' \
 
-	echo "[INFO] Convert package.json (jq #1)"
-	declare -A package_replacements=(
-		["https://github.com/redhat-developer/devspaces-images#${MIDSTM_BRANCH}"]='.dependencies["devspaces-operator"]'
-		["dsc"]='.name'
-		["Red Hat OpenShift Dev Spaces CLI"]='.description'
-		["${DEFAULT_TAG}.0-CI-redhat"]='.version'
-		["./bin/run"]='.bin["dsc"]'
-		["https://issues.jboss.org/projects/CRW/issues"]='.bugs'
-		["https://developers.redhat.com/products/openshift-dev-spaces"]='.homepage'
-		["redhat-developer/devspaces-chectl"]='.repository'
-		["redhat-developer.dsc"]='.oclif["macos"]["identifier"]'
-		["https://redhat-developer.github.io/devspaces-chectl/"]='.oclif["update"]["s3"]["host"]'
-	)
-	for updateVal in "${!package_replacements[@]}"; do
-		updateName="${package_replacements[$updateVal]}"
-		replaceVar
-	done
-	echo -n "[INFO] Sort package.json (to avoid nuissance commits): "
-	pushd ${TARGETDIR} >/dev/null
-	npx -q sort-package-json
-	popd >/dev/null
+  # echo "[INFO] Switch to oclif 3"
+  # for d in $replaceFile CONTRIBUTING.md; do
+  #   sed -i ${d} -r \
+  #     -e 's#"@oclif/dev-cli": "\^1"#"oclif": "^3"#g' \
+  #     -e 's#oclif-dev pack#oclif pack tarballs --no-xz --parallel#g' \
+  #     -e 's#oclif-dev #oclif #g'
+  # done
+
+  echo "[INFO] Convert package.json (jq)"
+  declare -A package_replacements=(
+    ["https://github.com/redhat-developer/devspaces-images#${MIDSTM_BRANCH}"]='.dependencies["devspaces-operator"]'
+    ["dsc"]='.name'
+    ["Red Hat OpenShift Dev Spaces CLI"]='.description'
+    ["${DEFAULT_TAG}.0-CI"]='.version'
+    ["./bin/run"]='.bin["dsc"]'
+    ["https://issues.jboss.org/projects/CRW/issues"]='.bugs'
+    ["https://developers.redhat.com/products/openshift-dev-spaces"]='.homepage'
+    ["redhat-developer/devspaces-chectl"]='.repository'
+    ["redhat-developer.dsc"]='.oclif["macos"]["identifier"]'
+    ["https://redhat-developer.github.io/devspaces-chectl/"]='.oclif["update"]["s3"]["host"]'
+  )
+  for updateVal in "${!package_replacements[@]}"; do
+    updateName="${package_replacements[$updateVal]}"
+    replaceVar
+  done
+  echo -n "[INFO] Sort package.json (to avoid nuissance commits): "
+  pushd ${TARGETDIR} >/dev/null
+    npx -q sort-package-json
+  popd >/dev/null
 fi
 
 # update yarn.lock and package.json; report any problems

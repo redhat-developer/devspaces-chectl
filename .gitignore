@@ -6,7 +6,7 @@
 /package-lock.json
 /tmp
 node_modules
-dsc-v*.tgz
+dsc*gz
 coverage
 .vscode
 bin/dsc-*
