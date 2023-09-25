@@ -151,6 +151,8 @@ popd >/dev/null
 
 set -x
 
+BRANCHTAG=$(git rev-parse --abbrev-ref HEAD)
+
 if [[ $DO_SYNC -eq 1 ]]; then
     ########################################################################
     echo "[INFO] 1. Sync from upstream chectl"
@@ -170,7 +172,7 @@ if [[ $DO_SYNC -eq 1 ]]; then
         # set -x
         git add .
         git commit -s -m "ci: [sync] Push chectl @ ${SOURCE_BRANCH} to devspaces-chectl @ ${MIDSTM_BRANCH}" . || true
-        git push origin ${MIDSTM_BRANCH} || true
+        git push origin ${BRANCHTAG} || true
     popd >/dev/null
 fi
 
@@ -179,7 +181,6 @@ if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
     echo "[INFO] 2. Build dsc using registry.redhat.io/devspaces/ URLs"
     ########################################################################
     pushd $DSC_DIR >/dev/null
-        BRANCHTAG=$(git rev-parse --abbrev-ref HEAD)
 
         # clean up from previous build if applicable
         jq -M --arg DSC_TAG "${DSC_TAG}" '.version = $DSC_TAG' package.json > package.json2; mv -f package.json2 package.json
@@ -195,25 +196,31 @@ if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
         git diff -u
         git tag -f "${DSC_TAG}"
         git commit -s -m "ci: [update] package.json, yarn.lock + README.md" package.json yarn.lock README.md || true
-        git push origin ${MIDSTM_BRANCH} || true
+        git push origin ${BRANCHTAG} || true
     popd >/dev/null
 fi
 
+# shellcheck disable=SC2086
 if [[ $PUBLISH_TO_QUAY -eq 1 ]]; then
     ########################################################################
-    echo "[INFO] 4. Publish container with tarballs and sources to Quay"
+    echo "[INFO] 4. Publish containers (with tarballs and sources) to Quay"
     ########################################################################
-    # copy container to quay
-    skopeo --insecure-policy copy --all docker://quay.io/devspaces/dsc:next docker://quay.io/devspaces/dsc:${DSC_TAG}
-    skopeo --insecure-policy copy --all docker://quay.io/devspaces/dsc:next docker://quay.io/devspaces/dsc:${DS_VERSION}
+    # copy container to quay under 3 tags
+    tags="${DSC_TAG} ${DS_VERSION}"
     if [[ $MIDSTM_BRANCH == "devspaces-3-rhel-8" ]]; then
-        skopeo --insecure-policy copy --all docker://quay.io/devspaces/dsc:next docker://quay.io/devspaces/dsc:next
+        tags="$tags next"
     elif [[ $MIDSTM_BRANCH == "devspaces-3."*"-rhel-8" ]]; then
-        skopeo --insecure-policy copy --all docker://quay.io/devspaces/dsc:next docker://quay.io/devspaces/dsc:latest
+        tags="$tags latest"
     fi
+    for tag in $tags; do
+        echo -n "Copy to quay.io/devspaces/dsc:${tag} ... "
+        skopeo --insecure-policy copy --all docker://quay.io/devspaces/dsc:${CSV_VERSION} docker://quay.io/devspaces/dsc:${tag}
+        echo " done"
+    done
 fi
 
 # CRW-4855 deprecated, remove when publishing to quay is completed
+# shellcheck disable=SC2086
 if [[ $PUBLISH_TO_GITHUB -eq 1 ]]; then
     ########################################################################
     echo "[INFO] 4b. Publish tarballs to GH"
@@ -264,7 +271,7 @@ if [[ $PUBLISH_TO_GITHUB -eq 1 ]]; then
     echo "[INFO] Refresh GH pages"
     pushd ${DSC_DIR} >/dev/null
         git clone https://devstudio-release:${GITHUB_TOKEN}@github.com/redhat-developer/devspaces-chectl -b gh-pages --single-branch gh-pages && cd gh-pages
-        echo $(date +%s) > update && git add update && git commit -m "ci: [update] add $RELEASE_ID to github pages" && git push origin gh-pages
+        date +%s > update && git add update && git commit -m "ci: [update] add $RELEASE_ID to github pages" && git push origin gh-pages
     popd >/dev/null
 fi
 
