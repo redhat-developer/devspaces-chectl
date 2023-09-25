@@ -193,7 +193,7 @@ if [[ $DO_REDHAT_BUILD -eq 1 ]]; then
             --build-arg BRANCHTAG=${BRANCHTAG}
         ./build/scripts/installDscFromContainer.sh quay.io/devspaces/dsc:${CSV_VERSION} -v
         cp /tmp/dsc/package.json /tmp/dsc/README.md /tmp/dsc/yarn.lock .
-        git diff -u
+        git diff --name-status
         git tag -f "${DSC_TAG}"
         git commit -s -m "ci: [update] package.json, yarn.lock + README.md" package.json yarn.lock README.md || true
         git push origin ${BRANCHTAG} || true
@@ -214,7 +214,7 @@ if [[ $PUBLISH_TO_QUAY -eq 1 ]]; then
     fi
     for tag in $tags; do
         echo -n "Copy to quay.io/devspaces/dsc:${tag} ... "
-        skopeo --insecure-policy copy --all docker://quay.io/devspaces/dsc:${CSV_VERSION} docker://quay.io/devspaces/dsc:${tag}
+        podman push quay.io/devspaces/dsc:${CSV_VERSION} quay.io/devspaces/dsc:${tag}
         echo " done"
     done
 fi
