@@ -23,14 +23,23 @@ https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.6/h
 <!-- tocstop -->
 # Installation
 
-Assemblies of dsc are available at [https://github.com/redhat-developer/devspaces-chectl/releases](https://github.com/redhat-developer/devspaces-chectl/releases)
+Container images with multiple arches of dsc builds are available at [quay.io/devspaces/dsc:next](https://quay.io/devspaces/dsc:next).
 
-Manual install:
+For the current list of supported arches, see [build/scripts/build.sh](https://github.com/redhat-developer/devspaces-chectl/blob/devspaces-3-rhel-8/build/scripts/build.sh#L23).
 
-1) Download a .tar.gz file based on your Operating System / Arch 
-2) Unpack the assembly
-3) move `dsc` folder into a folder like `$HOME/dsc`
-4) add `$HOME/dsc/bin` to `$PATH``
+To install as `$HOME/dsc/bin/dsc`:
+
+```sh-session
+# 1. get install script
+cd /tmp; curl -sSLO https://raw.githubusercontent.com/redhat-developer/devspaces-chectl/devspaces-3-rhel-8/build/scripts/installDscFromContainer.sh; chmod +x installDscFromContainer.sh
+
+# 2. install to $HOME/dsc/ from :next tag
+./installDscFromContainer.sh quay.io/devspaces/dsc:next -t $HOME --verbose
+
+# 3. add dsc to your PATH
+export PATH=${PATH%":$HOME/dsc/bin"}:$HOME/dsc/bin
+```
+
 
 # Usage
 ```sh-session

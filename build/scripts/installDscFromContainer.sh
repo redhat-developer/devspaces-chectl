@@ -59,7 +59,7 @@ else
 fi
 rm -fr "$TARGETDIR/dsc/" "$unpackdir"
 # shellcheck disable=SC2086
-"$TARGETDIR/containerExtract.sh" ${QUIET} --delete-before --delete-after --TARGETDIR "$unpackdir" "$container" --tar-flags dsc/*${SUFFIX} 
+"$TARGETDIR/containerExtract.sh" ${QUIET} --delete-before --delete-after --tmpdir "$unpackdir" "$container" --tar-flags dsc/*${SUFFIX} 
 # shellcheck disable=SC2046
 cd "$unpackdir"/ || exit
 # shellcheck disable=SC2086

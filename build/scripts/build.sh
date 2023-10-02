@@ -219,62 +219,6 @@ if [[ $PUBLISH_TO_QUAY -eq 1 ]]; then
     done
 fi
 
-# CRW-4855 deprecated, remove when publishing to quay is completed
-# shellcheck disable=SC2086
-if [[ $PUBLISH_TO_GITHUB -eq 1 ]]; then
-    ########################################################################
-    echo "[INFO] 4b. Publish tarballs to GH"
-    ########################################################################
-
-    # requires hub cli
-    if [[ ! -x /tmp/uploadAssetsToGHRelease.sh ]]; then
-        pushd /tmp/ >/dev/null
-        curl -sSLO "https://raw.githubusercontent.com/redhat-developer/devspaces/${MIDSTM_BRANCH}/product/uploadAssetsToGHRelease.sh" && \
-        chmod +x uploadAssetsToGHRelease.sh
-        popd >/dev/null
-    fi
-
-    # delete existing CI pre-release and replace it, so timestamp is fresh
-    if [[ "${VERSION_SUFFIX}" == "CI" ]] || [[ $PRE_RELEASE == "--prerelease" ]]; then # CI build
-        /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --delete-assets -b "${MIDSTM_BRANCH}" -v "${CSV_VERSION}-${VERSION_SUFFIX}" --asset-name "dsc"
-    fi
-
-    # in case API is running slow, sleep for a bit before trying to push files into the freshly created release
-    sleep 10s
-
-    # upload artifacts for each platform + sources tarball
-    countToUpload=0
-    if [[ -d "${DSC_DIR}/dist/" ]]; then
-        pushd "${DSC_DIR}/dist/" || exit 1
-            echo "[INFO] Publish assets to ${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets GH release"
-            /tmp/uploadAssetsToGHRelease.sh ${PRE_RELEASE} --publish-assets -b "${MIDSTM_BRANCH}" -v "${CSV_VERSION}-${VERSION_SUFFIX}" --asset-name "dsc" "devspaces-*tar.gz" --asset-type "Installer binaries and sources"
-        popd >/dev/null || exit 1
-        tarballFiles=$(find "${DSC_DIR}/dist/" -name "devspaces-*tar.gz" | wc -l)
-        countToUpload=$(( countToUpload + tarballFiles ))
-        # check if upload was successful by checking the release for the same # of assets
-        assetsUploaded=$(cd "${DSC_DIR}/dist/"; hub release show ${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets -f %as; echo)
-        countAssetsUploaded=$(echo "$assetsUploaded" | wc -l)
-        echo "[INFO] Published assets: https://github.com/redhat-developer/devspaces-chectl/releases/tag/${CSV_VERSION}-${VERSION_SUFFIX}-dsc-assets"
-        if [[ $countToUpload -ne $countAssetsUploaded ]]; then
-            echo " + Assets to upload: $countToUpload"
-            echo " - Assets uploaded:  $countAssetsUploaded"
-            echo "=====================================================>"
-            echo "$assetsUploaded"
-            echo "<====================================================="
-            exit 1
-        fi
-    fi
-
-    # cleanup
-    rm -f /tmp/uploadAssetsToGHRelease.sh
-
-    echo "[INFO] Refresh GH pages"
-    pushd ${DSC_DIR} >/dev/null
-        git clone https://devstudio-release:${GITHUB_TOKEN}@github.com/redhat-developer/devspaces-chectl -b gh-pages --single-branch gh-pages && cd gh-pages
-        date +%s > update && git add update && git commit -m "ci: [update] add $RELEASE_ID to github pages" && git push origin gh-pages
-    popd >/dev/null
-fi
-
 # optionally, push files to spmm-util server as part of a GA release
 if [[ $PUBLISH -eq 1 ]]; then
     ########################################################################
