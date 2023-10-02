@@ -205,8 +205,8 @@ if [[ $PUBLISH_TO_QUAY -eq 1 ]]; then
     ########################################################################
     echo "[INFO] 4. Publish containers (with tarballs and sources) to Quay"
     ########################################################################
-    # copy container to quay under 3 tags
-    tags="${DSC_TAG} ${DS_VERSION}"
+    # copy container to quay under 4 tags: 3.10.0-CI-SHA1, 3.10.0-CI, 3.10, next/latest
+    tags="${DSC_TAG} ${DSC_TAG%-*} ${DS_VERSION}"
     if [[ $MIDSTM_BRANCH == "devspaces-3-rhel-8" ]]; then
         tags="$tags next"
     elif [[ $MIDSTM_BRANCH == "devspaces-3."*"-rhel-8" ]]; then
