@@ -9,30 +9,38 @@
 #
 # for a given build of quay.io/devspaces/dsc:next, extract and install for the current OS
 container="quay.io/devspaces/dsc:next"
+TARGETDIR=/tmp
 QUIET="-q"
 
 if [[ "$#" -le 0 ]]; then
-  echo "Usage: $0 repo/org/container@tag [-v]"; exit
+  echo "
+Usage: $0 repo/org/container@tag -t /path/to/install [-v|--verbose]
+  
+Example: $0 $container -t \$WORKSPACE -v
+"; exit
 fi
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    '-v') QUIET=""; shift;;
+    '-t') TARGETDIR="$2"; shift 2;;
+    '-v'|'--verbose') QUIET=""; shift;;
     *) container="$1"; shift;;
   esac
 done
 
-TMPDIR="/tmp"
+# create the install folder or die trying
+mkdir -p "${TARGETDIR}" || { echo "Could not create $TARGETDIR !"; exit 1; }
+
 if [[ $container == *"@"* ]]; then
   tmpcontainer="$(echo "$container" | tr "/:@" "--")"
 else 
   tmpcontainer="$(echo "$container" | tr "/:" "--")-$(date +%s)"
 fi
-unpackdir="$TMPDIR/${tmpcontainer}"
+unpackdir="/tmp/${tmpcontainer}"
 
-cd $TMPDIR || exit
-if [[ ! -f $TMPDIR/containerExtract.sh ]]; then 
-  curl -sSLko $TMPDIR/containerExtract.sh https://raw.githubusercontent.com/redhat-developer/devspaces/devspaces-3-rhel-8/product/containerExtract.sh && chmod +x $TMPDIR/containerExtract.sh
+cd "$TARGETDIR" || exit
+if [[ ! -f $TARGETDIR/containerExtract.sh ]]; then 
+  curl -sSLko "$TARGETDIR/containerExtract.sh" https://raw.githubusercontent.com/redhat-developer/devspaces/devspaces-3-rhel-8/product/containerExtract.sh && chmod +x $TARGETDIR/containerExtract.sh
 fi
 UNAME=$(uname)
 UNAMEM=$(uname -m)
@@ -49,12 +57,16 @@ elif [[ $UNAME == "Darwin" ]]; then
 else
   SUFFIX=win32-x64.tar.gz
 fi
-rm -fr $TMPDIR/dsc/ "$unpackdir"
-/tmp/containerExtract.sh ${QUIET} --tmpdir "$unpackdir" "$container" --tar-flags dsc/*${SUFFIX}
-cd "$unpackdir"/$(echo "$container" | tr "/:" "--")* || exit
+rm -fr "$TARGETDIR/dsc/" "$unpackdir"
 # shellcheck disable=SC2086
-tar xzf dsc/devspaces-*${SUFFIX} -C $TMPDIR
-cd $TMPDIR || exit 
-echo;echo "[INFO] dsc installed as $TMPDIR/dsc/bin/dsc";echo
-$TMPDIR/dsc/bin/dsc --help
-rm -fr "$unpackdir"
+"$TARGETDIR/containerExtract.sh" ${QUIET} --delete-before --delete-after --TARGETDIR "$unpackdir" "$container" --tar-flags dsc/*${SUFFIX} 
+# shellcheck disable=SC2046
+cd "$unpackdir"/ || exit
+# shellcheck disable=SC2086
+tar xzf dsc/devspaces-*${SUFFIX} -C $TARGETDIR
+cd "$TARGETDIR" || exit 
+if [[ $QUIET != "-q" ]]; then
+  echo;echo "[INFO] dsc installed as $TARGETDIR/dsc/bin/dsc";echo
+  "$TARGETDIR/dsc/bin/dsc" --help
+fi
+rm -fr "$unpackdir" "$TARGETDIR/containerExtract.sh"
