@@ -23,6 +23,9 @@ ENV SEGMENT_WRITE_KEY=${SEGMENT_WRITE_KEY} \
     CSV_VERSION=${CSV_VERSION} \
     BRANCHTAG=${BRANCHTAG}
 
+# automatically delete from quay.io after 8 weeks
+LABEL quay.expires-after=8w
+
 WORKDIR /dsc-build/
 
 # hadolint ignore=DL3003,DL3040,SC2164,DL3041
