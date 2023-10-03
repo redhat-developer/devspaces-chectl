@@ -60,10 +60,13 @@ fi
 rm -fr "$TARGETDIR/dsc/" "$unpackdir"
 # shellcheck disable=SC2086
 "$TARGETDIR/containerExtract.sh" ${QUIET} --delete-before --delete-after --tmpdir "$unpackdir" "$container" --tar-flags dsc/*${SUFFIX} 
-# shellcheck disable=SC2046
-cd "$unpackdir"/ || exit
-# shellcheck disable=SC2086
-tar xzf dsc/devspaces-*${SUFFIX} -C $TARGETDIR
+# shellcheck disable=SC2044
+for z in $(find "$unpackdir"/ -name "devspaces-*${SUFFIX}"); do
+  if [[ $QUIET != "-q" ]]; then
+    echo "[INFO] Untar $z to $TARGETDIR"
+  fi
+  tar xzf "${z}" -C "$TARGETDIR"
+done
 cd "$TARGETDIR" || exit 
 if [[ $QUIET != "-q" ]]; then
   echo;echo "[INFO] dsc installed as $TARGETDIR/dsc/bin/dsc";echo
