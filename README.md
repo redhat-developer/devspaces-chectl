@@ -17,6 +17,9 @@ https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.6/h
 
 <!-- toc -->
 * [Installation](#installation)
+* [1. get install script](#1-get-install-script)
+* [2. install to $HOME/dsc/ from :next tag](#2-install-to-homedsc-from-next-tag)
+* [3. add dsc to your PATH](#3-add-dsc-to-your-path)
 * [Usage](#usage)
 * [Commands](#commands)
 * [Contributing](#contributing)
