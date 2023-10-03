@@ -14,9 +14,14 @@ QUIET="-q"
 
 if [[ "$#" -le 0 ]]; then
   echo "
-Usage: $0 repo/org/container@tag -t /path/to/install [-v|--verbose]
+Usage: $0 repo/org/container@tag -t /path/to/install
+
+Options:
+  --delete-before  remove any local images before attempting to pull and extract a new copy
+  --delete-after   remove any local images after attempting to pull and extract the container
+  -v, --verbose    verbose output
   
-Example: $0 $container -t \$WORKSPACE -v
+Example: $0 $container -t \$WORKSPACE --delete-after -v
 "; exit
 fi
 
