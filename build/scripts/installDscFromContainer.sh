@@ -24,6 +24,8 @@ while [[ "$#" -gt 0 ]]; do
   case $1 in
     '-t') TARGETDIR="$2"; shift 2;;
     '-v'|'--verbose') QUIET=""; shift;;
+    '--delete-before') CONTAINEREXTRACTFLAGS="${CONTAINEREXTRACTFLAGS} $1"; shift;;
+    '--delete-after') CONTAINEREXTRACTFLAGS="${CONTAINEREXTRACTFLAGS} $1"; shift;;
     *) container="$1"; shift;;
   esac
 done
@@ -59,7 +61,7 @@ else
 fi
 rm -fr "$TARGETDIR/dsc/" "$unpackdir"
 # shellcheck disable=SC2086
-"$TARGETDIR/containerExtract.sh" ${QUIET} --delete-before --delete-after --tmpdir "$unpackdir" "$container" --tar-flags dsc/*${SUFFIX} 
+"$TARGETDIR/containerExtract.sh" ${QUIET} ${CONTAINEREXTRACTFLAGS} --tmpdir "$unpackdir" "$container" --tar-flags dsc/*${SUFFIX} 
 # shellcheck disable=SC2044
 for z in $(find "$unpackdir"/ -name "devspaces-*${SUFFIX}"); do
   if [[ $QUIET != "-q" ]]; then
