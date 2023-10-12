@@ -75,6 +75,7 @@ USAGE
 * [`dsc server:stop`](#dsc-serverstop)
 * [`dsc server:update`](#dsc-serverupdate)
 * [`dsc update [CHANNEL]`](#dsc-update-channel)
+* [`dsc version`](#dsc-version)
 
 ## `dsc autocomplete [SHELL]`
 
@@ -85,7 +86,7 @@ USAGE
   $ dsc autocomplete [SHELL] [-r]
 
 ARGUMENTS
-  SHELL  shell type
+  SHELL  (zsh|bash|powershell) Shell type
 
 FLAGS
   -r, --refresh-cache  Refresh cache (ignores displaying instructions)
@@ -100,10 +101,12 @@ EXAMPLES
 
   $ dsc autocomplete zsh
 
+  $ dsc autocomplete powershell
+
   $ dsc autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v1.3.10/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v2.3.9/src/commands/autocomplete/index.ts)_
 
 ## `dsc cacert:export`
 
@@ -123,7 +126,7 @@ FLAGS
       directory as cheCA.crt.
 
   -h, --help
-      show CLI help
+      Show CLI help.
 
   -n, --chenamespace=<value>
       Red Hat OpenShift Dev Spaces Openshift Project.
@@ -147,7 +150,7 @@ USAGE
   $ dsc dashboard:open [-h] [-n <value>] [--telemetry on|off]
 
 FLAGS
-  -h, --help                  show CLI help
+  -h, --help                  Show CLI help.
   -n, --chenamespace=<value>  Red Hat OpenShift Dev Spaces Openshift Project.
   --telemetry=<option>        Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
                               <options: on|off>
@@ -187,7 +190,7 @@ USAGE
   $ dsc server:debug [-h] [--debug-port <value>] [-n <value>] [--telemetry on|off] [--skip-kubernetes-health-check]
 
 FLAGS
-  -h, --help                      show CLI help
+  -h, --help                      Show CLI help.
   -n, --chenamespace=<value>      Red Hat OpenShift Dev Spaces Openshift Project.
   --debug-port=<value>            [default: 8000] Red Hat OpenShift Dev Spaces server debug port
   --skip-kubernetes-health-check  Skip Kubernetes health check
@@ -210,7 +213,7 @@ USAGE
     [--skip-kubernetes-health-check] [-y | --batch]
 
 FLAGS
-  -h, --help                      show CLI help
+  -h, --help                      Show CLI help.
   -n, --chenamespace=<value>      Red Hat OpenShift Dev Spaces Openshift Project.
   -y, --yes                       Automatic yes to prompts; assume "yes" as answer to all prompts and run
                                   non-interactively
@@ -233,22 +236,31 @@ Deploy Red Hat OpenShift Dev Spaces server
 
 ```
 USAGE
-  $ dsc server:deploy -p openshift|crc [-h] [-n <value>] [--batch] [-i <value>] [-t <value>]
-    [--devfile-registry-url <value>] [--plugin-registry-url <value>] [--k8spodwaittimeout <value>] [--k8spodreadytimeout
-    <value>] [--k8spoddownloadimagetimeout <value>] [--k8spoderrorrechecktimeout <value>] [-d <value>] [--debug]
-    [--che-operator-image <value>] [--che-operator-cr-yaml <value>] [--che-operator-cr-patch-yaml <value>]
-    [--workspace-pvc-storage-class-name <value>] [--skip-version-check] [--skip-cert-manager]
-    [--skip-devworkspace-operator] [--skip-oidc-provider-check] [--auto-update] [--starting-csv <value>]
-    [--package-manifest-name <value>] [--catalog-source-yaml <value> --olm-channel stable|latest|fast|next]
-    [--catalog-source-name <value> --catalog-source-namespace <value> ] [--catalog-source-image <value> ]
-    [--cluster-monitoring] [--telemetry on|off] [--skip-kubernetes-health-check]
+  $ dsc server:deploy [-h] [-n <value>] [--batch] [-i <value>] [-t <value>] [--devfile-registry-url <value>]
+    [--plugin-registry-url <value>] [--k8spodwaittimeout <value>] [--k8spodreadytimeout <value>]
+    [--k8spoddownloadimagetimeout <value>] [--k8spoderrorrechecktimeout <value>] [-d <value>] [-p
+    minikube|k8s|openshift|microk8s|docker-desktop|crc] [-b <value>] [--debug] [--che-operator-image <value>]
+    [--che-operator-cr-yaml <value>] [--che-operator-cr-patch-yaml <value>] [--workspace-pvc-storage-class-name <value>]
+    [--skip-version-check] [--skip-cert-manager] [--skip-devworkspace-operator] [--skip-oidc-provider-check]
+    [--auto-update] [--starting-csv <value>] [--package-manifest-name <value>] [--catalog-source-yaml <value>
+    --olm-channel <value>] [--catalog-source-name <value> --catalog-source-namespace <value> ] [--catalog-source-image
+    <value> ] [--cluster-monitoring] [--telemetry on|off] [--skip-kubernetes-health-check]
 
 FLAGS
+  -b, --domain=<value>
+      Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
+      This flag makes sense only for Kubernetes family infrastructures and will be autodetected for Minikube and MicroK8s
+      in most cases.
+      However, for Kubernetes cluster it is required to specify.
+      Please note, that just setting this flag will not likely work out of the box.
+      According changes should be done in Kubernetes cluster configuration as well.
+      In case of Openshift, domain adjustment should be done on the cluster configuration level.
+
   -d, --directory=<value>
       Directory to store logs into
 
   -h, --help
-      show CLI help
+      Show CLI help.
 
   -i, --cheimage=<value>
       Red Hat OpenShift Dev Spaces server container image
@@ -257,9 +269,8 @@ FLAGS
       Red Hat OpenShift Dev Spaces Openshift Project.
 
   -p, --platform=<option>
-      (required) [default: openshift] Type of OpenShift platform. Valid values are "openshift", "crc (for OpenShift
-      Local)".
-      <options: openshift|crc>
+      Type of Kubernetes platform.
+      <options: minikube|k8s|openshift|microk8s|docker-desktop|crc>
 
   -t, --templates=<value>
       Path to the templates folder
@@ -319,14 +330,9 @@ FLAGS
   --k8spodwaittimeout=<value>
       [default: 60000] Waiting time for Pod scheduled condition (in milliseconds)
 
-  --olm-channel=<option>
-      [default: stable] Olm channel to install Red Hat OpenShift Dev Spaces.
-      The default 'stable' value will deploy the latest supported stable version of Red Hat OpenShift Dev Spaces from the
-      Red Hat Ecosystem Catalog.'
-      'latest' allows to deploy the latest unreleased version from quay.io.
-      'fast' or 'next' will deploy the next unreleased, unsupported, CI version of Red Hat OpenShift Dev Spaces from
-      quay.io.
-      <options: stable|latest|fast|next>
+  --olm-channel=<value>
+      Olm channel to install Red Hat OpenShift Dev Spaces, f.e. stable.
+      If options was not set, will be used default version for package manifest.
 
   --package-manifest-name=<value>
       Package manifest name to subscribe to Red Hat OpenShift Dev Spaces OLM package manifest.
@@ -380,7 +386,7 @@ USAGE
 
 FLAGS
   -d, --directory=<value>         Directory to store logs into
-  -h, --help                      show CLI help
+  -h, --help                      Show CLI help.
   -n, --chenamespace=<value>      Red Hat OpenShift Dev Spaces Openshift Project.
   --skip-kubernetes-health-check  Skip Kubernetes health check
   --telemetry=<option>            Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
@@ -404,7 +410,7 @@ USAGE
 
 FLAGS
   -d, --directory=<value>               Directory to store logs into
-  -h, --help                            show CLI help
+  -h, --help                            Show CLI help.
   -n, --chenamespace=<value>            Red Hat OpenShift Dev Spaces Openshift Project.
   --batch                               Batch mode. Running a command without end user interaction.
   --k8spoddownloadimagetimeout=<value>  [default: 1200000] Waiting time for Pod downloading image (in milliseconds)
@@ -431,7 +437,7 @@ USAGE
   $ dsc server:status [-h] [-n <value>] [--telemetry on|off]
 
 FLAGS
-  -h, --help                  show CLI help
+  -h, --help                  Show CLI help.
   -n, --chenamespace=<value>  Red Hat OpenShift Dev Spaces Openshift Project.
   --telemetry=<option>        Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
                               <options: on|off>
@@ -451,7 +457,7 @@ USAGE
   $ dsc server:stop [-h] [-n <value>] [--telemetry on|off] [--skip-kubernetes-health-check]
 
 FLAGS
-  -h, --help                      show CLI help
+  -h, --help                      Show CLI help.
   -n, --chenamespace=<value>      Red Hat OpenShift Dev Spaces Openshift Project.
   --skip-kubernetes-health-check  Skip Kubernetes health check
   --telemetry=<option>            Enable or disable telemetry. This flag skips a prompt and enable/disable telemetry
@@ -472,12 +478,12 @@ USAGE
   $ dsc server:update [-h] [-n <value>] [-y | --batch] [-t <value>] [--che-operator-image <value>]
     [--che-operator-cr-patch-yaml <value>] [--skip-devworkspace-operator] [--skip-kubernetes-health-check]
     [--skip-version-check] [--telemetry on|off] [--package-manifest-name <value>] [--catalog-source-namespace <value>
-    --catalog-source-name <value> --olm-channel stable|latest|fast|next] [--catalog-source-yaml <value> ]
-    [--catalog-source-image <value> ] [--auto-update] [--starting-csv <value>]
+    --catalog-source-name <value> --olm-channel <value>] [--catalog-source-yaml <value> ] [--catalog-source-image
+    <value> ] [--auto-update] [--starting-csv <value>]
 
 FLAGS
   -h, --help
-      show CLI help
+      Show CLI help.
 
   -n, --chenamespace=<value>
       Red Hat OpenShift Dev Spaces Openshift Project.
@@ -517,14 +523,9 @@ FLAGS
   --che-operator-image=<value>
       Container image of the operator.
 
-  --olm-channel=<option>
-      [default: stable] Olm channel to install Red Hat OpenShift Dev Spaces.
-      The default 'stable' value will deploy the latest supported stable version of Red Hat OpenShift Dev Spaces from the
-      Red Hat Ecosystem Catalog.'
-      'latest' allows to deploy the latest unreleased version from quay.io.
-      'fast' or 'next' will deploy the next unreleased, unsupported, CI version of Red Hat OpenShift Dev Spaces from
-      quay.io.
-      <options: stable|latest|fast|next>
+  --olm-channel=<value>
+      Olm channel to install Red Hat OpenShift Dev Spaces, f.e. stable.
+      If options was not set, will be used default version for package manifest.
 
   --package-manifest-name=<value>
       Package manifest name to subscribe to Red Hat OpenShift Dev Spaces OLM package manifest.
@@ -602,6 +603,26 @@ DESCRIPTION
 ```
 
 _See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.5.0/src/commands/update.ts)_
+
+## `dsc version`
+
+```
+USAGE
+  $ dsc version [--json] [--verbose]
+
+FLAGS
+  --verbose  Show additional information about the CLI.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+FLAG DESCRIPTIONS
+  --verbose  Show additional information about the CLI.
+
+    Additionally shows the architecture, node version, operating system, and versions of plugins that the CLI is using.
+```
+
+_See code: [@oclif/plugin-version](https://github.com/oclif/plugin-version/blob/v2.0.1/src/commands/version.ts)_
 <!-- commandsstop -->
 
 # Contributing
