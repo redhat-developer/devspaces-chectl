@@ -1,4 +1,6 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
+
+ROOT="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 export NODE_OPTIONS='--inspect-brk'
-./run "$@"
+${ROOT}/run "$@"
