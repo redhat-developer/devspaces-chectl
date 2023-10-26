@@ -139,7 +139,7 @@ DESCRIPTION
   Retrieves Red Hat OpenShift Dev Spaces self-signed certificate
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/cacert/export.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/cacert/export.ts)_
 
 ## `dsc dashboard:open`
 
@@ -159,7 +159,7 @@ DESCRIPTION
   Open Red Hat OpenShift Dev Spaces dashboard
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/dashboard/open.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/dashboard/open.ts)_
 
 ## `dsc help [COMMANDS]`
 
@@ -201,7 +201,7 @@ DESCRIPTION
   Enable local debug of Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/server/debug.ts)_
 
 ## `dsc server:delete`
 
@@ -228,7 +228,7 @@ DESCRIPTION
   delete any Red Hat OpenShift Dev Spaces related resource
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/server/delete.ts)_
 
 ## `dsc server:deploy`
 
@@ -236,26 +236,17 @@ Deploy Red Hat OpenShift Dev Spaces server
 
 ```
 USAGE
-  $ dsc server:deploy [-h] [-n <value>] [--batch] [-i <value>] [-t <value>] [--devfile-registry-url <value>]
-    [--plugin-registry-url <value>] [--k8spodwaittimeout <value>] [--k8spodreadytimeout <value>]
-    [--k8spoddownloadimagetimeout <value>] [--k8spoderrorrechecktimeout <value>] [-d <value>] [-p
-    minikube|k8s|openshift|microk8s|docker-desktop|crc] [-b <value>] [--debug] [--che-operator-image <value>]
-    [--che-operator-cr-yaml <value>] [--che-operator-cr-patch-yaml <value>] [--workspace-pvc-storage-class-name <value>]
-    [--skip-version-check] [--skip-cert-manager] [--skip-devworkspace-operator] [--skip-oidc-provider-check]
-    [--auto-update] [--starting-csv <value>] [--package-manifest-name <value>] [--catalog-source-yaml <value>
-    --olm-channel <value>] [--catalog-source-name <value> --catalog-source-namespace <value> ] [--catalog-source-image
-    <value> ] [--cluster-monitoring] [--telemetry on|off] [--skip-kubernetes-health-check]
+  $ dsc server:deploy -p openshift|crc [-h] [-n <value>] [--batch] [-i <value>] [-t <value>]
+    [--devfile-registry-url <value>] [--plugin-registry-url <value>] [--k8spodwaittimeout <value>] [--k8spodreadytimeout
+    <value>] [--k8spoddownloadimagetimeout <value>] [--k8spoderrorrechecktimeout <value>] [-d <value>] [--debug]
+    [--che-operator-image <value>] [--che-operator-cr-yaml <value>] [--che-operator-cr-patch-yaml <value>]
+    [--workspace-pvc-storage-class-name <value>] [--skip-version-check] [--skip-cert-manager]
+    [--skip-devworkspace-operator] [--skip-oidc-provider-check] [--auto-update] [--starting-csv <value>]
+    [--package-manifest-name <value>] [--catalog-source-yaml <value> --olm-channel stable|latest|fast|next]
+    [--catalog-source-name <value> --catalog-source-namespace <value> ] [--catalog-source-image <value> ]
+    [--cluster-monitoring] [--telemetry on|off] [--skip-kubernetes-health-check]
 
 FLAGS
-  -b, --domain=<value>
-      Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
-      This flag makes sense only for Kubernetes family infrastructures and will be autodetected for Minikube and MicroK8s
-      in most cases.
-      However, for Kubernetes cluster it is required to specify.
-      Please note, that just setting this flag will not likely work out of the box.
-      According changes should be done in Kubernetes cluster configuration as well.
-      In case of Openshift, domain adjustment should be done on the cluster configuration level.
-
   -d, --directory=<value>
       Directory to store logs into
 
@@ -269,8 +260,9 @@ FLAGS
       Red Hat OpenShift Dev Spaces Openshift Project.
 
   -p, --platform=<option>
-      Type of Kubernetes platform.
-      <options: minikube|k8s|openshift|microk8s|docker-desktop|crc>
+      (required) [default: openshift] Type of OpenShift platform. Valid values are "openshift", "crc (for OpenShift
+      Local)".
+      <options: openshift|crc>
 
   -t, --templates=<value>
       Path to the templates folder
@@ -330,9 +322,14 @@ FLAGS
   --k8spodwaittimeout=<value>
       [default: 60000] Waiting time for Pod scheduled condition (in milliseconds)
 
-  --olm-channel=<value>
-      Olm channel to install Red Hat OpenShift Dev Spaces, f.e. stable.
-      If options was not set, will be used default version for package manifest.
+  --olm-channel=<option>
+      [default: stable] Olm channel to install Red Hat OpenShift Dev Spaces.
+      The default 'stable' value will deploy the latest supported stable version of Red Hat OpenShift Dev Spaces from the
+      Red Hat Ecosystem Catalog.'
+      'latest' allows to deploy the latest unreleased version from quay.io.
+      'fast' or 'next' will deploy the next unreleased, unsupported, CI version of Red Hat OpenShift Dev Spaces from
+      quay.io.
+      <options: stable|latest|fast|next>
 
   --package-manifest-name=<value>
       Package manifest name to subscribe to Red Hat OpenShift Dev Spaces OLM package manifest.
@@ -374,7 +371,7 @@ DESCRIPTION
   Deploy Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/server/deploy.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/server/deploy.ts)_
 
 ## `dsc server:logs`
 
@@ -396,7 +393,7 @@ DESCRIPTION
   Collect Red Hat OpenShift Dev Spaces logs
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/server/logs.ts)_
 
 ## `dsc server:start`
 
@@ -426,7 +423,7 @@ DESCRIPTION
   Start Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/server/start.ts)_
 
 ## `dsc server:status`
 
@@ -446,7 +443,7 @@ DESCRIPTION
   Status Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/server/status.ts)_
+_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/server/status.ts)_
 
 ## `dsc server:stop`
 
@@ -467,7 +464,7 @@ DESCRIPTION
   stop Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/server/stop.ts)_
 
 ## `dsc server:update`
 
@@ -478,8 +475,8 @@ USAGE
   $ dsc server:update [-h] [-n <value>] [-y | --batch] [-t <value>] [--che-operator-image <value>]
     [--che-operator-cr-patch-yaml <value>] [--skip-devworkspace-operator] [--skip-kubernetes-health-check]
     [--skip-version-check] [--telemetry on|off] [--package-manifest-name <value>] [--catalog-source-namespace <value>
-    --catalog-source-name <value> --olm-channel <value>] [--catalog-source-yaml <value> ] [--catalog-source-image
-    <value> ] [--auto-update] [--starting-csv <value>]
+    --catalog-source-name <value> --olm-channel stable|latest|fast|next] [--catalog-source-yaml <value> ]
+    [--catalog-source-image <value> ] [--auto-update] [--starting-csv <value>]
 
 FLAGS
   -h, --help
@@ -523,9 +520,14 @@ FLAGS
   --che-operator-image=<value>
       Container image of the operator.
 
-  --olm-channel=<value>
-      Olm channel to install Red Hat OpenShift Dev Spaces, f.e. stable.
-      If options was not set, will be used default version for package manifest.
+  --olm-channel=<option>
+      [default: stable] Olm channel to install Red Hat OpenShift Dev Spaces.
+      The default 'stable' value will deploy the latest supported stable version of Red Hat OpenShift Dev Spaces from the
+      Red Hat Ecosystem Catalog.'
+      'latest' allows to deploy the latest unreleased version from quay.io.
+      'fast' or 'next' will deploy the next unreleased, unsupported, CI version of Red Hat OpenShift Dev Spaces from
+      quay.io.
+      <options: stable|latest|fast|next>
 
   --package-manifest-name=<value>
       Package manifest name to subscribe to Red Hat OpenShift Dev Spaces OLM package manifest.
@@ -585,7 +587,7 @@ EXAMPLES
     $ dsc server:update --olm-channel stable --catalog-source-yaml PATH_TO_CATALOG_SOURCE_YAML
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.10.0-CI/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/server/update.ts)_
 
 ## `dsc update [CHANNEL]`
 
