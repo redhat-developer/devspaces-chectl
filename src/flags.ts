@@ -15,10 +15,12 @@ import {EclipseChe} from './tasks/installers/eclipse-che/eclipse-che'
 import {CheCtlContext, InfrastructureContext} from './context'
 
 export const PLATFORM_FLAG = 'platform'
-export const PLATFORM  = Flags.string({
+export const PLATFORM = Flags.string({
   char: 'p',
-  description: 'Type of Kubernetes platform.',
-  options: ['minikube', 'k8s', 'openshift', 'microk8s', 'docker-desktop', 'crc'],
+  description: 'Type of OpenShift platform. Valid values are \"openshift\", \"crc (for OpenShift Local)\".',
+  options: ['openshift', 'crc'],
+  default: 'openshift',
+  required: true,
 })
 
 export const CHE_NAMESPACE_FLAG = 'chenamespace'
@@ -163,15 +165,9 @@ export const CHE_IMAGE  = Flags.string({
 })
 
 export const DOMAIN_FLAG = 'domain'
-export const DOMAIN  = Flags.string({
-  char: 'b',
-  description: `Domain of the Kubernetes cluster (e.g. example.k8s-cluster.com or <local-ip>.nip.io)
-                    This flag makes sense only for Kubernetes family infrastructures and will be autodetected for Minikube and MicroK8s in most cases.
-                    However, for Kubernetes cluster it is required to specify.
-                    Please note, that just setting this flag will not likely work out of the box.
-                    According changes should be done in Kubernetes cluster configuration as well.
-                    In case of Openshift, domain adjustment should be done on the cluster configuration level.`,
-  default: '',
+export const DOMAIN = Flags.string({
+  description: '',
+  hidden: true,
 })
 
 export const DEBUG_FLAG = 'debug'
@@ -247,9 +243,13 @@ export const AUTO_UPDATE = Flags.boolean({
 })
 
 export const OLM_CHANNEL_FLAG = 'olm-channel'
-export const OLM_CHANNEL  = Flags.string({
-  description: `Olm channel to install ${EclipseChe.PRODUCT_NAME}, f.e. stable.
-                    If options was not set, will be used default version for package manifest.`,
+export const OLM_CHANNEL = Flags.string({
+  description: `Olm channel to install ${EclipseChe.PRODUCT_NAME}.
+     The default 'stable' value will deploy the latest supported stable version of ${EclipseChe.PRODUCT_NAME} from the Red Hat Ecosystem Catalog.'
+     'latest' allows to deploy the latest unreleased version from quay.io.
+     'fast' or 'next' will deploy the next unreleased, unsupported, CI version of ${EclipseChe.PRODUCT_NAME} from quay.io.`,
+  options: ['stable', 'latest', 'fast', 'next'],
+  default: 'stable',
 })
 
 export const PACKAGE_MANIFEST_FLAG = 'package-manifest-name'

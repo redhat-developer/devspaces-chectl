@@ -58,8 +58,8 @@ export namespace EclipseChe {
   export const OPERATOR_IMAGE_NEXT_TAG = 'next'
 
   // Doc links
-  export const DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.10/'
-  export const DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.10/html/release_notes_and_known_issues/index'
+  export const DOC_LINK = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.11/'
+  export const DOC_LINK_RELEASE_NOTES = 'https://access.redhat.com/documentation/en-us/red_hat_openshift_dev_spaces/3.11/html/release_notes_and_known_issues/index'
   export const DOC_LINK_CONFIGURE_API_SERVER = 'https://kubernetes.io/docs/reference/access-authn-authz/authentication/#configuring-the-api-server'
 
   // Components
