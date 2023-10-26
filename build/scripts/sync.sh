@@ -123,12 +123,12 @@ pushd "${TARGETDIR}" >/dev/null
   done <   <(find prepare-templates.js -print0)
 popd >/dev/null
 
-domainString="export const DOMAIN = string({\n\
+domainString="export const DOMAIN = Flags.string({\n\
   description: '',\n\
   hidden: true,\n\
 })"
 
-platformString="export const PLATFORM = string({\n\
+platformString="export const PLATFORM = Flags.string({\n\
   char: 'p',\n\
   description: 'Type of OpenShift platform. Valid values are \\\\\"openshift\\\\\", \\\\\"crc (for OpenShift Local)\\\\\".',\n\
   options: ['openshift', 'crc'],\n\
@@ -136,7 +136,7 @@ platformString="export const PLATFORM = string({\n\
   required: true,\n\
 })"
 
-channelString="export const OLM_CHANNEL = string({\n\
+channelString="export const OLM_CHANNEL = Flags.string({\n\
   description: \`Olm channel to install \${EclipseChe.PRODUCT_NAME}.\n\
      The default 'stable' value will deploy the latest supported stable version of \${EclipseChe.PRODUCT_NAME} from the Red Hat Ecosystem Catalog.'\n\
      'latest' allows to deploy the latest unreleased version from quay.io.\n\
@@ -151,15 +151,15 @@ pushd "${TARGETDIR}" >/dev/null
   echo "[INFO] Convert ${d}"
 
   # Hide domain flag
-  perl -0777 -p -i -e 's|(export const DOMAIN = string\(\{.*?\}\))| ${1} =~ /.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
+  perl -0777 -p -i -e 's|(export const DOMAIN[ ]+= Flags.string\(\{.*?\}\))| ${1} =~ /.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
   sed -r -e "s#INSERT-CONTENT-HERE#${domainString}#" -i "${TARGETDIR}/${d}"
 
   # Update platform flag
-  perl -0777 -p -i -e 's|(export const PLATFORM = string\(\{.*?\}\))| ${1} =~ /.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
+  perl -0777 -p -i -e 's|(export const PLATFORM[ ]+= Flags.string\(\{.*?\}\))| ${1} =~ /.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
   sed -r -e "s#INSERT-CONTENT-HERE#${platformString}#" -i "${TARGETDIR}/${d}"
 
   # Update channel flag
-  perl -0777 -p -i -e 's|(export const OLM_CHANNEL = string\(\{.*?\}\))| ${1} =~ /.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
+  perl -0777 -p -i -e 's|(export const OLM_CHANNEL[ ]+= Flags.string\(\{.*?\}\))| ${1} =~ /.+/?"INSERT-CONTENT-HERE":${1}|gse' "${TARGETDIR}/${d}"
   sed -r -e "s#INSERT-CONTENT-HERE#${channelString}#" -i "${TARGETDIR}/${d}"
 
   # Convert
