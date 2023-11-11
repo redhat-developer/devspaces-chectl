@@ -1,6 +1,6 @@
 {
   "name": "dsc",
-  "version": "3.9.0-CI-redhat",
+  "version": "3.9.1-CI-ac2a-redhat",
   "description": "Red Hat OpenShift Dev Spaces CLI",
   "keywords": [
     "oclif"
