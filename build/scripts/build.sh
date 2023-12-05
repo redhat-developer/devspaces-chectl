@@ -234,7 +234,7 @@ if [[ $PUBLISH -eq 1 ]]; then
     rsync -rlP --delete --exclude=build-requirements --exclude="${TARBALL_PREFIX}.${today}" "$empty_dir"/ "${REMOTE_USER_AND_HOST}:staging/devspaces/"
 
     # CRW-4855 get gz files from the container we built above
-    rm -fr /tmp/quay.io-devspaces-dsc-"${CSV_VERSION}"-*
+    sudo rm -fr /tmp/quay.io-devspaces-dsc-"${CSV_VERSION}"-*
     if [[ ! -f /tmp/containerExtract.sh ]]; then 
         curl -sSLko "/tmp//containerExtract.sh" https://raw.githubusercontent.com/redhat-developer/devspaces/devspaces-3-rhel-8/product/containerExtract.sh && chmod +x /tmp/containerExtract.sh
     fi
@@ -242,7 +242,7 @@ if [[ $PUBLISH -eq 1 ]]; then
     # move files we want to rsync into the correct folder name
     mkdir -p "${TODAY_DIR}/"
     mv /tmp/quay.io-devspaces-dsc-"${CSV_VERSION}"-*/dsc/*gz "${TODAY_DIR}/"
-    rm -fr /tmp/quay.io-devspaces-dsc-"${CSV_VERSION}"-*
+    sudo rm -fr /tmp/quay.io-devspaces-dsc-"${CSV_VERSION}"-*
 
     # next, update existing ${TARBALL_PREFIX}.${today} folder (or create it not exist)
     rsync -rlP --exclude "dsc*.tar.gz" --exclude "*-quay-*.tar.gz" "${TODAY_DIR}" "${REMOTE_USER_AND_HOST}:staging/devspaces/"
