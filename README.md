@@ -64,7 +64,6 @@ USAGE
 <!-- commands -->
 * [`dsc autocomplete [SHELL]`](#dsc-autocomplete-shell)
 * [`dsc cacert:export`](#dsc-cacertexport)
-* [`dsc commands`](#dsc-commands)
 * [`dsc dashboard:open`](#dsc-dashboardopen)
 * [`dsc help [COMMANDS]`](#dsc-help-commands)
 * [`dsc server:debug`](#dsc-serverdebug)
@@ -140,39 +139,7 @@ DESCRIPTION
   Retrieves Red Hat OpenShift Dev Spaces self-signed certificate
 ```
 
-_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.12.0-CI/src/commands/cacert/export.ts)_
-
-## `dsc commands`
-
-list all the commands
-
-```
-USAGE
-  $ dsc commands [--json] [-h] [--hidden] [--tree] [--columns <value> | -x] [--filter <value>] [--no-header |
-    [--csv | --no-truncate]] [--output csv|json|yaml |  | ] [--sort <value>]
-
-FLAGS
-  -h, --help         Show CLI help.
-  -x, --extended     show extra columns
-  --columns=<value>  only show provided columns (comma-separated)
-  --csv              output is csv format [alias: --output=csv]
-  --filter=<value>   filter property by partial string matching, ex: name=foo
-  --hidden           show hidden commands
-  --no-header        hide table header from output
-  --no-truncate      do not truncate output to fit screen
-  --output=<option>  output in a more machine friendly format
-                     <options: csv|json|yaml>
-  --sort=<value>     property to sort by (prepend '-' for descending)
-  --tree             show tree of commands
-
-GLOBAL FLAGS
-  --json  Format output as json.
-
-DESCRIPTION
-  list all the commands
-```
-
-_See code: [@oclif/plugin-commands](https://github.com/oclif/plugin-commands/blob/v3.0.7/src/commands/commands.ts)_
+_See code: [src/commands/cacert/export.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/cacert/export.ts)_
 
 ## `dsc dashboard:open`
 
@@ -192,7 +159,7 @@ DESCRIPTION
   Open Red Hat OpenShift Dev Spaces dashboard
 ```
 
-_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.12.0-CI/src/commands/dashboard/open.ts)_
+_See code: [src/commands/dashboard/open.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/dashboard/open.ts)_
 
 ## `dsc help [COMMANDS]`
 
@@ -212,7 +179,7 @@ DESCRIPTION
   Display help for dsc.
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.0.7/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.2.20/src/commands/help.ts)_
 
 ## `dsc server:debug`
 
@@ -234,7 +201,7 @@ DESCRIPTION
   Enable local debug of Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.12.0-CI/src/commands/server/debug.ts)_
+_See code: [src/commands/server/debug.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/server/debug.ts)_
 
 ## `dsc server:delete`
 
@@ -261,7 +228,7 @@ DESCRIPTION
   delete any Red Hat OpenShift Dev Spaces related resource
 ```
 
-_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.12.0-CI/src/commands/server/delete.ts)_
+_See code: [src/commands/server/delete.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/server/delete.ts)_
 
 ## `dsc server:deploy`
 
@@ -404,7 +371,7 @@ DESCRIPTION
   Deploy Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.12.0-CI/src/commands/server/deploy.ts)_
+_See code: [src/commands/server/deploy.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/server/deploy.ts)_
 
 ## `dsc server:logs`
 
@@ -426,7 +393,7 @@ DESCRIPTION
   Collect Red Hat OpenShift Dev Spaces logs
 ```
 
-_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.12.0-CI/src/commands/server/logs.ts)_
+_See code: [src/commands/server/logs.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/server/logs.ts)_
 
 ## `dsc server:start`
 
@@ -456,7 +423,7 @@ DESCRIPTION
   Start Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.12.0-CI/src/commands/server/start.ts)_
+_See code: [src/commands/server/start.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/server/start.ts)_
 
 ## `dsc server:status`
 
@@ -476,7 +443,7 @@ DESCRIPTION
   Status Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.12.0-CI/src/commands/server/status.ts)_
+_See code: [src/commands/server/status.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/server/status.ts)_
 
 ## `dsc server:stop`
 
@@ -497,7 +464,7 @@ DESCRIPTION
   stop Red Hat OpenShift Dev Spaces server
 ```
 
-_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.12.0-CI/src/commands/server/stop.ts)_
+_See code: [src/commands/server/stop.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/server/stop.ts)_
 
 ## `dsc server:update`
 
@@ -620,7 +587,7 @@ EXAMPLES
     $ dsc server:update --olm-channel stable --catalog-source-yaml PATH_TO_CATALOG_SOURCE_YAML
 ```
 
-_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.12.0-CI/src/commands/server/update.ts)_
+_See code: [src/commands/server/update.ts](https://github.com/redhat-developer/devspaces-chectl/blob/v3.11.0-CI/src/commands/server/update.ts)_
 
 ## `dsc update [CHANNEL]`
 
@@ -628,36 +595,16 @@ update the dsc CLI
 
 ```
 USAGE
-  $ dsc update [CHANNEL] [-a] [--force] [-i | -v <value>]
+  $ dsc update [CHANNEL] [--from-local]
 
 FLAGS
-  -a, --available        See available versions.
-  -i, --interactive      Interactively select version to install. This is ignored if a channel is provided.
-  -v, --version=<value>  Install a specific version.
-  --force                Force a re-download of the requested version.
+  --from-local  interactively choose an already installed version
 
 DESCRIPTION
   update the dsc CLI
-
-EXAMPLES
-  Update to the stable channel:
-
-    $ dsc update stable
-
-  Update to a specific version:
-
-    $ dsc update --version 1.0.0
-
-  Interactively select version:
-
-    $ dsc update --interactive
-
-  See available versions:
-
-    $ dsc update --available
 ```
 
-_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v4.1.4/dist/commands/update.ts)_
+_See code: [@oclif/plugin-update](https://github.com/oclif/plugin-update/blob/v1.5.0/src/commands/update.ts)_
 
 ## `dsc version`
 
