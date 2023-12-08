@@ -1,6 +1,6 @@
 {
   "name": "dsc",
-  "version": "3.12.0-CI",
+  "version": "3.11.0-CI",
   "description": "Red Hat OpenShift Dev Spaces CLI",
   "keywords": [
     "oclif"
@@ -72,9 +72,8 @@
     "@oclif/core": "^3.0.4",
     "@oclif/parser": "^3.8.17",
     "@oclif/plugin-autocomplete": "^2.3.9",
-    "@oclif/plugin-commands": "^3.0.7",
-    "@oclif/plugin-help": "^6.0.7",
-    "@oclif/plugin-update": "^4.1.4",
+    "@oclif/plugin-help": "^5.2.20",
+    "@oclif/plugin-update": "^1",
     "@oclif/plugin-version": "^2.0.1",
     "@octokit/rest": "^19.0.5",
     "analytics-node": "^6.2.0",
@@ -83,8 +82,8 @@
     "cli-ux": "^6.0.9",
     "command-exists": "^1.2.9",
     "countries-and-timezones": "^3.4.1",
-    "devspaces-operator": "https://github.com/redhat-developer/devspaces-images#devspaces-3-rhel-8",
-    "devworkspace-operator": "https://github.com/devfile/devworkspace-operator#main",
+    "devspaces-operator": "https://github.com/redhat-developer/devspaces-images#devspaces-3.11-rhel-8",
+    "devworkspace-operator": "https://github.com/devfile/devworkspace-operator#v0.24.0",
     "execa": "^5.1.1",
     "fancy-test": "^2.0.25",
     "fs-extra": "^11.1.0",
@@ -144,7 +143,7 @@
       "-v"
     ],
     "topicSeparator": ":",
-    "default": "commands",
+    "default": ".",
     "commands": "./lib/commands",
     "hooks": {
       "prerun": "./lib/hooks/prerun/new-version-warning",
@@ -158,8 +157,7 @@
       "@oclif/plugin-autocomplete",
       "@oclif/plugin-help",
       "@oclif/plugin-update",
-      "@oclif/plugin-version",
-      "@oclif/plugin-commands"
+      "@oclif/plugin-version"
     ],
     "topics": {
       "server": {
