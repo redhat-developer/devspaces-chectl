@@ -67,6 +67,54 @@
       "^.+\\.tsx?$": "ts-jest"
     }
   },
+  "oclif": {
+    "additionalHelpFlags": [
+      "-h"
+    ],
+    "additionalVersionFlags": [
+      "-v"
+    ],
+    "bin": "dsc",
+    "commands": "./lib/commands",
+    "default": "commands",
+    "hooks": {
+      "analytics": "./lib/hooks/analytics/analytics",
+      "prerun": "./lib/hooks/prerun/new-version-warning"
+    },
+    "macos": {
+      "identifier": "redhat-developer.dsc"
+    },
+    "plugins": [
+      "@oclif/plugin-autocomplete",
+      "@oclif/plugin-help",
+      "@oclif/plugin-update",
+      "@oclif/plugin-version",
+      "@oclif/plugin-commands"
+    ],
+    "topicSeparator": ":",
+    "topics": {
+      "server": {
+        "description": "Control Red Hat OpenShift Dev Spaces server"
+      }
+    },
+    "update": {
+      "s3": {
+        "host": "https://redhat-developer.github.io/devspaces-chectl/",
+        "templates": {
+          "target": {
+            "manifest": "<%- 'channels/' + channel + '/' %><%- platform %>-<%- arch %>",
+            "unversioned": "<%- 'channels/' + channel + '/' %><%- bin %>-<%- platform %>-<%- arch %><%- ext %>",
+            "versioned": "<%- 'channels/' + channel + '/' %>/<%- bin %>-<%- platform %>-<%- arch %><%- ext %>"
+          },
+          "vanilla": {
+            "manifest": "<%- 'channels/' + channel + '/' %><%- platform %>-<%- arch %>",
+            "unversioned": "<%- 'channels/' + channel + '/' %><%- bin %>-<%- platform %>-<%- arch %><%- ext %>",
+            "versioned": "<%- 'channels/' + channel + '/' %>/<%- bin %>-<%- platform %>-<%- arch %><%- ext %>"
+          }
+        }
+      }
+    }
+  },
   "dependencies": {
     "@kubernetes/client-node": "0.14.3",
     "@oclif/core": "^3.0.4",
@@ -135,53 +183,5 @@
   },
   "engines": {
     "node": ">=18.0.0"
-  },
-  "oclif": {
-    "additionalHelpFlags": [
-      "-h"
-    ],
-    "additionalVersionFlags": [
-      "-v"
-    ],
-    "topicSeparator": ":",
-    "default": "commands",
-    "commands": "./lib/commands",
-    "hooks": {
-      "prerun": "./lib/hooks/prerun/new-version-warning",
-      "analytics": "./lib/hooks/analytics/analytics"
-    },
-    "bin": "dsc",
-    "macos": {
-      "identifier": "redhat-developer.dsc"
-    },
-    "plugins": [
-      "@oclif/plugin-autocomplete",
-      "@oclif/plugin-help",
-      "@oclif/plugin-update",
-      "@oclif/plugin-version",
-      "@oclif/plugin-commands"
-    ],
-    "topics": {
-      "server": {
-        "description": "Control Red Hat OpenShift Dev Spaces server"
-      }
-    },
-    "update": {
-      "s3": {
-        "host": "https://redhat-developer.github.io/devspaces-chectl/",
-        "templates": {
-          "target": {
-            "unversioned": "<%- 'channels/' + channel + '/' %><%- bin %>-<%- platform %>-<%- arch %><%- ext %>",
-            "versioned": "<%- 'channels/' + channel + '/' %>/<%- bin %>-<%- platform %>-<%- arch %><%- ext %>",
-            "manifest": "<%- 'channels/' + channel + '/' %><%- platform %>-<%- arch %>"
-          },
-          "vanilla": {
-            "unversioned": "<%- 'channels/' + channel + '/' %><%- bin %>-<%- platform %>-<%- arch %><%- ext %>",
-            "versioned": "<%- 'channels/' + channel + '/' %>/<%- bin %>-<%- platform %>-<%- arch %><%- ext %>",
-            "manifest": "<%- 'channels/' + channel + '/' %><%- platform %>-<%- arch %>"
-          }
-        }
-      }
-    }
   }
 }
