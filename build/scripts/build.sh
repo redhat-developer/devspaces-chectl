@@ -30,7 +30,7 @@ CACHEFLAG="--no-cache" # always build a fresh container; use --cache flag to nul
 PUBLISH_TO_GITHUB=0 # CRW-4855 deprecated, remove when publishing to quay is completed
 PUBLISH_TO_QUAY=0 # new for DS 3.10
 PUBLISH=0 # by default don't publish sources to spmm-util
-REMOTE_USER_AND_HOST="devspaces-build@spmm-util.hosts.stage.psi.bos.redhat.com"
+REMOTE_USER_AND_HOST="devspaces-build@spmm-util.hosts.prod.psi.bos.redhat.com"
 
 MIDSTM_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 DEFAULT_TAG=${MIDSTM_BRANCH#*-}; DEFAULT_TAG=${DEFAULT_TAG%%-*}
