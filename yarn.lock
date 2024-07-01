@@ -3521,10 +3521,10 @@ core-util-is@1.0.2, core-util-is@~1.0.0:
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"
   integrity sha1-tf1UIgqivFq1eqtxQMlAdUUDwac=
 
-countries-and-timezones@*, countries-and-timezones@^3.4.1:
-  version "3.4.1"
-  resolved "https://registry.yarnpkg.com/countries-and-timezones/-/countries-and-timezones-3.4.1.tgz#0ec2540f57e42f0f740eb2acaede786043347fe1"
-  integrity sha512-INeHGCony4XUUR8iGL/lmt9s1Oi+n+gFHeJAMfbV5hJfYeDOB8JG1oxz5xFQu5oBZoRCJe/87k1Vzue9DoIauA==
+countries-and-timezones@*, countries-and-timezones@^3.6.0:
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/countries-and-timezones/-/countries-and-timezones-3.6.0.tgz#80716f05ebef270842fd72010f9b33e2848e24c7"
+  integrity sha512-8/nHBCs1eKeQ1jnsZVGdqrLYxS8nPcfJn8PnmxdJXWRLZdXsGFR8gnVhRjatGDBjqmPm7H+FtYpBYTPWd0Eiqg==
 
 create-jest@^29.7.0:
   version "29.7.0"
@@ -8557,9 +8557,9 @@ typescript-formatter@7.2.2:
     editorconfig "^0.15.0"
 
 typescript@^5:
-  version "5.2.2"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.2.2.tgz#5ebb5e5a5b75f085f22bc3f8460fba308310fa78"
-  integrity sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==
+  version "5.3.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.3.3.tgz#b3ce6ba258e72e6305ba66f5c9b452aaee3ffe37"
+  integrity sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oNEnWw==
 
 underscore@^1.9.1:
   version "1.13.1"
