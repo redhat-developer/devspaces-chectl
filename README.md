@@ -274,10 +274,10 @@ USAGE
     <value>] [--k8spoddownloadimagetimeout <value>] [--k8spoderrorrechecktimeout <value>] [-d <value>] [--debug]
     [--che-operator-image <value>] [--che-operator-cr-yaml <value>] [--che-operator-cr-patch-yaml <value>]
     [--workspace-pvc-storage-class-name <value>] [--skip-version-check] [--skip-cert-manager]
-    [--skip-devworkspace-operator] [--skip-oidc-provider-check] [--auto-update] [--starting-csv <value>]
-    [--package-manifest-name <value>] [--catalog-source-yaml <value> --olm-channel stable|latest|fast|next]
-    [--catalog-source-name <value> --catalog-source-namespace <value> ] [--catalog-source-image <value> ]
-    [--cluster-monitoring] [--telemetry on|off] [--skip-kubernetes-health-check]
+    [--skip-devworkspace-operator] [--auto-update] [--starting-csv <value>] [--package-manifest-name <value>]
+    [--catalog-source-yaml <value> --olm-channel stable|latest|fast|next] [--catalog-source-name <value>
+    --catalog-source-namespace <value> ] [--catalog-source-image <value> ] [--cluster-monitoring] [--telemetry on|off]
+    [--skip-kubernetes-health-check]
 
 FLAGS
   -d, --directory=<value>
@@ -378,9 +378,6 @@ FLAGS
 
   --skip-kubernetes-health-check
       Skip Kubernetes health check
-
-  --skip-oidc-provider-check
-      Skip OIDC Provider check
 
   --skip-version-check
       Skip minimal versions check.
