@@ -3683,11 +3683,11 @@ detect-newline@^3.0.0:
 
 "devspaces-operator@https://github.com/redhat-developer/devspaces-images#devspaces-3-rhel-8":
   version "0.0.0"
-  resolved "https://github.com/redhat-developer/devspaces-images#6791757947352dcf99fd016c9b5299e52f624031"
+  resolved "https://github.com/redhat-developer/devspaces-images#720432769a708d406da1274e5415feb048427bf6"
 
 "devworkspace-operator@https://github.com/devfile/devworkspace-operator#main":
   version "0.0.0"
-  resolved "https://github.com/devfile/devworkspace-operator#6dadf496af1c70eae9980f2bb510bd82257ee35c"
+  resolved "https://github.com/devfile/devworkspace-operator#cc0c24687ec23f0e05c1577dacdaa642556a5ae9"
 
 dezalgo@^1.0.0:
   version "1.0.4"
